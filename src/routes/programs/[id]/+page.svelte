@@ -1,0 +1,109 @@
+<script lang="ts">
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { programRepository } from '$lib/services/storage/program-repository';
+	import type { Program } from '$lib/types/program';
+	import WorkoutCard from '$lib/components/program/WorkoutCard.svelte';
+	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
+	import Card from '$lib/components/shared/Card.svelte';
+	import Button from '$lib/components/shared/Button.svelte';
+	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
+	import { ArrowLeft, Calendar, Trash2 } from 'lucide-svelte';
+
+	let program = $state<Program | null>(null);
+	let loading = $state(true);
+
+	onMount(async () => {
+		const id = $page.params.id;
+		if (id) {
+			const loaded = await programRepository.get(id);
+			program = loaded || null;
+		}
+		loading = false;
+	});
+
+	async function handleDelete() {
+		if (!program) return;
+		if (confirm('Are you sure you want to delete this program?')) {
+			await programRepository.delete(program.id);
+			goto('/');
+		}
+	}
+</script>
+
+{#if loading}
+	<div class="flex justify-center py-12">
+		<LoadingSpinner size="lg" />
+	</div>
+{:else if !program}
+	<Card>
+		<div class="text-center py-12">
+			<p class="text-gray-600">Program not found</p>
+			<Button onclick={() => goto('/')}>
+				{#snippet children()}
+					Go Home
+				{/snippet}
+			</Button>
+		</div>
+	</Card>
+{:else}
+	<div class="space-y-6">
+		<div class="flex items-center gap-4">
+			<button
+				onclick={() => goto('/')}
+				class="text-gray-600 hover:text-gray-900 touch-target"
+			>
+				<ArrowLeft size={24} />
+			</button>
+			<h1 class="text-2xl font-bold flex-1">{program.name}</h1>
+			<button
+				onclick={handleDelete}
+				class="text-red-600 hover:text-red-700 touch-target"
+			>
+				<Trash2 size={20} />
+			</button>
+		</div>
+
+		<Card>
+			<div class="space-y-4">
+				<div>
+					<h2 class="text-sm font-medium text-gray-500 uppercase">Description</h2>
+					<p class="mt-1 text-gray-900">{program.description}</p>
+				</div>
+
+				<div>
+					<h2 class="text-sm font-medium text-gray-500 uppercase">Schedule</h2>
+					<div class="mt-2 flex flex-wrap gap-2">
+						{#each program.schedule.weeklyPattern as pattern}
+							<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+								{DAY_NAMES[pattern.dayOfWeek]}
+							</span>
+						{/each}
+					</div>
+				</div>
+
+				<div>
+					<h2 class="text-sm font-medium text-gray-500 uppercase">Started</h2>
+					<p class="mt-1 text-gray-900">{formatDate(program.startDate)}</p>
+				</div>
+			</div>
+		</Card>
+
+		<div>
+			<h2 class="text-xl font-semibold mb-3">Workouts</h2>
+			<div class="space-y-3">
+				{#each program.workouts as workout}
+					<WorkoutCard {workout} />
+				{/each}
+			</div>
+		</div>
+
+		<Button onclick={() => goto('/calendar')} fullWidth={true} size="lg">
+			{#snippet children()}
+				<Calendar size={20} />
+				View Calendar
+			{/snippet}
+		</Button>
+	</div>
+{/if}
