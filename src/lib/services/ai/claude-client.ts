@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export class ClaudeClient {
-	private client: Anthropic;
+	private client: Anthropic | null = null;
 	private lastRequestTime = 0;
 	private readonly MIN_REQUEST_DELAY = 1000;
 
@@ -9,10 +9,20 @@ export class ClaudeClient {
 		const key =
 			apiKey ||
 			(typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null);
-		if (!key) {
-			throw new Error('Anthropic API key is required. Please set it in Settings.');
+		if (key) {
+			this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
 		}
-		this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+	}
+
+	private ensureClient(): void {
+		if (!this.client) {
+			const key =
+				typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null;
+			if (!key) {
+				throw new Error('Anthropic API key is required. Please set it in Settings.');
+			}
+			this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+		}
 	}
 
 	private async rateLimit(): Promise<void> {
@@ -30,9 +40,10 @@ export class ClaudeClient {
 		messages: Array<{ role: 'user' | 'assistant'; content: string }>,
 		systemPrompt: string
 	): Promise<string> {
+		this.ensureClient();
 		await this.rateLimit();
 
-		const response = await this.client.messages.create({
+		const response = await this.client!.messages.create({
 			model: 'claude-3-5-sonnet-20241022',
 			max_tokens: 4096,
 			system: systemPrompt,
@@ -51,9 +62,10 @@ export class ClaudeClient {
 		systemPrompt: string,
 		onChunk: (text: string) => void
 	): Promise<void> {
+		this.ensureClient();
 		await this.rateLimit();
 
-		const stream = await this.client.messages.create({
+		const stream = await this.client!.messages.create({
 			model: 'claude-3-5-sonnet-20241022',
 			max_tokens: 4096,
 			system: systemPrompt,
