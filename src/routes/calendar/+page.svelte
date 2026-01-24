@@ -4,6 +4,7 @@
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import type { Program } from '$lib/types/program';
+	import type { WorkoutSession } from '$lib/types/workout-session';
 	import WeekView from '$lib/components/calendar/WeekView.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
@@ -11,6 +12,7 @@
 
 	let programs = $state<Program[]>([]);
 	let selectedProgram = $state<Program | null>(null);
+	let completedSessions = $state<WorkoutSession[]>([]);
 	let loading = $state(true);
 
 	onMount(async () => {
@@ -18,6 +20,8 @@
 		if (programs.length > 0) {
 			selectedProgram = programs[0];
 		}
+		// Load all completed sessions
+		completedSessions = await workoutSessionRepository.getCompleted();
 		loading = false;
 	});
 
@@ -72,6 +76,6 @@
 			</div>
 		{/if}
 
-		<WeekView program={selectedProgram} onworkoutclick={startWorkout} />
+		<WeekView program={selectedProgram} {completedSessions} onworkoutclick={startWorkout} />
 	</div>
 {/if}

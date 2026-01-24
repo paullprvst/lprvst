@@ -9,7 +9,7 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Calendar, Trash2 } from 'lucide-svelte';
+	import { ArrowLeft, Calendar, Trash2, Sparkles } from 'lucide-svelte';
 
 	let program = $state<Program | null>(null);
 	let loading = $state(true);
@@ -99,11 +99,20 @@
 			</div>
 		</div>
 
-		<Button onclick={() => goto('/calendar')} fullWidth={true} size="lg">
-			{#snippet children()}
-				<Calendar size={20} />
-				View Calendar
-			{/snippet}
-		</Button>
+		<div class="space-y-3">
+			<Button onclick={() => goto('/calendar')} fullWidth={true} size="lg">
+				{#snippet children()}
+					<Calendar size={20} />
+					View Calendar
+				{/snippet}
+			</Button>
+
+			<Button onclick={() => goto(`/programs/${program!.id}/adapt`)} fullWidth={true} size="lg" variant="secondary">
+				{#snippet children()}
+					<Sparkles size={20} />
+					Adapt Program with AI
+				{/snippet}
+			</Button>
+		</div>
 	</div>
 {/if}

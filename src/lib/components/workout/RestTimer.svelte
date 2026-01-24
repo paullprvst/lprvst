@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Clock } from 'lucide-svelte';
+	import { Clock, SkipForward } from 'lucide-svelte';
+	import Button from '../shared/Button.svelte';
 
 	interface Props {
 		duration: number;
 		oncomplete: () => void;
+		label?: string;
 	}
 
-	let { duration, oncomplete }: Props = $props();
+	let { duration, oncomplete, label = 'Rest time remaining' }: Props = $props();
 
 	let remaining = $state(0);
 	let startTime = $state(0);
@@ -40,6 +42,11 @@
 	});
 
 	const progress = $derived((remaining / duration) * 100);
+
+	function skip() {
+		if (intervalId) clearInterval(intervalId);
+		oncomplete();
+	}
 </script>
 
 <div class="bg-blue-50 rounded-lg p-6 text-center space-y-4">
@@ -59,5 +66,12 @@
 		></div>
 	</div>
 
-	<p class="text-sm text-gray-600">Rest time remaining</p>
+	<p class="text-sm text-gray-600">{label}</p>
+
+	<Button onclick={skip} variant="secondary" fullWidth={true}>
+		{#snippet children()}
+			<SkipForward size={20} />
+			Skip Rest
+		{/snippet}
+	</Button>
 </div>

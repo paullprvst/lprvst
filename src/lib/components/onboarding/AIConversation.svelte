@@ -13,9 +13,10 @@
 		readyToGenerate: boolean;
 		onsend: (message: string) => void;
 		ongenerate: () => void;
+		generateButtonText?: string;
 	}
 
-	let { messages, loading, readyToGenerate, onsend, ongenerate }: Props = $props();
+	let { messages, loading, readyToGenerate, onsend, ongenerate, generateButtonText = 'Generate My Program' }: Props = $props();
 
 	let input = $state('');
 	let messagesContainer: HTMLDivElement;
@@ -42,6 +43,14 @@
 			}, 100);
 		}
 	});
+
+	function cleanMessageContent(content: string): string {
+		// Remove system tags from displayed messages
+		return content
+			.replace(/READY_TO_GENERATE/g, '')
+			.replace(/READY_TO_MODIFY/g, '')
+			.trim();
+	}
 </script>
 
 <div class="space-y-4">
@@ -57,7 +66,7 @@
 							? 'bg-blue-600 text-white'
 							: 'bg-gray-100 text-gray-900'}"
 					>
-						<p class="whitespace-pre-wrap">{message.content}</p>
+						<p class="whitespace-pre-wrap">{cleanMessageContent(message.content)}</p>
 					</div>
 				</div>
 			{/each}
@@ -75,7 +84,7 @@
 	{#if readyToGenerate}
 		<Button onclick={ongenerate} fullWidth={true} size="lg">
 			{#snippet children()}
-				Generate My Program
+				{generateButtonText}
 			{/snippet}
 		</Button>
 	{:else}

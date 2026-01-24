@@ -7,6 +7,7 @@ class WorkoutStore {
 	currentExerciseIndex = $state(0);
 	resting = $state(false);
 	restDuration = $state(0);
+	restType = $state<'set' | 'exercise'>('set');
 
 	setSession(session: WorkoutSession, workout: Workout) {
 		this.session = session;
@@ -36,24 +37,32 @@ class WorkoutStore {
 	}
 
 	completeSet(setNumber: number) {
-		if (!this.session || !this.currentExerciseLog) return;
+		if (!this.session || !this.currentExerciseLog || !this.currentExercise) return;
 
 		const set = this.currentExerciseLog.sets.find(s => s.setNumber === setNumber);
-		if (set) {
+		if (set && !set.completed) {
 			set.completed = true;
 			set.completedAt = new Date();
 
 			// Check if all sets are completed
 			const allCompleted = this.currentExerciseLog.sets.every(s => s.completed);
-			if (allCompleted && this.currentExercise && this.currentExercise.restTime > 0 && !this.isLastExercise) {
-				this.startRest(this.currentExercise.restTime);
+
+			if (allCompleted) {
+				// All sets done - show rest before next exercise (if not last exercise)
+				if (this.currentExercise.restTime > 0 && !this.isLastExercise) {
+					this.startRest(this.currentExercise.restTime, 'exercise');
+				}
+			} else if (this.currentExercise.restTime > 0) {
+				// More sets to do - show rest between sets
+				this.startRest(this.currentExercise.restTime, 'set');
 			}
 		}
 	}
 
-	startRest(duration: number) {
+	startRest(duration: number, type: 'set' | 'exercise' = 'set') {
 		this.resting = true;
 		this.restDuration = duration;
+		this.restType = type;
 	}
 
 	completeRest() {
@@ -74,6 +83,7 @@ class WorkoutStore {
 		this.currentExerciseIndex = 0;
 		this.resting = false;
 		this.restDuration = 0;
+		this.restType = 'set';
 	}
 }
 

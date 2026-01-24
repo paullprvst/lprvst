@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { addWeeks, subWeeks, startOfWeek } from 'date-fns';
-	import { getWeekSchedule, formatDate, DAY_NAMES_SHORT } from '$lib/utils/date-helpers';
+	import { addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+	import { getWeekSchedule, formatDate, DAY_NAMES_SHORT, getCompletedWorkoutForDate } from '$lib/utils/date-helpers';
 	import type { Program } from '$lib/types/program';
+	import type { WorkoutSession } from '$lib/types/workout-session';
 	import CalendarDay from './CalendarDay.svelte';
 	import Card from '../shared/Card.svelte';
 	import WorkoutCard from '../program/WorkoutCard.svelte';
@@ -9,10 +10,11 @@
 
 	interface Props {
 		program: Program;
+		completedSessions: WorkoutSession[];
 		onworkoutclick: (workoutId: string, workoutIndex: number, date: Date) => void;
 	}
 
-	let { program, onworkoutclick }: Props = $props();
+	let { program, completedSessions, onworkoutclick }: Props = $props();
 
 	let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 0 }));
 
@@ -68,6 +70,7 @@
 					<CalendarDay
 						date={day.date}
 						workout={day.workout}
+						completed={getCompletedWorkoutForDate(completedSessions, day.date) !== null}
 						onclick={() => handleDayClick(day)}
 					/>
 				{/each}

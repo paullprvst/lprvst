@@ -34,6 +34,18 @@ export class WorkoutSessionRepository {
 			.sortBy('completedAt');
 	}
 
+	async getCompletedByDateRange(
+		startDate: Date,
+		endDate: Date
+	): Promise<WorkoutSession[]> {
+		const allCompleted = await this.getCompleted();
+		return allCompleted.filter((session) => {
+			if (!session.completedAt) return false;
+			const completedDate = new Date(session.completedAt);
+			return completedDate >= startDate && completedDate <= endDate;
+		});
+	}
+
 	async update(id: string, updates: Partial<WorkoutSession>): Promise<void> {
 		await db.workoutSessions.update(id, updates);
 	}

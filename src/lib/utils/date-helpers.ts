@@ -11,6 +11,7 @@ import {
 	parseISO
 } from 'date-fns';
 import type { Program, WeeklyPattern } from '$lib/types/program';
+import type { WorkoutSession } from '$lib/types/workout-session';
 
 export function getWeekDays(date: Date): Date[] {
 	const start = startOfWeek(date, { weekStartsOn: 0 });
@@ -66,3 +67,13 @@ export function formatDuration(seconds: number): string {
 
 export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+export function getCompletedWorkoutForDate(
+	sessions: WorkoutSession[],
+	date: Date
+): WorkoutSession | null {
+	return sessions.find((session) => {
+		if (!session.completedAt) return false;
+		return isSameDay(new Date(session.completedAt), date);
+	}) || null;
+}

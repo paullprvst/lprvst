@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 export class ClaudeClient {
 	private client: Anthropic | null = null;
+	private currentApiKey: string | null = null;
 	private lastRequestTime = 0;
 	private readonly MIN_REQUEST_DELAY = 1000;
 
@@ -10,17 +11,22 @@ export class ClaudeClient {
 			apiKey ||
 			(typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null);
 		if (key) {
+			this.currentApiKey = key;
 			this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
 		}
 	}
 
 	private ensureClient(): void {
-		if (!this.client) {
-			const key =
-				typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null;
-			if (!key) {
-				throw new Error('Anthropic API key is required. Please set it in Settings.');
-			}
+		const key =
+			typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null;
+
+		if (!key) {
+			throw new Error('Anthropic API key is required. Please set it in Settings.');
+		}
+
+		// Reinitialize client if API key changed
+		if (!this.client || this.currentApiKey !== key) {
+			this.currentApiKey = key;
 			this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
 		}
 	}
@@ -44,8 +50,8 @@ export class ClaudeClient {
 		await this.rateLimit();
 
 		const response = await this.client!.messages.create({
-			model: 'claude-3-5-sonnet-20241022',
-			max_tokens: 4096,
+			model: 'claude-opus-4-5',
+			max_tokens: 16384,
 			system: systemPrompt,
 			messages
 		});
@@ -66,8 +72,8 @@ export class ClaudeClient {
 		await this.rateLimit();
 
 		const stream = await this.client!.messages.create({
-			model: 'claude-3-5-sonnet-20241022',
-			max_tokens: 4096,
+			model: 'claude-opus-4-5',
+			max_tokens: 16384,
 			system: systemPrompt,
 			messages,
 			stream: true

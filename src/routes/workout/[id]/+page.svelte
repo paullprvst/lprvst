@@ -76,15 +76,18 @@
 	}
 
 	function handleRestComplete() {
+		const wasExerciseRest = workoutStore.restType === 'exercise';
 		workoutStore.completeRest();
-		workoutStore.nextExercise();
+		if (wasExerciseRest) {
+			workoutStore.nextExercise();
+		}
 		saveSession();
 	}
 
 	async function saveSession() {
 		if (!workoutStore.session) return;
 		await workoutSessionRepository.update(workoutStore.session.id, {
-			exercises: workoutStore.session.exercises
+			exercises: JSON.parse(JSON.stringify(workoutStore.session.exercises))
 		});
 	}
 
@@ -136,6 +139,7 @@
 			<RestTimer
 				duration={workoutStore.restDuration}
 				oncomplete={handleRestComplete}
+				label={workoutStore.restType === 'set' ? 'Rest before next set' : 'Rest before next exercise'}
 			/>
 		{:else}
 			<ExerciseDisplay
