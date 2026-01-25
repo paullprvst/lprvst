@@ -31,7 +31,7 @@
 
 <div class="min-h-screen flex flex-col">
 	<!-- Main Content -->
-	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-32">
+	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 pb-32">
 		{@render children()}
 	</main>
 

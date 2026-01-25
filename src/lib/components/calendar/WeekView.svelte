@@ -30,12 +30,12 @@
 
 	let { program, completedSessions, onworkoutclick }: Props = $props();
 
-	let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 0 }));
+	let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 1 }));
 
 	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
 	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
 	const selectedDay = $state<{ date: Date; workout: any; workoutIndex: number } | null>(null);
-	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 0 }));
+	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 1 }));
 
 	function previousWeek() {
 		currentWeekStart = subWeeks(currentWeekStart, 1);
@@ -46,7 +46,7 @@
 	}
 
 	function goToToday() {
-		currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+		currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 	}
 
 	function handleDayClick(day: (typeof weekSchedule)[0]) {

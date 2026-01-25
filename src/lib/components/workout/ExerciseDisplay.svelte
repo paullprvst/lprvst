@@ -4,6 +4,7 @@
 	import Card from '../shared/Card.svelte';
 	import Button from '../shared/Button.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
+	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
 	import { Check, ArrowRight, Flame, Snowflake, Dumbbell } from 'lucide-svelte';
 
@@ -18,6 +19,28 @@
 
 	const allSetsCompleted = $derived(log.sets.every((s) => s.completed));
 	const completedCount = $derived(log.sets.filter((s) => s.completed).length);
+	const nextIncompleteSet = $derived(log.sets.find((s) => !s.completed));
+
+	// Parse time duration from reps string (e.g., "2 minutes", "30 seconds", "90 sec")
+	function parseTimeDuration(reps?: string): number | null {
+		if (!reps) return null;
+
+		const minuteMatch = reps.match(/(\d+\.?\d*)\s*(minutes?|min|m)\b/i);
+		if (minuteMatch) {
+			return Math.round(parseFloat(minuteMatch[1]) * 60);
+		}
+
+		const secondMatch = reps.match(/(\d+\.?\d*)\s*(seconds?|sec|s)\b/i);
+		if (secondMatch) {
+			return Math.round(parseFloat(secondMatch[1]));
+		}
+
+		return null;
+	}
+
+	// Get duration from either the duration field or parsed from reps string
+	const effectiveDuration = $derived(exercise.duration || parseTimeDuration(exercise.reps));
+	const isTimeBased = $derived(effectiveDuration && effectiveDuration > 0);
 
 	const typeConfig = {
 		warmup: {
@@ -102,57 +125,69 @@
 		</Card>
 	</div>
 
-	<!-- Sets Card -->
-	<Card>
-		<div class="space-y-4">
-			<div class="flex items-center justify-between">
-				<h3 class="font-semibold text-primary">Sets</h3>
-				<span class="text-sm font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
-					{completedCount}/{exercise.sets}
-				</span>
-			</div>
+	<!-- Sets Card / Timer -->
+	{#if isTimeBased && nextIncompleteSet && effectiveDuration}
+		<!-- Time-based exercise: show timer -->
+		<ExerciseTimer
+			duration={effectiveDuration}
+			setNumber={nextIncompleteSet.setNumber}
+			totalSets={exercise.sets}
+			onsetcomplete={() => onsetcomplete(nextIncompleteSet.setNumber)}
+			onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
+		/>
+	{:else if !allSetsCompleted}
+		<!-- Rep-based exercise: show set buttons -->
+		<Card>
+			<div class="space-y-4">
+				<div class="flex items-center justify-between">
+					<h3 class="font-semibold text-primary">Sets</h3>
+					<span class="text-sm font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
+						{completedCount}/{exercise.sets}
+					</span>
+				</div>
 
-			<div class="grid grid-cols-2 gap-3">
-				{#each log.sets as set, index}
-					<button
-						onclick={() => onsetcomplete(set.setNumber)}
-						class="relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 transition-all duration-200 touch-target overflow-hidden group animate-scaleIn active:scale-95 {set.completed
-							? 'border-green-400 bg-green-500/15 dark:border-green-400 dark:bg-green-500/20'
-							: 'border-cyan-300 dark:border-cyan-500/50 surface hover:border-cyan-400 dark:hover:border-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-cyan-500/15'}"
-						style="animation-delay: {index * 50}ms"
-					>
-						<!-- Checkmark animation -->
-						{#if set.completed}
-							<div
-								class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-sm animate-scaleIn"
-							>
-								<Check size={16} class="text-white" strokeWidth={3} />
-							</div>
-						{:else}
-							<div
-								class="w-7 h-7 rounded-full border-2 border-cyan-400 dark:border-cyan-400 group-hover:border-cyan-500 transition-colors duration-200"
-							></div>
-						{/if}
-
-						<span
-							class="font-semibold transition-colors duration-200 {set.completed
-								? 'text-green-600 dark:text-green-400'
-								: 'text-primary'}"
+				<div class="grid grid-cols-2 gap-3">
+					{#each log.sets as set, index}
+						<button
+							onclick={() => onsetcomplete(set.setNumber)}
+							class="relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 transition-all duration-200 touch-target overflow-hidden group animate-scaleIn active:scale-95 {set.completed
+								? 'border-green-400 bg-green-500/15 dark:border-green-400 dark:bg-green-500/20'
+								: 'border-cyan-300 dark:border-cyan-500/50 surface hover:border-cyan-400 dark:hover:border-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-cyan-500/15'}"
+							style="animation-delay: {index * 50}ms"
 						>
-							Set {set.setNumber}
-						</span>
+							<!-- Checkmark animation -->
+							{#if set.completed}
+								<div
+									class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-sm animate-scaleIn"
+								>
+									<Check size={16} class="text-white" strokeWidth={3} />
+								</div>
+							{:else}
+								<div
+									class="w-7 h-7 rounded-full border-2 border-cyan-400 dark:border-cyan-400 group-hover:border-cyan-500 transition-colors duration-200"
+								></div>
+							{/if}
 
-						<!-- Ripple effect on complete -->
-						{#if set.completed}
-							<div
-								class="absolute inset-0 bg-green-500/5 pointer-events-none"
-							></div>
-						{/if}
-					</button>
-				{/each}
+							<span
+								class="font-semibold transition-colors duration-200 {set.completed
+									? 'text-green-600 dark:text-green-400'
+									: 'text-primary'}"
+							>
+								Set {set.setNumber}
+							</span>
+
+							<!-- Ripple effect on complete -->
+							{#if set.completed}
+								<div
+									class="absolute inset-0 bg-green-500/5 pointer-events-none"
+								></div>
+							{/if}
+						</button>
+					{/each}
+				</div>
 			</div>
-		</div>
-	</Card>
+		</Card>
+	{/if}
 
 	<!-- Next Exercise Button -->
 	{#if allSetsCompleted}
