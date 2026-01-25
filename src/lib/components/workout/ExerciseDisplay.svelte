@@ -3,6 +3,7 @@
 	import type { ExerciseLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import Button from '../shared/Button.svelte';
+	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
 	import { Check } from 'lucide-svelte';
 
@@ -33,7 +34,15 @@
 						</span>
 					{/if}
 				</div>
-				<h2 class="text-2xl font-bold text-gray-900">{exercise.name}</h2>
+				<div class="flex items-center gap-2">
+					<h2 class="text-2xl font-bold text-gray-900">{exercise.name}</h2>
+					<ExerciseInfoButton
+						exerciseName={exercise.name}
+						equipment={exercise.equipment}
+						notes={exercise.notes}
+						size={20}
+					/>
+				</div>
 				{#if exercise.notes}
 					<p class="text-gray-600 mt-2">{exercise.notes}</p>
 				{/if}

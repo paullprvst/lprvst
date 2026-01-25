@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Workout } from '$lib/types/program';
 	import Card from '../shared/Card.svelte';
+	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatWorkoutDuration } from '$lib/utils/formatters';
 	import { Clock, List, ChevronDown, ChevronUp, Dumbbell } from 'lucide-svelte';
 
@@ -93,7 +94,15 @@
 											<Dumbbell size={14} class="text-orange-600" />
 										</div>
 										<div class="flex-1 min-w-0">
-											<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+											<div class="flex items-center gap-1">
+												<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+												<ExerciseInfoButton
+													exerciseName={exercise.name}
+													equipment={exercise.equipment}
+													notes={exercise.notes}
+													size={14}
+												/>
+											</div>
 											<p class="text-xs text-gray-500">{formatExerciseDetails(exercise)}</p>
 											{#if exercise.notes}
 												<p class="text-xs text-gray-400 mt-1">{exercise.notes}</p>
@@ -115,7 +124,15 @@
 											<Dumbbell size={14} class="text-blue-600" />
 										</div>
 										<div class="flex-1 min-w-0">
-											<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+											<div class="flex items-center gap-1">
+												<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+												<ExerciseInfoButton
+													exerciseName={exercise.name}
+													equipment={exercise.equipment}
+													notes={exercise.notes}
+													size={14}
+												/>
+											</div>
 											<p class="text-xs text-gray-500">{formatExerciseDetails(exercise)}</p>
 											{#if exercise.equipment && exercise.equipment.length > 0}
 												<p class="text-xs text-gray-400">{exercise.equipment.join(', ')}</p>
@@ -143,7 +160,15 @@
 											<Dumbbell size={14} class="text-green-600" />
 										</div>
 										<div class="flex-1 min-w-0">
-											<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+											<div class="flex items-center gap-1">
+												<p class="font-medium text-gray-900 text-sm">{exercise.name}</p>
+												<ExerciseInfoButton
+													exerciseName={exercise.name}
+													equipment={exercise.equipment}
+													notes={exercise.notes}
+													size={14}
+												/>
+											</div>
 											<p class="text-xs text-gray-500">{formatExerciseDetails(exercise)}</p>
 											{#if exercise.notes}
 												<p class="text-xs text-gray-400 mt-1">{exercise.notes}</p>
