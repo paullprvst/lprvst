@@ -1,12 +1,26 @@
 <script lang="ts">
-	import { addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
-	import { getWeekSchedule, formatDate, DAY_NAMES_SHORT, getCompletedWorkoutForDate, getUpcomingWorkouts } from '$lib/utils/date-helpers';
+	import {
+		addWeeks,
+		subWeeks,
+		startOfWeek,
+		endOfWeek,
+		isThisWeek,
+		startOfToday
+	} from 'date-fns';
+	import {
+		getWeekSchedule,
+		formatDate,
+		DAY_NAMES_SHORT,
+		getCompletedWorkoutForDate,
+		getUpcomingWorkouts
+	} from '$lib/utils/date-helpers';
 	import type { Program } from '$lib/types/program';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import CalendarDay from './CalendarDay.svelte';
 	import Card from '../shared/Card.svelte';
 	import WorkoutCard from '../program/WorkoutCard.svelte';
-	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import Button from '../shared/Button.svelte';
+	import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-svelte';
 
 	interface Props {
 		program: Program;
@@ -21,6 +35,7 @@
 	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
 	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
 	const selectedDay = $state<{ date: Date; workout: any; workoutIndex: number } | null>(null);
+	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 0 }));
 
 	function previousWeek() {
 		currentWeekStart = subWeeks(currentWeekStart, 1);
@@ -30,61 +45,91 @@
 		currentWeekStart = addWeeks(currentWeekStart, 1);
 	}
 
-	function handleDayClick(day: typeof weekSchedule[0]) {
+	function goToToday() {
+		currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
+	}
+
+	function handleDayClick(day: (typeof weekSchedule)[0]) {
 		if (day.workout) {
 			onworkoutclick(day.workout.id, day.workoutIndex!, day.date);
 		}
 	}
 </script>
 
-<div class="space-y-4">
+<div class="space-y-6">
+	<!-- Week Calendar Card -->
 	<Card>
 		<div class="space-y-4">
+			<!-- Week Navigation -->
 			<div class="flex items-center justify-between">
 				<button
 					onclick={previousWeek}
-					class="p-2 hover:bg-gray-100 rounded-lg touch-target"
+					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
 				>
-					<ChevronLeft size={20} />
+					<ChevronLeft size={20} class="text-secondary" />
 				</button>
-				<h2 class="text-lg font-semibold">
-					{formatDate(currentWeekStart, 'MMM d')} - {formatDate(weekSchedule[6].date, 'MMM d, yyyy')}
-				</h2>
+
+				<div class="flex items-center gap-3">
+					<h2 class="text-lg font-semibold text-primary">
+						{formatDate(currentWeekStart, 'MMM d')} - {formatDate(
+							weekSchedule[6].date,
+							'MMM d, yyyy'
+						)}
+					</h2>
+					{#if !isCurrentWeek}
+						<button
+							onclick={goToToday}
+							class="px-2.5 py-1 text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)] rounded-full hover:bg-[rgb(var(--color-primary)/0.15)] transition-colors duration-200"
+						>
+							Today
+						</button>
+					{/if}
+				</div>
+
 				<button
 					onclick={nextWeek}
-					class="p-2 hover:bg-gray-100 rounded-lg touch-target"
+					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
 				>
-					<ChevronRight size={20} />
+					<ChevronRight size={20} class="text-secondary" />
 				</button>
 			</div>
 
+			<!-- Day headers -->
 			<div class="grid grid-cols-7 gap-1">
 				{#each DAY_NAMES_SHORT as day}
-					<div class="text-center text-xs font-medium text-gray-500 py-2">
+					<div class="text-center text-xs font-medium text-muted py-2">
 						{day}
 					</div>
 				{/each}
 			</div>
 
+			<!-- Calendar days grid -->
 			<div class="grid grid-cols-7 gap-2">
-				{#each weekSchedule as day}
-					<CalendarDay
-						date={day.date}
-						workout={day.workout}
-						completed={getCompletedWorkoutForDate(completedSessions, day.date) !== null}
-						onclick={() => handleDayClick(day)}
-					/>
+				{#each weekSchedule as day, index}
+					<div class="animate-scaleIn" style="animation-delay: {index * 30}ms">
+						<CalendarDay
+							date={day.date}
+							workout={day.workout}
+							completed={getCompletedWorkoutForDate(completedSessions, day.date) !== null}
+							onclick={() => handleDayClick(day)}
+						/>
+					</div>
 				{/each}
 			</div>
 		</div>
 	</Card>
 
-	<div>
-		<h3 class="text-lg font-semibold mb-3">Upcoming Workouts</h3>
+	<!-- Upcoming Workouts Section -->
+	<div class="space-y-3">
+		<div class="flex items-center gap-2">
+			<CalendarDays size={20} class="text-muted" />
+			<h3 class="text-lg font-semibold text-primary">Upcoming Workouts</h3>
+		</div>
+
 		<div class="space-y-3">
-			{#each upcomingWorkouts as day}
-				<div>
-					<div class="text-sm text-gray-500 mb-1">
+			{#each upcomingWorkouts as day, index}
+				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
+					<div class="text-sm text-secondary mb-2 font-medium">
 						{formatDate(day.date, 'EEEE, MMM d')}
 					</div>
 					<WorkoutCard
@@ -94,7 +139,10 @@
 				</div>
 			{:else}
 				<Card>
-					<p class="text-gray-500 text-center py-4">No upcoming workouts scheduled</p>
+					<div class="text-center py-8 space-y-2">
+						<CalendarDays size={32} class="mx-auto text-muted" />
+						<p class="text-secondary">No upcoming workouts scheduled</p>
+					</div>
 				</Card>
 			{/each}
 		</div>

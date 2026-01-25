@@ -3,7 +3,7 @@
 	import type { Program } from '$lib/types/program';
 	import Card from '../shared/Card.svelte';
 	import { formatDate, DAY_NAMES_SHORT } from '$lib/utils/date-helpers';
-	import { Dumbbell, Calendar } from 'lucide-svelte';
+	import { Dumbbell, Calendar, ChevronRight } from 'lucide-svelte';
 
 	interface Props {
 		program: Program;
@@ -12,38 +12,36 @@
 	let { program }: Props = $props();
 
 	const workoutDays = $derived(
-		program.schedule.weeklyPattern
-			.map(p => DAY_NAMES_SHORT[p.dayOfWeek])
-			.join(', ')
+		program.schedule.weeklyPattern.map((p) => DAY_NAMES_SHORT[p.dayOfWeek]).join(', ')
 	);
 </script>
 
-<button
-	onclick={() => goto(`/programs/${program.id}`)}
-	class="w-full text-left"
->
-	<Card>
-		<div class="space-y-3">
-			<div class="flex items-start justify-between">
-				<div class="flex-1">
-					<h3 class="text-lg font-semibold text-gray-900">{program.name}</h3>
-					<p class="text-sm text-gray-600 mt-1">{program.description}</p>
-				</div>
-				<Dumbbell class="text-blue-600 flex-shrink-0 ml-2" size={24} />
-			</div>
+<Card variant="interactive" onclick={() => goto(`/programs/${program.id}`)}>
+	<div class="flex items-center gap-4">
+		<!-- Icon -->
+		<div
+			class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary))] to-[rgb(var(--color-primary-hover))] flex items-center justify-center shadow-sm"
+		>
+			<Dumbbell class="text-white" size={24} />
+		</div>
 
-			<div class="flex items-center gap-4 text-sm text-gray-500">
+		<!-- Content -->
+		<div class="flex-1 min-w-0">
+			<h3 class="font-semibold text-primary truncate">{program.name}</h3>
+			<p class="text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
+
+			<!-- Meta info -->
+			<div class="flex items-center gap-3 mt-2 text-xs text-muted">
 				<div class="flex items-center gap-1">
-					<Calendar size={16} />
+					<Calendar size={12} />
 					<span>{workoutDays}</span>
 				</div>
-				<span>•</span>
+				<span class="text-[rgb(var(--color-border))]">|</span>
 				<span>{program.workouts.length} workouts</span>
 			</div>
-
-			<div class="text-xs text-gray-400">
-				Started {formatDate(program.startDate)}
-			</div>
 		</div>
-	</Card>
-</button>
+
+		<!-- Arrow indicator -->
+		<ChevronRight size={20} class="text-muted flex-shrink-0" />
+	</div>
+</Card>

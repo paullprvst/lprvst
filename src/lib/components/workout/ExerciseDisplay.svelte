@@ -5,7 +5,7 @@
 	import Button from '../shared/Button.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
-	import { Check } from 'lucide-svelte';
+	import { Check, ArrowRight, Flame, Snowflake, Dumbbell } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -16,86 +16,151 @@
 
 	let { exercise, log, onsetcomplete, onnext }: Props = $props();
 
-	const allSetsCompleted = $derived(log.sets.every(s => s.completed));
+	const allSetsCompleted = $derived(log.sets.every((s) => s.completed));
+	const completedCount = $derived(log.sets.filter((s) => s.completed).length);
+
+	const typeConfig = {
+		warmup: {
+			icon: Flame,
+			label: 'WARM-UP',
+			badgeClass: 'bg-orange-500/10 text-orange-500',
+			iconClass: 'bg-orange-500/10',
+			iconColor: 'text-orange-500'
+		},
+		main: {
+			icon: Dumbbell,
+			label: 'MAIN',
+			badgeClass: 'bg-blue-500/10 text-blue-500',
+			iconClass: 'bg-blue-500/10',
+			iconColor: 'text-blue-500'
+		},
+		cooldown: {
+			icon: Snowflake,
+			label: 'COOL-DOWN',
+			badgeClass: 'bg-green-500/10 text-green-500',
+			iconClass: 'bg-green-500/10',
+			iconColor: 'text-green-500'
+		}
+	};
+
+	const config = $derived(typeConfig[exercise.type] || typeConfig.main);
 </script>
 
-<div class="space-y-4">
+<div class="space-y-4 animate-slideUp">
+	<!-- Exercise Info Card -->
 	<Card padding="lg">
-		<div class="space-y-4">
+		<div class="space-y-5">
+			<!-- Type badge and title -->
 			<div>
-				<div class="flex items-center gap-2 mb-2">
-					{#if exercise.type === 'warmup'}
-						<span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-							WARMUP
-						</span>
-					{:else if exercise.type === 'cooldown'}
-						<span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
-							COOLDOWN
-						</span>
-					{/if}
-				</div>
+				{#if exercise.type !== 'main'}
+					<div
+						class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
+					>
+						<config.icon size={12} />
+						{config.label}
+					</div>
+				{/if}
 				<div class="flex items-center gap-2">
-					<h2 class="text-2xl font-bold text-gray-900">{exercise.name}</h2>
+					<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
 					<ExerciseInfoButton
 						exerciseName={exercise.name}
 						equipment={exercise.equipment}
 						notes={exercise.notes}
-						size={20}
+						size={22}
 					/>
 				</div>
 				{#if exercise.notes}
-					<p class="text-gray-600 mt-2">{exercise.notes}</p>
+					<p class="text-secondary mt-2">{exercise.notes}</p>
 				{/if}
 			</div>
 
+			<!-- Equipment -->
 			{#if exercise.equipment && exercise.equipment.length > 0}
-				<div>
-					<p class="text-sm font-medium text-gray-500">Equipment</p>
-					<p class="text-gray-900">{exercise.equipment.join(', ')}</p>
+				<div class="flex flex-wrap gap-2">
+					{#each exercise.equipment as item}
+						<span
+							class="px-3 py-1.5 text-sm surface-elevated rounded-lg border border-theme text-secondary"
+						>
+							{item}
+						</span>
+					{/each}
 				</div>
 			{/if}
 
-			<div>
-				<p class="text-sm font-medium text-gray-500 mb-2">Target</p>
-				<p class="text-lg font-semibold text-gray-900">
-					{exercise.sets} sets × {formatExerciseReps(exercise.reps, exercise.duration)}
+			<!-- Target info -->
+			<div class="p-4 surface-elevated rounded-xl border border-theme">
+				<p class="text-xs font-medium text-muted uppercase tracking-wide mb-1">Target</p>
+				<p class="text-xl font-bold text-primary">
+					{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
 				</p>
-				<p class="text-sm text-gray-600 mt-1">
-					{formatRestTime(exercise.restBetweenSets)} between sets, {formatRestTime(exercise.restBetweenExercises)} before next
+				<p class="text-sm text-secondary mt-2">
+					{formatRestTime(exercise.restBetweenSets)} between sets
 				</p>
 			</div>
 		</div>
 	</Card>
 
+	<!-- Sets Card -->
 	<Card>
-		<div class="space-y-3">
-			<h3 class="font-semibold text-gray-900">Sets</h3>
-			<div class="grid grid-cols-2 gap-2">
-				{#each log.sets as set}
+		<div class="space-y-4">
+			<div class="flex items-center justify-between">
+				<h3 class="font-semibold text-primary">Sets</h3>
+				<span class="text-sm text-secondary">
+					{completedCount}/{exercise.sets} completed
+				</span>
+			</div>
+
+			<div class="grid grid-cols-2 gap-3">
+				{#each log.sets as set, index}
 					<button
 						onclick={() => onsetcomplete(set.setNumber)}
-						class="flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-colors touch-target"
-						class:border-green-600={set.completed}
-						class:bg-green-50={set.completed}
-						class:border-gray-300={!set.completed}
+						class="relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 transition-all duration-200 touch-target overflow-hidden group animate-scaleIn active:scale-95 {set.completed
+							? 'border-green-500 bg-green-500/5'
+							: 'border-theme surface hover:border-gray-300'}"
+						style="animation-delay: {index * 50}ms"
 					>
+						<!-- Checkmark animation -->
 						{#if set.completed}
-							<Check size={20} class="text-green-600" />
+							<div
+								class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-sm animate-scaleIn"
+							>
+								<Check size={16} class="text-white" strokeWidth={3} />
+							</div>
+						{:else}
+							<div
+								class="w-7 h-7 rounded-full border-2 border-theme group-hover:border-gray-300 transition-colors duration-200"
+							></div>
 						{/if}
-						<span class="font-medium" class:text-green-600={set.completed}>
+
+						<span
+							class="font-semibold transition-colors duration-200 {set.completed
+								? 'text-green-500'
+								: 'text-primary'}"
+						>
 							Set {set.setNumber}
 						</span>
+
+						<!-- Ripple effect on complete -->
+						{#if set.completed}
+							<div
+								class="absolute inset-0 bg-green-500/10 animate-pulse pointer-events-none"
+							></div>
+						{/if}
 					</button>
 				{/each}
 			</div>
 		</div>
 	</Card>
 
+	<!-- Next Exercise Button -->
 	{#if allSetsCompleted}
-		<Button onclick={onnext} fullWidth={true} size="lg">
-			{#snippet children()}
-				Next Exercise
-			{/snippet}
-		</Button>
+		<div class="animate-slideUp">
+			<Button onclick={onnext} fullWidth={true} size="lg">
+				{#snippet children()}
+					Next Exercise
+					<ArrowRight size={20} />
+				{/snippet}
+			</Button>
+		</div>
 	{/if}
 </div>

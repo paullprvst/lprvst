@@ -10,7 +10,8 @@
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
-	import { X, CheckCircle } from 'lucide-svelte';
+	import Modal from '$lib/components/shared/Modal.svelte';
+	import { X, CheckCircle, Trophy } from 'lucide-svelte';
 
 	let loading = $state(true);
 	let showCompleteModal = $state(false);
@@ -37,7 +38,7 @@
 			return;
 		}
 
-		const workout = program.workouts.find(w => w.id === session.workoutId);
+		const workout = program.workouts.find((w) => w.id === session.workoutId);
 		if (!workout) {
 			alert('Workout not found');
 			goto('/calendar');
@@ -113,33 +114,40 @@
 	</div>
 {:else if workoutStore.workout && workoutStore.currentExercise && workoutStore.currentExerciseLog}
 	<div class="space-y-4">
-		<div class="flex items-center justify-between">
-			<div class="flex-1">
-				<h1 class="text-xl font-bold">{workoutStore.workout.name}</h1>
-				<p class="text-sm text-gray-600">
-					Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises.length}
+		<!-- Header -->
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex-1 min-w-0">
+				<h1 class="text-xl font-bold text-primary truncate">{workoutStore.workout.name}</h1>
+				<p class="text-sm text-secondary">
+					Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises
+						.length}
 				</p>
 			</div>
 			<button
 				onclick={abandonWorkout}
-				class="text-gray-600 hover:text-gray-900 touch-target"
+				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-gray-500/10 transition-colors duration-200 touch-target"
+				aria-label="Close workout"
 			>
 				<X size={24} />
 			</button>
 		</div>
 
-		<div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+		<!-- Progress bar -->
+		<div class="w-full surface-elevated rounded-full h-2 overflow-hidden">
 			<div
-				class="bg-blue-600 h-full transition-all"
+				class="bg-blue-500 h-full transition-all duration-300 ease-out"
 				style="width: {workoutStore.progress}%"
 			></div>
 		</div>
 
+		<!-- Main content -->
 		{#if workoutStore.resting}
 			<RestTimer
 				duration={workoutStore.restDuration}
 				oncomplete={handleRestComplete}
-				label={workoutStore.restType === 'set' ? 'Rest before next set' : 'Rest before next exercise'}
+				label={workoutStore.restType === 'set'
+					? 'Rest before next set'
+					: 'Rest before next exercise'}
 			/>
 		{:else}
 			<ExerciseDisplay
@@ -151,24 +159,28 @@
 		{/if}
 	</div>
 
-	{#if showCompleteModal}
-		<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-			<Card padding="lg">
-				<div class="text-center space-y-4 max-w-md">
-					<div class="flex justify-center">
-						<CheckCircle size={64} class="text-green-600" />
-					</div>
-					<h2 class="text-2xl font-bold">Workout Complete!</h2>
-					<p class="text-gray-600">
-						Great job! You've completed {workoutStore.workout.name}.
-					</p>
-					<Button onclick={completeWorkout} fullWidth={true} size="lg">
-						{#snippet children()}
-							Finish Workout
-						{/snippet}
-					</Button>
-				</div>
-			</Card>
+	<!-- Completion modal -->
+	<Modal bind:open={showCompleteModal} size="sm">
+		<div class="text-center space-y-6 py-4">
+			<div
+				class="w-20 h-20 mx-auto rounded-full bg-green-500/10 flex items-center justify-center"
+			>
+				<Trophy size={40} class="text-green-500" />
+			</div>
+
+			<div class="space-y-2">
+				<h2 class="text-2xl font-bold text-primary">Workout Complete!</h2>
+				<p class="text-secondary">
+					Great job finishing <span class="font-medium">{workoutStore.workout.name}</span>.
+				</p>
+			</div>
+
+			<Button onclick={completeWorkout} fullWidth={true} size="lg">
+				{#snippet children()}
+					<CheckCircle size={20} />
+					Finish Workout
+				{/snippet}
+			</Button>
 		</div>
-	{/if}
+	</Modal>
 {/if}

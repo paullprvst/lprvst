@@ -39,7 +39,7 @@
 {:else if !program}
 	<Card>
 		<div class="text-center py-12">
-			<p class="text-gray-600">Program not found</p>
+			<p class="text-secondary">Program not found</p>
 			<Button onclick={() => goto('/')}>
 				{#snippet children()}
 					Go Home
@@ -52,11 +52,11 @@
 		<div class="flex items-center gap-4">
 			<button
 				onclick={() => goto('/')}
-				class="text-gray-600 hover:text-gray-900 touch-target"
+				class="text-secondary hover:text-primary touch-target"
 			>
 				<ArrowLeft size={24} />
 			</button>
-			<h1 class="text-2xl font-bold flex-1">{program.name}</h1>
+			<h1 class="text-2xl font-bold text-primary flex-1">{program.name}</h1>
 			<button
 				onclick={handleDelete}
 				class="text-red-600 hover:text-red-700 touch-target"
@@ -68,15 +68,15 @@
 		<Card>
 			<div class="space-y-4">
 				<div>
-					<h2 class="text-sm font-medium text-gray-500 uppercase">Description</h2>
-					<p class="mt-1 text-gray-900">{program.description}</p>
+					<h2 class="text-sm font-medium text-muted uppercase">Description</h2>
+					<p class="mt-1 text-primary">{program.description}</p>
 				</div>
 
 				<div>
-					<h2 class="text-sm font-medium text-gray-500 uppercase">Schedule</h2>
+					<h2 class="text-sm font-medium text-muted uppercase">Schedule</h2>
 					<div class="mt-2 flex flex-wrap gap-2">
 						{#each program.schedule.weeklyPattern as pattern}
-							<span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+							<span class="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium">
 								{DAY_NAMES[pattern.dayOfWeek]}
 							</span>
 						{/each}
@@ -84,14 +84,14 @@
 				</div>
 
 				<div>
-					<h2 class="text-sm font-medium text-gray-500 uppercase">Started</h2>
-					<p class="mt-1 text-gray-900">{formatDate(program.startDate)}</p>
+					<h2 class="text-sm font-medium text-muted uppercase">Started</h2>
+					<p class="mt-1 text-primary">{formatDate(program.startDate)}</p>
 				</div>
 			</div>
 		</Card>
 
 		<div>
-			<h2 class="text-xl font-semibold mb-3">Workouts</h2>
+			<h2 class="text-xl font-semibold text-primary mb-3">Workouts</h2>
 			<div class="space-y-3">
 				{#each program.workouts as workout}
 					<WorkoutCard {workout} />

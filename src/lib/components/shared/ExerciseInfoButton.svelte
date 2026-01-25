@@ -50,7 +50,7 @@
 	function renderMarkdown(text: string): string {
 		return text
 			// Headers
-			.replace(/^## (.+)$/gm, '<h3 class="text-lg font-semibold text-gray-900 mt-4 mb-2">$1</h3>')
+			.replace(/^## (.+)$/gm, '<h3 class="text-lg font-semibold text-primary mt-4 mb-2">$1</h3>')
 			// Bold
 			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
 			// Numbered lists
@@ -66,7 +66,7 @@
 
 <button
 	onclick={handleClick}
-	class="text-gray-400 hover:text-blue-600 transition-colors p-1 -m-1"
+	class="text-muted hover:text-blue-500 transition-colors p-1 -m-1"
 	title="Exercise info"
 	aria-label="View exercise instructions for {exerciseName}"
 >
@@ -88,7 +88,7 @@
 				{@html renderMarkdown(description)}
 			</div>
 			{#if loading}
-				<div class="flex items-center gap-2 mt-4 text-gray-500 text-sm">
+				<div class="flex items-center gap-2 mt-4 text-secondary text-sm">
 					<LoadingSpinner size="sm" />
 					<span>Loading...</span>
 				</div>

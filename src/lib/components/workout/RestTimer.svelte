@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Clock, SkipForward } from 'lucide-svelte';
+	import { Timer, SkipForward } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
 
 	interface Props {
@@ -15,6 +15,11 @@
 	let remaining = $state(0);
 	let startTime = $state(0);
 	let intervalId: number | null = null;
+	let isComplete = $state(false);
+
+	// Circle properties
+	const radius = 90;
+	const circumference = 2 * Math.PI * radius;
 
 	onMount(() => {
 		remaining = duration;
@@ -23,11 +28,14 @@
 			const elapsed = Math.floor((Date.now() - startTime) / 1000);
 			remaining = Math.max(0, duration - elapsed);
 
-			if (remaining === 0) {
+			if (remaining === 0 && !isComplete) {
+				isComplete = true;
 				if (intervalId) clearInterval(intervalId);
 				// Play beep sound
 				try {
-					const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGmi78OeeSwkNUKXi7rdlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mhUQ0MUKXi7rdlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+');
+					const audio = new Audio(
+						'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGmi78OeeSwkNUKXi7rdlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mhUQ0MUKXi7rdlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+zPLaizsKGGO66+mgUQ0MUKTi7rZlHQU5k9jyzH0tBSh+'
+					);
 					audio.play();
 				} catch (e) {
 					// Ignore audio errors
@@ -42,6 +50,14 @@
 	});
 
 	const progress = $derived((remaining / duration) * 100);
+	const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
+
+	// Color changes as timer progresses
+	const timerColor = $derived(() => {
+		if (progress > 50) return 'rgb(var(--color-primary))';
+		if (progress > 20) return 'rgb(var(--color-warning))';
+		return 'rgb(var(--color-error))';
+	});
 
 	function skip() {
 		if (intervalId) clearInterval(intervalId);
@@ -49,28 +65,71 @@
 	}
 </script>
 
-<div class="bg-blue-50 rounded-lg p-6 text-center space-y-4">
-	<div class="flex items-center justify-center gap-2 text-blue-600">
-		<Clock size={24} />
-		<span class="text-sm font-medium uppercase">Rest Timer</span>
+<div
+	class="surface rounded-2xl p-6 text-center space-y-6 border border-theme shadow-lg animate-scaleIn"
+>
+	<!-- Header -->
+	<div class="flex items-center justify-center gap-2 text-secondary">
+		<Timer size={20} />
+		<span class="text-sm font-semibold uppercase tracking-wide">Rest Timer</span>
 	</div>
 
-	<div class="text-5xl font-bold text-blue-600">
-		{formatDuration(remaining)}
+	<!-- Circular Progress Timer -->
+	<div class="relative w-52 h-52 mx-auto">
+		<!-- Background circle -->
+		<svg class="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+			<circle
+				cx="100"
+				cy="100"
+				r={radius}
+				fill="none"
+				stroke="rgb(var(--color-border))"
+				stroke-width="8"
+			/>
+			<!-- Progress circle -->
+			<circle
+				cx="100"
+				cy="100"
+				r={radius}
+				fill="none"
+				stroke={timerColor()}
+				stroke-width="8"
+				stroke-linecap="round"
+				stroke-dasharray={circumference}
+				stroke-dashoffset={strokeDashoffset}
+				class="transition-all duration-200 ease-out"
+			/>
+		</svg>
+
+		<!-- Timer display -->
+		<div class="absolute inset-0 flex flex-col items-center justify-center">
+			<span
+				class="text-5xl font-bold transition-colors duration-200"
+				style="color: {timerColor()}"
+				class:animate-pulseScale={remaining <= 5 && remaining > 0}
+			>
+				{formatDuration(remaining)}
+			</span>
+			<span class="text-sm text-muted mt-1">{label}</span>
+		</div>
 	</div>
 
-	<div class="w-full bg-blue-200 rounded-full h-2 overflow-hidden">
-		<div
-			class="bg-blue-600 h-full transition-all duration-100"
-			style="width: {progress}%"
-		></div>
+	<!-- Progress indicator dots -->
+	<div class="flex justify-center gap-2">
+		{#each Array(5) as _, i}
+			{@const dotProgress = ((5 - i) / 5) * 100}
+			<div
+				class="w-2 h-2 rounded-full transition-all duration-300"
+				class:animate-pulse={progress <= dotProgress && progress > dotProgress - 20}
+				style="background-color: {progress > dotProgress ? 'rgb(var(--color-border))' : timerColor()}"
+			></div>
+		{/each}
 	</div>
 
-	<p class="text-sm text-gray-600">{label}</p>
-
-	<Button onclick={skip} variant="secondary" fullWidth={true}>
+	<!-- Skip button -->
+	<Button onclick={skip} variant="ghost" fullWidth={true}>
 		{#snippet children()}
-			<SkipForward size={20} />
+			<SkipForward size={18} />
 			Skip Rest
 		{/snippet}
 	</Button>

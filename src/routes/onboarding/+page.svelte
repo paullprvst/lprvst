@@ -110,8 +110,8 @@
 	{:else if step === 'generating'}
 		<div class="text-center py-12">
 			<LoadingSpinner size="lg" />
-			<p class="mt-4 text-lg text-gray-600">Generating your personalized workout program...</p>
-			<p class="mt-2 text-sm text-gray-500">This may take a moment</p>
+			<p class="mt-4 text-lg text-secondary">Generating your personalized workout program...</p>
+			<p class="mt-2 text-sm text-muted">This may take a moment</p>
 		</div>
 	{/if}
 </div>

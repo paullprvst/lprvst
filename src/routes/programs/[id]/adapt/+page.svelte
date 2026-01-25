@@ -143,7 +143,7 @@ My request: ${initialRequest}`;
 {:else if !program}
 	<Card>
 		<div class="text-center py-12">
-			<p class="text-gray-600">Program not found</p>
+			<p class="text-secondary">Program not found</p>
 			<Button onclick={() => goto('/')}>
 				{#snippet children()}
 					Go Home
@@ -156,20 +156,20 @@ My request: ${initialRequest}`;
 		<div class="flex items-center gap-4">
 			<button
 				onclick={() => goto(`/programs/${program!.id}`)}
-				class="text-gray-600 hover:text-gray-900 touch-target"
+				class="text-secondary hover:text-primary touch-target"
 			>
 				<ArrowLeft size={24} />
 			</button>
-			<h1 class="text-xl font-bold">Adapt: {program.name}</h1>
+			<h1 class="text-xl font-bold text-primary">Adapt: {program.name}</h1>
 		</div>
 
 		{#if step === 'input'}
 			<Card>
 				<div class="space-y-4">
-					<p class="text-gray-600">
+					<p class="text-secondary">
 						Tell me what you'd like to change about your program. For example:
 					</p>
-					<ul class="text-sm text-gray-500 space-y-1 ml-4">
+					<ul class="text-sm text-muted space-y-1 ml-4">
 						<li>- "I want to work out 4 days instead of 3"</li>
 						<li>- "Add more upper body exercises"</li>
 						<li>- "I injured my shoulder, need to avoid overhead movements"</li>
@@ -210,8 +210,8 @@ My request: ${initialRequest}`;
 		{:else if step === 'generating'}
 			<div class="text-center py-12">
 				<LoadingSpinner size="lg" />
-				<p class="mt-4 text-lg text-gray-600">Updating your workout program...</p>
-				<p class="mt-2 text-sm text-gray-500">This may take a moment</p>
+				<p class="mt-4 text-lg text-secondary">Updating your workout program...</p>
+				<p class="mt-2 text-sm text-muted">This may take a moment</p>
 			</div>
 		{/if}
 	</div>

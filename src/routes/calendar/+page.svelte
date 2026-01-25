@@ -6,9 +6,10 @@
 	import type { Program } from '$lib/types/program';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import WeekView from '$lib/components/calendar/WeekView.svelte';
-	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
+	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
+	import { Calendar, Plus, ChevronDown } from 'lucide-svelte';
 
 	let programs = $state<Program[]>([]);
 	let selectedProgram = $state<Program | null>(null);
@@ -32,12 +33,14 @@
 			workoutId,
 			programId: selectedProgram.id,
 			status: 'in-progress',
-			exercises: selectedProgram.workouts[workoutIndex].exercises.map(e => ({
+			exercises: selectedProgram.workouts[workoutIndex].exercises.map((e) => ({
 				exerciseId: e.id,
-				sets: Array(e.sets).fill(null).map((_, i) => ({
-					setNumber: i + 1,
-					completed: false
-				}))
+				sets: Array(e.sets)
+					.fill(null)
+					.map((_, i) => ({
+						setNumber: i + 1,
+						completed: false
+					}))
 			}))
 		});
 
@@ -46,33 +49,75 @@
 </script>
 
 {#if loading}
-	<div class="flex justify-center py-12">
-		<LoadingSpinner size="lg" />
+	<div class="space-y-6">
+		<Card>
+			<div class="space-y-4">
+				<div class="flex items-center justify-between">
+					<Skeleton variant="button" width="40px" height="40px" />
+					<Skeleton variant="text" width="200px" height="24px" />
+					<Skeleton variant="button" width="40px" height="40px" />
+				</div>
+				<div class="grid grid-cols-7 gap-2">
+					{#each Array(7) as _}
+						<Skeleton variant="circular" width="100%" height="60px" className="rounded-xl" />
+					{/each}
+				</div>
+			</div>
+		</Card>
+		<div class="space-y-3">
+			<Skeleton variant="text" width="180px" height="24px" />
+			{#each [1, 2] as _}
+				<Card>
+					<div class="space-y-2">
+						<Skeleton variant="text" width="60%" />
+						<Skeleton variant="text" width="40%" />
+					</div>
+				</Card>
+			{/each}
+		</div>
 	</div>
 {:else if programs.length === 0}
-	<Card>
-		<div class="text-center py-12 space-y-4">
-			<p class="text-gray-600">No programs yet. Create a program to see your workout calendar.</p>
+	<Card padding="lg">
+		<div class="text-center py-8 space-y-4">
+			<div
+				class="w-20 h-20 mx-auto rounded-2xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
+			>
+				<Calendar size={40} class="text-muted" />
+			</div>
+			<div class="space-y-2">
+				<h3 class="text-lg font-semibold text-primary">No programs yet</h3>
+				<p class="text-secondary text-sm max-w-xs mx-auto">
+					Create a program to see your workout calendar and schedule.
+				</p>
+			</div>
 			<Button onclick={() => goto('/onboarding')}>
 				{#snippet children()}
+					<Plus size={20} />
 					Create Program
 				{/snippet}
 			</Button>
 		</div>
 	</Card>
 {:else if selectedProgram}
-	<div class="space-y-4">
+	<div class="space-y-4 animate-slideUp">
+		<!-- Program selector (if multiple programs) -->
 		{#if programs.length > 1}
-			<div>
-				<label class="block text-sm font-medium text-gray-700 mb-2">Select Program</label>
-				<select
-					bind:value={selectedProgram}
-					class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-				>
-					{#each programs as program}
-						<option value={program}>{program.name}</option>
-					{/each}
-				</select>
+			<div class="relative">
+				<label class="block text-sm font-medium text-secondary mb-2">Select Program</label>
+				<div class="relative">
+					<select
+						bind:value={selectedProgram}
+						class="w-full px-4 py-3 pr-10 surface border border-theme rounded-xl text-primary appearance-none cursor-pointer input-focus-ring"
+					>
+						{#each programs as program}
+							<option value={program}>{program.name}</option>
+						{/each}
+					</select>
+					<ChevronDown
+						size={20}
+						class="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+					/>
+				</div>
 			</div>
 		{/if}
 

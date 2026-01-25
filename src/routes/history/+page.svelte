@@ -5,10 +5,9 @@
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import type { Program, Workout } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
-	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
+	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
-	import { formatWorkoutDuration } from '$lib/utils/formatters';
-	import { CheckCircle, Clock } from 'lucide-svelte';
+	import { CheckCircle, Clock, History, Dumbbell } from 'lucide-svelte';
 
 	interface SessionWithDetails {
 		session: WorkoutSession;
@@ -24,11 +23,11 @@
 		const programs = await programRepository.getAll();
 
 		sessions = completedSessions
-			.map(session => {
-				const program = programs.find(p => p.id === session.programId);
+			.map((session) => {
+				const program = programs.find((p) => p.id === session.programId);
 				if (!program) return null;
 
-				const workout = program.workouts.find(w => w.id === session.workoutId);
+				const workout = program.workouts.find((w) => w.id === session.workoutId);
 				if (!workout) return null;
 
 				return { session, workout, program };
@@ -40,7 +39,9 @@
 
 	function formatDuration(session: WorkoutSession): string {
 		if (!session.completedAt) return 'N/A';
-		const duration = Math.floor((session.completedAt.getTime() - session.startedAt.getTime()) / 1000 / 60);
+		const duration = Math.floor(
+			(session.completedAt.getTime() - session.startedAt.getTime()) / 1000 / 60
+		);
 		return `${duration} min`;
 	}
 
@@ -50,52 +51,90 @@
 
 	function getCompletedSets(session: WorkoutSession): number {
 		return session.exercises.reduce(
-			(total, ex) => total + ex.sets.filter(s => s.completed).length,
+			(total, ex) => total + ex.sets.filter((s) => s.completed).length,
 			0
 		);
 	}
 </script>
 
-<div class="space-y-4">
-	<h1 class="text-2xl font-bold">Workout History</h1>
+<div class="space-y-6 animate-slideUp">
+	<div class="flex items-center gap-3">
+		<div
+			class="w-10 h-10 rounded-xl bg-[rgb(var(--color-primary)/0.1)] flex items-center justify-center"
+		>
+			<History size={20} class="text-[rgb(var(--color-primary))]" />
+		</div>
+		<h1 class="text-2xl font-bold text-primary">Workout History</h1>
+	</div>
 
 	{#if loading}
-		<div class="flex justify-center py-12">
-			<LoadingSpinner size="lg" />
+		<div class="space-y-3">
+			{#each [1, 2, 3] as i}
+				<Card>
+					<div class="flex items-center gap-4">
+						<Skeleton variant="circular" width="48px" height="48px" />
+						<div class="flex-1 space-y-2">
+							<Skeleton variant="text" width="60%" />
+							<Skeleton variant="text" width="40%" />
+						</div>
+					</div>
+				</Card>
+			{/each}
 		</div>
 	{:else if sessions.length === 0}
-		<Card>
-			<div class="text-center py-12">
-				<p class="text-gray-600">No completed workouts yet. Start your first workout!</p>
+		<Card padding="lg">
+			<div class="text-center py-8 space-y-4">
+				<div
+					class="w-20 h-20 mx-auto rounded-2xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
+				>
+					<Dumbbell size={40} class="text-muted" />
+				</div>
+				<div class="space-y-2">
+					<h3 class="text-lg font-semibold text-primary">No completed workouts yet</h3>
+					<p class="text-secondary text-sm max-w-xs mx-auto">
+						Start your first workout from the calendar to see your history here.
+					</p>
+				</div>
 			</div>
 		</Card>
 	{:else}
 		<div class="space-y-3">
-			{#each sessions as { session, workout, program }}
-				<Card>
-					<div class="space-y-3">
-						<div class="flex items-start justify-between">
-							<div class="flex-1">
-								<h3 class="font-semibold text-gray-900">{workout.name}</h3>
-								<p class="text-sm text-gray-600">{program.name}</p>
+			{#each sessions as { session, workout, program }, index}
+				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
+					<Card>
+						<div class="flex items-center gap-4">
+							<!-- Success Icon -->
+							<div
+								class="flex-shrink-0 w-12 h-12 rounded-xl bg-[rgb(var(--color-success)/0.1)] flex items-center justify-center"
+							>
+								<CheckCircle size={24} class="text-[rgb(var(--color-success))]" />
 							</div>
-							<CheckCircle size={20} class="text-green-600 flex-shrink-0 ml-2" />
-						</div>
 
-						<div class="flex items-center gap-4 text-sm text-gray-500">
-							<div class="flex items-center gap-1">
-								<Clock size={16} />
-								<span>{formatDuration(session)}</span>
+							<!-- Content -->
+							<div class="flex-1 min-w-0">
+								<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
+								<p class="text-sm text-secondary">{program.name}</p>
+
+								<!-- Meta info -->
+								<div class="flex items-center gap-3 mt-2 text-xs text-muted">
+									<div class="flex items-center gap-1">
+										<Clock size={12} />
+										<span>{formatDuration(session)}</span>
+									</div>
+									<span class="text-[rgb(var(--color-border))]">|</span>
+									<span>{getCompletedSets(session)}/{getTotalSets(session)} sets</span>
+								</div>
 							</div>
-							<span>•</span>
-							<span>{getCompletedSets(session)}/{getTotalSets(session)} sets</span>
-						</div>
 
-						<div class="text-xs text-gray-400">
-							{formatDate(session.completedAt || session.startedAt, 'MMM d, yyyy • h:mm a')}
+							<!-- Date -->
+							<div class="text-xs text-muted text-right flex-shrink-0">
+								{formatDate(session.completedAt || session.startedAt, 'MMM d')}
+								<br />
+								{formatDate(session.completedAt || session.startedAt, 'h:mm a')}
+							</div>
 						</div>
-					</div>
-				</Card>
+					</Card>
+				</div>
 			{/each}
 		</div>
 	{/if}
