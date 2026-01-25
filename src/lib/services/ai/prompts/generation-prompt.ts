@@ -56,7 +56,7 @@ Important:
 - dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
 - workoutIndex: references position in workouts array
 - type: "warmup", "main", or "cooldown"
-- workout type: "strength", "cardio", "flexibility", or "mixed"
+- workout type: "strength", "cardio", "flexibility", "mobility", or "mixed"
 - reps can be a number range like "8-12" or duration like "30 seconds"
 - restBetweenSets: seconds to rest after each set (typical: 30-90s for most exercises)
 - restBetweenExercises: seconds to rest before starting the next exercise (typical: 60-120s)

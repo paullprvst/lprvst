@@ -24,7 +24,7 @@ export interface WeeklyPattern {
 export interface Workout {
 	id: string;
 	name: string;
-	type: 'strength' | 'cardio' | 'flexibility' | 'mixed';
+	type: 'strength' | 'cardio' | 'flexibility' | 'mobility' | 'mixed';
 	estimatedDuration: number;
 	exercises: Exercise[];
 	notes?: string;
@@ -60,7 +60,7 @@ export const ExerciseSchema = z.object({
 export const WorkoutSchema = z.object({
 	id: z.string(),
 	name: z.string(),
-	type: z.enum(['strength', 'cardio', 'flexibility', 'mixed']),
+	type: z.enum(['strength', 'cardio', 'flexibility', 'mobility', 'mixed']),
 	estimatedDuration: z.number(),
 	exercises: z.array(ExerciseSchema),
 	notes: z.string().optional()
