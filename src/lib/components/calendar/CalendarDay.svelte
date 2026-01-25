@@ -22,12 +22,12 @@
 			'w-full aspect-square p-2 rounded-xl border-2 transition-all duration-200 touch-target relative overflow-hidden group';
 
 		if (isCurrentDay) {
-			return `${base} border-blue-500 bg-blue-500/5 ${hasWorkout && !completed ? 'animate-glowPulse' : ''}`;
+			return `${base} border-cyan-500 dark:border-cyan-400 bg-cyan-500/5 dark:bg-cyan-400/10 ${hasWorkout && !completed ? 'animate-glowPulse' : ''}`;
 		}
 		if (completed) {
-			return `${base} border-green-500 bg-green-500/5`;
+			return `${base} border-emerald-500 bg-emerald-500/5`;
 		}
-		return `${base} border-theme surface ${isClickable ? 'hover:border-gray-300 hover:shadow-sm active:scale-95' : 'cursor-default'}`;
+		return `${base} border-theme surface ${isClickable ? 'hover:border-gray-300 dark:hover:border-slate-500 hover:shadow-sm active:scale-95' : 'cursor-default'}`;
 	});
 </script>
 
@@ -36,9 +36,9 @@
 		<!-- Date number -->
 		<div
 			class="text-sm font-semibold transition-colors duration-200 {isCurrentDay
-				? 'text-blue-500'
+				? 'text-cyan-600 dark:text-cyan-400'
 				: completed
-					? 'text-green-500'
+					? 'text-emerald-600 dark:text-emerald-400'
 					: 'text-primary'}"
 		>
 			{date.getDate()}
@@ -48,18 +48,18 @@
 		<div class="flex-1 flex items-center justify-center">
 			{#if completed}
 				<div
-					class="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center shadow-sm animate-scaleIn"
+					class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm animate-scaleIn"
 				>
 					<Check size={14} class="text-white" strokeWidth={3} />
 				</div>
 			{:else if workout}
 				<div class="relative flex items-center justify-center">
 					<div
-						class="w-2 h-2 rounded-full bg-blue-500 transition-transform duration-200 group-hover:scale-110 shadow-sm"
+						class="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 transition-transform duration-200 group-hover:scale-110 shadow-sm"
 					></div>
 					{#if isCurrentDay}
 						<div
-							class="absolute w-2 h-2 rounded-full bg-blue-400 animate-ping opacity-60"
+							class="absolute w-2 h-2 rounded-full bg-cyan-400 dark:bg-cyan-300 animate-ping opacity-60"
 						></div>
 					{/if}
 				</div>
@@ -70,7 +70,7 @@
 	<!-- Today indicator line -->
 	{#if isCurrentDay}
 		<div
-			class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-blue-500 rounded-full"
+			class="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-cyan-500 dark:bg-cyan-400 rounded-full"
 		></div>
 	{/if}
 </button>

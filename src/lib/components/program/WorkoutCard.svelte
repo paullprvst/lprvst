@@ -52,17 +52,17 @@
 	const exerciseTypeConfig = {
 		warmup: {
 			icon: Flame,
-			iconColor: 'text-orange-500',
+			iconColor: 'text-amber-500',
 			label: 'Warm-up'
 		},
 		main: {
 			icon: Dumbbell,
-			iconColor: 'text-blue-500',
+			iconColor: 'text-cyan-500 dark:text-cyan-400',
 			label: 'Workout'
 		},
 		cooldown: {
 			icon: Snowflake,
-			iconColor: 'text-green-500',
+			iconColor: 'text-emerald-500',
 			label: 'Cool-down'
 		}
 	};
@@ -72,9 +72,9 @@
 	<div class="flex items-start gap-3">
 		<!-- Icon -->
 		<div
-			class="flex-shrink-0 w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"
+			class="flex-shrink-0 w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center"
 		>
-			<Dumbbell size={20} class="text-blue-500" />
+			<Dumbbell size={20} class="text-cyan-500 dark:text-cyan-400" />
 		</div>
 
 		<!-- Content -->

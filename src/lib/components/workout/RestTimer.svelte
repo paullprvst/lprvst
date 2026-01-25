@@ -66,16 +66,19 @@
 </script>
 
 <div
-	class="surface rounded-2xl p-6 text-center space-y-6 border border-theme shadow-lg animate-scaleIn"
+	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-cyan-300 dark:border-cyan-500/40 shadow-lg animate-scaleIn"
 >
+	<!-- Subtle gradient background -->
+	<div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-pink-500/10 dark:from-cyan-500/15 dark:to-pink-500/15 pointer-events-none"></div>
+
 	<!-- Header -->
-	<div class="flex items-center justify-center gap-2 text-secondary">
+	<div class="relative flex items-center justify-center gap-2 text-cyan-600 dark:text-cyan-400">
 		<Timer size={20} />
-		<span class="text-sm font-semibold uppercase tracking-wide">Rest Timer</span>
+		<span class="text-sm font-bold uppercase tracking-wide">Rest Timer</span>
 	</div>
 
 	<!-- Circular Progress Timer -->
-	<div class="relative w-52 h-52 mx-auto">
+	<div class="relative w-52 h-52 mx-auto z-10">
 		<!-- Background circle -->
 		<svg class="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
 			<circle
@@ -115,7 +118,7 @@
 	</div>
 
 	<!-- Progress indicator dots -->
-	<div class="flex justify-center gap-2">
+	<div class="relative z-10 flex justify-center gap-2">
 		{#each Array(5) as _, i}
 			{@const dotProgress = ((5 - i) / 5) * 100}
 			<div
@@ -127,10 +130,12 @@
 	</div>
 
 	<!-- Skip button -->
-	<Button onclick={skip} variant="ghost" fullWidth={true}>
-		{#snippet children()}
-			<SkipForward size={18} />
-			Skip Rest
-		{/snippet}
-	</Button>
+	<div class="relative z-10">
+		<Button onclick={skip} variant="ghost" fullWidth={true}>
+			{#snippet children()}
+				<SkipForward size={18} />
+				Skip Rest
+			{/snippet}
+		</Button>
+	</div>
 </div>

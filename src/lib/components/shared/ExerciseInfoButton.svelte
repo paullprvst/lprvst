@@ -66,7 +66,7 @@
 
 <button
 	onclick={handleClick}
-	class="text-muted hover:text-blue-500 transition-colors p-1 -m-1"
+	class="text-muted hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors p-1 -m-1"
 	title="Exercise info"
 	aria-label="View exercise instructions for {exerciseName}"
 >

@@ -18,12 +18,6 @@
 		{ href: '/settings', icon: Settings, label: 'Settings' }
 	];
 
-	let scrolled = $state(false);
-
-	function handleScroll() {
-		scrolled = window.scrollY > 10;
-	}
-
 	// Get active index for indicator positioning
 	const activeIndex = $derived(
 		navItems.findIndex((item) => {
@@ -35,23 +29,9 @@
 	);
 </script>
 
-<svelte:window onscroll={handleScroll} />
-
 <div class="min-h-screen flex flex-col">
-	<!-- Header with backdrop blur on scroll -->
-	<header
-		class="sticky top-0 z-[100] transition-all duration-200"
-		class:glass-heavy={scrolled}
-		class:surface={!scrolled}
-		class:shadow-sm={scrolled}
-	>
-		<div class="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-			<h1 class="text-xl sm:text-2xl font-bold text-primary">AI Fitness Coach</h1>
-		</div>
-	</header>
-
 	<!-- Main Content -->
-	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-28">
+	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6 pb-32">
 		{@render children()}
 	</main>
 
@@ -64,7 +44,7 @@
 				<!-- Sliding indicator -->
 				{#if activeIndex >= 0}
 					<div
-						class="absolute top-0 h-0.5 bg-blue-500 rounded-full transition-all duration-300 ease-out"
+						class="absolute top-0 h-1 bg-gradient-to-r from-cyan-400 to-pink-500 rounded-full transition-all duration-300 ease-out"
 						style="width: {100 / navItems.length}%; left: {(activeIndex * 100) /
 							navItems.length}%;"
 					></div>
@@ -75,12 +55,12 @@
 					<a
 						href={item.href}
 						class="relative flex flex-col items-center py-3 px-4 touch-target transition-all duration-200 group {isActive
-							? 'text-blue-500'
+							? 'text-cyan-600 dark:text-cyan-400'
 							: 'text-secondary'}"
 					>
 						<div
 							class="p-1.5 rounded-xl transition-all duration-200 {isActive
-								? 'bg-blue-500/10'
+								? 'bg-cyan-500/15 dark:bg-cyan-400/20'
 								: 'group-hover:bg-gray-500/10'}"
 						>
 							<item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />

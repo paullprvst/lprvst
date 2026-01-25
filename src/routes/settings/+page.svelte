@@ -41,11 +41,11 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+				<div class="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center">
 					{#if themeStore.effectiveTheme === 'dark'}
-						<Moon size={20} class="text-blue-500" />
+						<Moon size={20} class="text-cyan-500 dark:text-cyan-400" />
 					{:else}
-						<Sun size={20} class="text-blue-500" />
+						<Sun size={20} class="text-cyan-500 dark:text-cyan-400" />
 					{/if}
 				</div>
 				<div>
@@ -60,22 +60,22 @@
 					<button
 						onclick={() => themeStore.setTheme(option.value)}
 						class="relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 touch-target {isActive
-							? 'border-blue-500 bg-blue-500/5'
-							: 'border-theme surface hover:border-gray-300'}"
+							? 'border-cyan-500 dark:border-cyan-400 bg-cyan-500/5 dark:bg-cyan-400/10'
+							: 'border-theme surface hover:border-gray-300 dark:hover:border-slate-500'}"
 					>
 						{#if isActive}
-							<option.icon size={24} class="text-blue-500" />
+							<option.icon size={24} class="text-cyan-600 dark:text-cyan-400" />
 						{:else}
 							<option.icon size={24} class="text-secondary" />
 						{/if}
 						<span
-							class="text-sm font-medium {isActive ? 'text-blue-500' : 'text-secondary'}"
+							class="text-sm font-medium {isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-secondary'}"
 						>
 							{option.label}
 						</span>
 						{#if isActive}
 							<div
-								class="absolute top-2 right-2 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center"
+								class="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-500 dark:bg-cyan-400 flex items-center justify-center"
 							>
 								<Check size={12} class="text-white" strokeWidth={3} />
 							</div>
@@ -107,7 +107,7 @@
 						href="https://console.anthropic.com"
 						target="_blank"
 						rel="noopener"
-						class="text-blue-500 hover:underline font-medium"
+						class="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
 					>
 						console.anthropic.com
 					</a>
@@ -134,8 +134,8 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-					<Info size={20} class="text-green-500" />
+				<div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+					<Info size={20} class="text-emerald-500" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">About</h2>
@@ -149,13 +149,13 @@
 			</p>
 
 			<div class="flex flex-wrap gap-2">
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-500">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
 					SvelteKit
 				</span>
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-orange-500/10 text-orange-500">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
 					Claude AI
 				</span>
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-green-500/10 text-green-500">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
 					Tailwind CSS
 				</span>
 			</div>

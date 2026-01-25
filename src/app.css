@@ -7,24 +7,26 @@
    ======================================== */
 
 :root {
-	/* Colors - Light Mode */
-	--color-primary: 59 130 246;
-	--color-primary-hover: 37 99 235;
-	--color-secondary: 107 114 128;
+	/* Colors - Light Mode - Vibrant cyan/pink */
+	--color-primary: 6 182 212;
+	--color-primary-hover: 8 145 178;
+	--color-secondary: 100 116 139;
 	--color-success: 34 197 94;
-	--color-warning: 249 115 22;
+	--color-warning: 245 158 11;
 	--color-error: 239 68 68;
+	--color-accent: 236 72 153;
+	--color-accent-secondary: 14 165 233;
 
 	/* Surfaces */
-	--color-bg: 249 250 251;
+	--color-bg: 250 250 252;
 	--color-surface: 255 255 255;
 	--color-surface-elevated: 255 255 255;
-	--color-border: 229 231 235;
+	--color-border: 226 232 240;
 
-	/* Text */
-	--color-text-primary: 17 24 39;
-	--color-text-secondary: 107 114 128;
-	--color-text-muted: 156 163 175;
+	/* Text - High contrast */
+	--color-text-primary: 15 23 42;
+	--color-text-secondary: 71 85 105;
+	--color-text-muted: 148 163 184;
 
 	/* Shadows */
 	--shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
@@ -84,21 +86,28 @@
 	--z-toast: 500;
 }
 
-/* Dark Mode */
+/* Dark Mode - HIGH CONTRAST vibrant colors */
 [data-theme='dark'] {
-	--color-bg: 17 24 39;
-	--color-surface: 31 41 55;
-	--color-surface-elevated: 55 65 81;
-	--color-border: 75 85 99;
+	--color-primary: 34 211 238;
+	--color-primary-hover: 103 232 249;
+	--color-success: 74 222 128;
+	--color-warning: 251 191 36;
+	--color-accent: 244 114 182;
+	--color-accent-secondary: 56 189 248;
 
-	--color-text-primary: 249 250 251;
-	--color-text-secondary: 156 163 175;
-	--color-text-muted: 107 114 128;
+	--color-bg: 15 15 20;
+	--color-surface: 24 24 32;
+	--color-surface-elevated: 36 36 48;
+	--color-border: 55 55 72;
 
-	--shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-	--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+	--color-text-primary: 250 250 255;
+	--color-text-secondary: 180 180 200;
+	--color-text-muted: 130 130 155;
+
+	--shadow-sm: 0 1px 2px rgb(0 0 0 / 0.5);
+	--shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.6), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+	--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+	--shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.6);
 }
 
 /* ========================================
@@ -166,6 +175,23 @@
 	/* Border utilities */
 	.border-theme {
 		border-color: rgb(var(--color-border));
+	}
+
+	/* Accent colors */
+	.text-accent {
+		color: rgb(var(--color-accent));
+	}
+
+	.text-accent-secondary {
+		color: rgb(var(--color-accent-secondary));
+	}
+
+	.bg-accent {
+		background-color: rgb(var(--color-accent));
+	}
+
+	.bg-accent-secondary {
+		background-color: rgb(var(--color-accent-secondary));
 	}
 
 	/* Glass morphism */

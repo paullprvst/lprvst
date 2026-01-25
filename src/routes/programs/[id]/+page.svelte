@@ -76,7 +76,7 @@
 					<h2 class="text-sm font-medium text-muted uppercase">Schedule</h2>
 					<div class="mt-2 flex flex-wrap gap-2">
 						{#each program.schedule.weeklyPattern as pattern}
-							<span class="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-full text-sm font-medium">
+							<span class="px-3 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-full text-sm font-medium">
 								{DAY_NAMES[pattern.dayOfWeek]}
 							</span>
 						{/each}

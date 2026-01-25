@@ -135,7 +135,7 @@
 		<!-- Progress bar -->
 		<div class="w-full surface-elevated rounded-full h-2 overflow-hidden">
 			<div
-				class="bg-blue-500 h-full transition-all duration-300 ease-out"
+				class="bg-gradient-to-r from-cyan-400 to-pink-500 h-full transition-all duration-300 ease-out"
 				style="width: {workoutStore.progress}%"
 			></div>
 		</div>
@@ -163,9 +163,9 @@
 	<Modal bind:open={showCompleteModal} size="sm">
 		<div class="text-center space-y-6 py-4">
 			<div
-				class="w-20 h-20 mx-auto rounded-full bg-green-500/10 flex items-center justify-center"
+				class="w-20 h-20 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center"
 			>
-				<Trophy size={40} class="text-green-500" />
+				<Trophy size={40} class="text-emerald-500" />
 			</div>
 
 			<div class="space-y-2">

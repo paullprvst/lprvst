@@ -23,23 +23,23 @@
 		warmup: {
 			icon: Flame,
 			label: 'WARM-UP',
-			badgeClass: 'bg-orange-500/10 text-orange-500',
-			iconClass: 'bg-orange-500/10',
-			iconColor: 'text-orange-500'
+			badgeClass: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
+			iconClass: 'bg-orange-500/20',
+			iconColor: 'text-orange-500 dark:text-orange-400'
 		},
 		main: {
 			icon: Dumbbell,
 			label: 'MAIN',
-			badgeClass: 'bg-blue-500/10 text-blue-500',
-			iconClass: 'bg-blue-500/10',
-			iconColor: 'text-blue-500'
+			badgeClass: 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
+			iconClass: 'bg-cyan-500/20',
+			iconColor: 'text-cyan-500 dark:text-cyan-400'
 		},
 		cooldown: {
 			icon: Snowflake,
 			label: 'COOL-DOWN',
-			badgeClass: 'bg-green-500/10 text-green-500',
-			iconClass: 'bg-green-500/10',
-			iconColor: 'text-green-500'
+			badgeClass: 'bg-sky-500/20 text-sky-600 dark:text-sky-400',
+			iconClass: 'bg-sky-500/20',
+			iconColor: 'text-sky-500 dark:text-sky-400'
 		}
 	};
 
@@ -48,65 +48,67 @@
 
 <div class="space-y-4 animate-slideUp">
 	<!-- Exercise Info Card -->
-	<Card padding="lg">
-		<div class="space-y-5">
-			<!-- Type badge and title -->
-			<div>
-				{#if exercise.type !== 'main'}
-					<div
-						class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
-					>
-						<config.icon size={12} />
-						{config.label}
+	<div class="rounded-2xl border border-cyan-300 dark:border-cyan-500/40 overflow-hidden">
+		<Card padding="lg">
+			<div class="space-y-5">
+				<!-- Type badge and title -->
+				<div>
+					{#if exercise.type !== 'main'}
+						<div
+							class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
+						>
+							<config.icon size={12} />
+							{config.label}
+						</div>
+					{/if}
+					<div class="flex items-center gap-2">
+						<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
+						<ExerciseInfoButton
+							exerciseName={exercise.name}
+							equipment={exercise.equipment}
+							notes={exercise.notes}
+							size={22}
+						/>
+					</div>
+					{#if exercise.notes}
+						<p class="text-secondary mt-2">{exercise.notes}</p>
+					{/if}
+				</div>
+
+				<!-- Equipment -->
+				{#if exercise.equipment && exercise.equipment.length > 0}
+					<div class="flex flex-wrap gap-2">
+						{#each exercise.equipment as item}
+							<span
+								class="px-3 py-1.5 text-sm bg-cyan-500/20 rounded-lg text-cyan-700 dark:text-cyan-300 font-medium"
+							>
+								{item}
+							</span>
+						{/each}
 					</div>
 				{/if}
-				<div class="flex items-center gap-2">
-					<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
-					<ExerciseInfoButton
-						exerciseName={exercise.name}
-						equipment={exercise.equipment}
-						notes={exercise.notes}
-						size={22}
-					/>
-				</div>
-				{#if exercise.notes}
-					<p class="text-secondary mt-2">{exercise.notes}</p>
-				{/if}
-			</div>
 
-			<!-- Equipment -->
-			{#if exercise.equipment && exercise.equipment.length > 0}
-				<div class="flex flex-wrap gap-2">
-					{#each exercise.equipment as item}
-						<span
-							class="px-3 py-1.5 text-sm surface-elevated rounded-lg border border-theme text-secondary"
-						>
-							{item}
-						</span>
-					{/each}
+				<!-- Target info -->
+				<div class="p-4 bg-gradient-to-br from-cyan-500/15 to-pink-500/15 dark:from-cyan-500/25 dark:to-pink-500/25 rounded-xl border border-cyan-300 dark:border-cyan-500/40">
+					<p class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide mb-1">Target</p>
+					<p class="text-2xl font-bold text-primary">
+						{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
+					</p>
+					<p class="text-sm text-secondary mt-2">
+						{formatRestTime(exercise.restBetweenSets)} between sets
+					</p>
 				</div>
-			{/if}
-
-			<!-- Target info -->
-			<div class="p-4 surface-elevated rounded-xl border border-theme">
-				<p class="text-xs font-medium text-muted uppercase tracking-wide mb-1">Target</p>
-				<p class="text-xl font-bold text-primary">
-					{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
-				</p>
-				<p class="text-sm text-secondary mt-2">
-					{formatRestTime(exercise.restBetweenSets)} between sets
-				</p>
 			</div>
-		</div>
-	</Card>
+		</Card>
+	</div>
 
 	<!-- Sets Card -->
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center justify-between">
 				<h3 class="font-semibold text-primary">Sets</h3>
-				<span class="text-sm text-secondary">
-					{completedCount}/{exercise.sets} completed
+				<span class="text-sm font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
+					{completedCount}/{exercise.sets}
 				</span>
 			</div>
 
@@ -115,8 +117,8 @@
 					<button
 						onclick={() => onsetcomplete(set.setNumber)}
 						class="relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 transition-all duration-200 touch-target overflow-hidden group animate-scaleIn active:scale-95 {set.completed
-							? 'border-green-500 bg-green-500/5'
-							: 'border-theme surface hover:border-gray-300'}"
+							? 'border-green-400 bg-green-500/15 dark:border-green-400 dark:bg-green-500/20'
+							: 'border-cyan-300 dark:border-cyan-500/50 surface hover:border-cyan-400 dark:hover:border-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-cyan-500/15'}"
 						style="animation-delay: {index * 50}ms"
 					>
 						<!-- Checkmark animation -->
@@ -128,13 +130,13 @@
 							</div>
 						{:else}
 							<div
-								class="w-7 h-7 rounded-full border-2 border-theme group-hover:border-gray-300 transition-colors duration-200"
+								class="w-7 h-7 rounded-full border-2 border-cyan-400 dark:border-cyan-400 group-hover:border-cyan-500 transition-colors duration-200"
 							></div>
 						{/if}
 
 						<span
 							class="font-semibold transition-colors duration-200 {set.completed
-								? 'text-green-500'
+								? 'text-green-600 dark:text-green-400'
 								: 'text-primary'}"
 						>
 							Set {set.setNumber}
@@ -143,7 +145,7 @@
 						<!-- Ripple effect on complete -->
 						{#if set.completed}
 							<div
-								class="absolute inset-0 bg-green-500/10 animate-pulse pointer-events-none"
+								class="absolute inset-0 bg-green-500/5 pointer-events-none"
 							></div>
 						{/if}
 					</button>
