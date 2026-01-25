@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { addWeeks, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
-	import { getWeekSchedule, formatDate, DAY_NAMES_SHORT, getCompletedWorkoutForDate } from '$lib/utils/date-helpers';
+	import { getWeekSchedule, formatDate, DAY_NAMES_SHORT, getCompletedWorkoutForDate, getUpcomingWorkouts } from '$lib/utils/date-helpers';
 	import type { Program } from '$lib/types/program';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import CalendarDay from './CalendarDay.svelte';
@@ -19,6 +19,7 @@
 	let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 0 }));
 
 	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
+	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
 	const selectedDay = $state<{ date: Date; workout: any; workoutIndex: number } | null>(null);
 
 	function previousWeek() {
@@ -79,21 +80,21 @@
 	</Card>
 
 	<div>
-		<h3 class="text-lg font-semibold mb-3">This Week's Workouts</h3>
+		<h3 class="text-lg font-semibold mb-3">Upcoming Workouts</h3>
 		<div class="space-y-3">
-			{#each weekSchedule.filter(d => d.workout) as day}
+			{#each upcomingWorkouts as day}
 				<div>
 					<div class="text-sm text-gray-500 mb-1">
 						{formatDate(day.date, 'EEEE, MMM d')}
 					</div>
 					<WorkoutCard
 						workout={day.workout}
-						onclick={() => handleDayClick(day)}
+						onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
 					/>
 				</div>
 			{:else}
 				<Card>
-					<p class="text-gray-500 text-center py-4">No workouts scheduled this week</p>
+					<p class="text-gray-500 text-center py-4">No upcoming workouts scheduled</p>
 				</Card>
 			{/each}
 		</div>

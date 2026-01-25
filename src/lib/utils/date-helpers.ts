@@ -78,3 +78,36 @@ export function getCompletedWorkoutForDate(
 		return isSameDay(new Date(session.completedAt), date);
 	}) || null;
 }
+
+export function getUpcomingWorkouts(
+	program: Program,
+	completedSessions: WorkoutSession[],
+	count: number = 5
+): Array<{ date: Date; workout: any; workoutIndex: number }> {
+	const upcoming: Array<{ date: Date; workout: any; workoutIndex: number }> = [];
+	let currentDate = new Date();
+	currentDate.setHours(0, 0, 0, 0);
+
+	// Look ahead up to 60 days to find enough workouts
+	const maxDays = 60;
+	let daysChecked = 0;
+
+	while (upcoming.length < count && daysChecked < maxDays) {
+		const scheduled = getScheduledWorkout(program, currentDate);
+		if (scheduled) {
+			// Check if this workout is already completed on this date
+			const isCompleted = getCompletedWorkoutForDate(completedSessions, currentDate) !== null;
+			if (!isCompleted) {
+				upcoming.push({
+					date: new Date(currentDate),
+					workout: scheduled.workout,
+					workoutIndex: scheduled.workoutIndex
+				});
+			}
+		}
+		currentDate = addDays(currentDate, 1);
+		daysChecked++;
+	}
+
+	return upcoming;
+}
