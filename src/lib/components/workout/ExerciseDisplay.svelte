@@ -51,7 +51,9 @@
 				<p class="text-lg font-semibold text-gray-900">
 					{exercise.sets} sets × {formatExerciseReps(exercise.reps, exercise.duration)}
 				</p>
-				<p class="text-sm text-gray-600 mt-1">{formatRestTime(exercise.restTime)}</p>
+				<p class="text-sm text-gray-600 mt-1">
+					{formatRestTime(exercise.restBetweenSets)} between sets, {formatRestTime(exercise.restBetweenExercises)} before next
+				</p>
 			</div>
 		</div>
 	</Card>

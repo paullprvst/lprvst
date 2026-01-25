@@ -8,7 +8,7 @@ Analyze the request and update the program accordingly. Common modifications:
 - Adjust volume (more/fewer sets, exercises)
 - Change frequency (more/fewer days per week)
 - Swap exercises (due to equipment, preference, or injury)
-- Adjust intensity (weight, reps, rest periods)
+- Adjust intensity (weight, reps, rest periods between sets and between exercises)
 - Change focus (different muscle groups, goals)
 
 Maintain program structure and quality:

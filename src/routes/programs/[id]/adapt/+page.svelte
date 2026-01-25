@@ -63,7 +63,15 @@ My request: ${initialRequest}`;
 			step = 'conversation';
 		} catch (error) {
 			console.error('Error starting conversation:', error);
-			alert('Failed to start conversation. Please check your API key in Settings and try again.');
+			const err = error as { status?: number; error?: { type?: string } };
+			if (err.status === 529 || err.error?.type === 'overloaded_error') {
+				alert('The AI service is currently overloaded. Please try again in a moment.');
+			} else if (err.status === 401 || (error instanceof Error && error.message.includes('API key'))) {
+				alert('Failed to start conversation. Please check your API key in Settings.');
+			} else {
+				const message = error instanceof Error ? error.message : 'Unknown error';
+				alert(`Failed to start conversation: ${message}`);
+			}
 		} finally {
 			messageLoading = false;
 		}
@@ -87,7 +95,13 @@ My request: ${initialRequest}`;
 			readyToModify = await conversationManager.isReadyToModify(conversation.id);
 		} catch (error) {
 			console.error('Error sending message:', error);
-			alert('Failed to send message. Please try again.');
+			const err = error as { status?: number; error?: { type?: string } };
+			if (err.status === 529 || err.error?.type === 'overloaded_error') {
+				alert('The AI service is currently overloaded. Please try again in a moment.');
+			} else {
+				const message = error instanceof Error ? error.message : 'Unknown error';
+				alert(`Failed to send message: ${message}`);
+			}
 		} finally {
 			messageLoading = false;
 		}
@@ -103,7 +117,13 @@ My request: ${initialRequest}`;
 			goto(`/programs/${program.id}`);
 		} catch (error) {
 			console.error('Error modifying program:', error);
-			alert('Failed to modify program. Please try again.');
+			const err = error as { status?: number; error?: { type?: string } };
+			if (err.status === 529 || err.error?.type === 'overloaded_error') {
+				alert('The AI service is currently overloaded. Please try again in a moment.');
+			} else {
+				const message = error instanceof Error ? error.message : 'Unknown error';
+				alert(`Failed to modify program: ${message}`);
+			}
 			step = 'conversation';
 		}
 	}

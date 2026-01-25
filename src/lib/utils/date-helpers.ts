@@ -14,8 +14,8 @@ import type { Program, WeeklyPattern } from '$lib/types/program';
 import type { WorkoutSession } from '$lib/types/workout-session';
 
 export function getWeekDays(date: Date): Date[] {
-	const start = startOfWeek(date, { weekStartsOn: 0 });
-	const end = endOfWeek(date, { weekStartsOn: 0 });
+	const start = startOfWeek(date, { weekStartsOn: 1 });
+	const end = endOfWeek(date, { weekStartsOn: 1 });
 	return eachDayOfInterval({ start, end });
 }
 
@@ -33,7 +33,8 @@ export function getScheduledWorkout(
 	program: Program,
 	date: Date
 ): { workout: any; workoutIndex: number } | null {
-	const dayOfWeek = date.getDay();
+	// Convert JS getDay() (0=Sunday) to Monday-based (0=Monday, 6=Sunday)
+	const dayOfWeek = (date.getDay() + 6) % 7;
 	const pattern = program.schedule.weeklyPattern.find((p) => p.dayOfWeek === dayOfWeek);
 
 	if (!pattern) return null;
@@ -65,8 +66,8 @@ export function formatDuration(seconds: number): string {
 	return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-export const DAY_NAMES_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+export const DAY_NAMES_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export function getCompletedWorkoutForDate(
 	sessions: WorkoutSession[],

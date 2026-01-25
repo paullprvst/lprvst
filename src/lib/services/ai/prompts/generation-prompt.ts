@@ -24,8 +24,8 @@ Return ONLY valid JSON matching this exact structure:
   "startDate": "2024-01-01",
   "schedule": {
     "weeklyPattern": [
-      {"dayOfWeek": 1, "workoutIndex": 0},
-      {"dayOfWeek": 3, "workoutIndex": 1}
+      {"dayOfWeek": 0, "workoutIndex": 0},
+      {"dayOfWeek": 2, "workoutIndex": 1}
     ],
     "duration": 8
   },
@@ -41,7 +41,8 @@ Return ONLY valid JSON matching this exact structure:
           "name": "Exercise Name",
           "sets": 3,
           "reps": "8-12",
-          "restTime": 90,
+          "restBetweenSets": 60,
+          "restBetweenExercises": 90,
           "equipment": ["dumbbells"],
           "notes": "Focus on controlled movement",
           "type": "warmup"
@@ -52,12 +53,13 @@ Return ONLY valid JSON matching this exact structure:
 }
 
 Important:
-- dayOfWeek: 0=Sunday, 1=Monday, 2=Tuesday, etc.
+- dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
 - workoutIndex: references position in workouts array
 - type: "warmup", "main", or "cooldown"
 - workout type: "strength", "cardio", "flexibility", or "mixed"
 - reps can be a number range like "8-12" or duration like "30 seconds"
-- restTime in seconds
+- restBetweenSets: seconds to rest after each set (typical: 30-90s for most exercises)
+- restBetweenExercises: seconds to rest before starting the next exercise (typical: 60-120s)
 - Always include warmup exercises (type: "warmup") and optionally cooldown (type: "cooldown")
 
 Do not include any markdown formatting or explanation. Return ONLY the JSON object.`;

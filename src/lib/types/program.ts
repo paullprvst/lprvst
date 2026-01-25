@@ -36,7 +36,8 @@ export interface Exercise {
 	sets: number;
 	reps?: string;
 	duration?: number;
-	restTime: number;
+	restBetweenSets: number;
+	restBetweenExercises: number;
 	equipment?: string[];
 	notes?: string;
 	type: 'warmup' | 'main' | 'cooldown';
@@ -49,7 +50,8 @@ export const ExerciseSchema = z.object({
 	sets: z.number(),
 	reps: z.string().optional(),
 	duration: z.number().optional(),
-	restTime: z.number(),
+	restBetweenSets: z.number(),
+	restBetweenExercises: z.number(),
 	equipment: z.array(z.string()).optional(),
 	notes: z.string().optional(),
 	type: z.enum(['warmup', 'main', 'cooldown'])

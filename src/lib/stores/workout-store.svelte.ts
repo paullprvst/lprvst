@@ -49,12 +49,12 @@ class WorkoutStore {
 
 			if (allCompleted) {
 				// All sets done - show rest before next exercise (if not last exercise)
-				if (this.currentExercise.restTime > 0 && !this.isLastExercise) {
-					this.startRest(this.currentExercise.restTime, 'exercise');
+				if (this.currentExercise.restBetweenExercises > 0 && !this.isLastExercise) {
+					this.startRest(this.currentExercise.restBetweenExercises, 'exercise');
 				}
-			} else if (this.currentExercise.restTime > 0) {
+			} else if (this.currentExercise.restBetweenSets > 0) {
 				// More sets to do - show rest between sets
-				this.startRest(this.currentExercise.restTime, 'set');
+				this.startRest(this.currentExercise.restBetweenSets, 'set');
 			}
 		}
 	}

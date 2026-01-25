@@ -125,7 +125,7 @@
 											{/if}
 										</div>
 										<div class="text-xs text-gray-400 flex-shrink-0">
-											{exercise.restTime}s rest
+											{exercise.restBetweenSets}s rest
 										</div>
 									</div>
 								{/each}

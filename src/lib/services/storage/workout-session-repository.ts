@@ -1,64 +1,121 @@
-import { db } from './db';
-import type { WorkoutSession } from '$lib/types/workout-session';
+import { supabase } from './supabase';
+import type { WorkoutSession, ExerciseLog, SetLog } from '$lib/types/workout-session';
 
 export class WorkoutSessionRepository {
-	async create(
-		session: Omit<WorkoutSession, 'id' | 'startedAt'>
-	): Promise<WorkoutSession> {
-		const newSession: WorkoutSession = {
-			...session,
-			id: crypto.randomUUID(),
-			startedAt: new Date()
-		};
-		await db.workoutSessions.add(newSession);
-		return newSession;
+	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.insert({
+				workout_id: session.workoutId,
+				program_id: session.programId,
+				status: session.status,
+				exercises: session.exercises
+			})
+			.select()
+			.single();
+
+		if (error) throw error;
+		return this.mapFromDb(data);
 	}
 
 	async get(id: string): Promise<WorkoutSession | undefined> {
-		return await db.workoutSessions.get(id);
+		const { data, error } = await supabase.from('workout_sessions').select().eq('id', id).single();
+
+		if (error) {
+			if (error.code === 'PGRST116') return undefined;
+			throw error;
+		}
+		return this.mapFromDb(data);
 	}
 
 	async getByProgram(programId: string): Promise<WorkoutSession[]> {
-		return await db.workoutSessions
-			.where('programId')
-			.equals(programId)
-			.reverse()
-			.sortBy('startedAt');
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.select()
+			.eq('program_id', programId)
+			.order('started_at', { ascending: false });
+
+		if (error) throw error;
+		return (data || []).map((row) => this.mapFromDb(row));
 	}
 
 	async getCompleted(): Promise<WorkoutSession[]> {
-		return await db.workoutSessions
-			.where('status')
-			.equals('completed')
-			.reverse()
-			.sortBy('completedAt');
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.select()
+			.eq('status', 'completed')
+			.order('completed_at', { ascending: false });
+
+		if (error) throw error;
+		return (data || []).map((row) => this.mapFromDb(row));
 	}
 
-	async getCompletedByDateRange(
-		startDate: Date,
-		endDate: Date
-	): Promise<WorkoutSession[]> {
-		const allCompleted = await this.getCompleted();
-		return allCompleted.filter((session) => {
-			if (!session.completedAt) return false;
-			const completedDate = new Date(session.completedAt);
-			return completedDate >= startDate && completedDate <= endDate;
-		});
+	async getCompletedByDateRange(startDate: Date, endDate: Date): Promise<WorkoutSession[]> {
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.select()
+			.eq('status', 'completed')
+			.gte('completed_at', startDate.toISOString())
+			.lte('completed_at', endDate.toISOString())
+			.order('completed_at', { ascending: false });
+
+		if (error) throw error;
+		return (data || []).map((row) => this.mapFromDb(row));
 	}
 
 	async update(id: string, updates: Partial<WorkoutSession>): Promise<void> {
-		await db.workoutSessions.update(id, updates);
+		const dbUpdates: Record<string, unknown> = {};
+		if (updates.workoutId !== undefined) dbUpdates.workout_id = updates.workoutId;
+		if (updates.programId !== undefined) dbUpdates.program_id = updates.programId;
+		if (updates.status !== undefined) dbUpdates.status = updates.status;
+		if (updates.exercises !== undefined) dbUpdates.exercises = updates.exercises;
+		if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
+
+		const { error } = await supabase.from('workout_sessions').update(dbUpdates).eq('id', id);
+
+		if (error) throw error;
 	}
 
 	async complete(id: string): Promise<void> {
-		await db.workoutSessions.update(id, {
-			status: 'completed',
-			completedAt: new Date()
-		});
+		const { error } = await supabase
+			.from('workout_sessions')
+			.update({
+				status: 'completed',
+				completed_at: new Date().toISOString()
+			})
+			.eq('id', id);
+
+		if (error) throw error;
 	}
 
 	async delete(id: string): Promise<void> {
-		await db.workoutSessions.delete(id);
+		const { error } = await supabase.from('workout_sessions').delete().eq('id', id);
+		if (error) throw error;
+	}
+
+	private mapFromDb(data: Record<string, unknown>): WorkoutSession {
+		const exercises = (data.exercises as Array<Record<string, unknown>>) || [];
+		return {
+			id: data.id as string,
+			workoutId: data.workout_id as string,
+			programId: data.program_id as string,
+			startedAt: new Date(data.started_at as string),
+			completedAt: data.completed_at ? new Date(data.completed_at as string) : undefined,
+			status: data.status as WorkoutSession['status'],
+			exercises: exercises.map((e) => ({
+				exerciseId: e.exerciseId as string,
+				sets: (e.sets as Array<Record<string, unknown>>).map((s) => ({
+					setNumber: s.setNumber as number,
+					completed: s.completed as boolean,
+					reps: s.reps as number | undefined,
+					weight: s.weight as number | undefined,
+					duration: s.duration as number | undefined,
+					completedAt: s.completedAt ? new Date(s.completedAt as string) : undefined
+				})) as SetLog[],
+				notes: e.notes as string | undefined,
+				skipped: e.skipped as boolean | undefined
+			})) as ExerciseLog[]
+		};
 	}
 }
 

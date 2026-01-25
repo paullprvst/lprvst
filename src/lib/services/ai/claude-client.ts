@@ -6,10 +6,19 @@ export class ClaudeClient {
 	private lastRequestTime = 0;
 	private readonly MIN_REQUEST_DELAY = 1000;
 
+	private getApiKey(): string | null {
+		// First try environment variable, then localStorage
+		const envKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+		if (envKey) return envKey;
+
+		if (typeof localStorage !== 'undefined') {
+			return localStorage.getItem('anthropic_api_key');
+		}
+		return null;
+	}
+
 	constructor(apiKey?: string) {
-		const key =
-			apiKey ||
-			(typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null);
+		const key = apiKey || this.getApiKey();
 		if (key) {
 			this.currentApiKey = key;
 			this.client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
@@ -17,11 +26,10 @@ export class ClaudeClient {
 	}
 
 	private ensureClient(): void {
-		const key =
-			typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null;
+		const key = this.getApiKey();
 
 		if (!key) {
-			throw new Error('Anthropic API key is required. Please set it in Settings.');
+			throw new Error('Anthropic API key is required. Please set it in Settings or .env file.');
 		}
 
 		// Reinitialize client if API key changed
