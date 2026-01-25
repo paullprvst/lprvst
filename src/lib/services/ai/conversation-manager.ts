@@ -1,5 +1,7 @@
 import { claudeClient } from './claude-client';
 import { conversationRepository } from '../storage/conversation-repository';
+import { programRepository } from '../storage/program-repository';
+import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
 import { ONBOARDING_SYSTEM_PROMPT } from './prompts/onboarding-prompt';
 import { REEVALUATION_CONVERSATION_PROMPT } from './prompts/reevaluation-prompt';
 import type { Conversation, Message } from '$lib/types/conversation';
@@ -41,10 +43,18 @@ export class ConversationManager {
 			throw new Error('Conversation not found');
 		}
 
-		const systemPrompt =
+		let systemPrompt =
 			conversation.type === 'onboarding'
 				? ONBOARDING_SYSTEM_PROMPT
 				: REEVALUATION_CONVERSATION_PROMPT;
+
+		// For reevaluation conversations, include exercise details in the system prompt
+		if (conversation.type === 'reevaluation' && conversation.programId) {
+			const exerciseDetails = await this.getExerciseDetailsForProgram(conversation.programId);
+			if (exerciseDetails) {
+				systemPrompt += `\n\nExercise Details (for reference when discussing modifications):\n${exerciseDetails}`;
+			}
+		}
 
 		const messages = conversation.messages.map((m) => ({
 			role: m.role,
@@ -71,6 +81,34 @@ export class ConversationManager {
 		await conversationRepository.addMessage(conversationId, assistantMessage);
 
 		return responseText;
+	}
+
+	private async getExerciseDetailsForProgram(programId: string): Promise<string | null> {
+		try {
+			const program = await programRepository.get(programId);
+			if (!program) return null;
+
+			// Extract all unique exercise names from the program
+			const exerciseNames = new Set<string>();
+			for (const workout of program.workouts) {
+				for (const exercise of workout.exercises) {
+					exerciseNames.add(exercise.name);
+				}
+			}
+
+			// Fetch exercise descriptions from database
+			const descriptions = await exerciseDescriptionRepository.getByNames([...exerciseNames]);
+			if (descriptions.size === 0) return null;
+
+			const detailsArray: string[] = [];
+			for (const [name, description] of descriptions) {
+				detailsArray.push(`### ${name}\n${description}`);
+			}
+			return detailsArray.join('\n\n');
+		} catch (err) {
+			console.warn('Failed to fetch exercise descriptions:', err);
+			return null;
+		}
 	}
 
 	async isReadyToGenerate(conversationId: string): Promise<boolean> {

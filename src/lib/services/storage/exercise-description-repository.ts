@@ -30,6 +30,23 @@ export class ExerciseDescriptionRepository {
 		return this.mapFromDb(data);
 	}
 
+	async getByNames(exerciseNames: string[]): Promise<Map<string, string>> {
+		const normalizedNames = exerciseNames.map(normalizeExerciseName);
+
+		const { data, error } = await supabase
+			.from('exercise_descriptions')
+			.select()
+			.in('normalized_name', normalizedNames);
+
+		if (error) throw error;
+
+		const descriptions = new Map<string, string>();
+		for (const record of data || []) {
+			descriptions.set(record.exercise_name as string, record.description as string);
+		}
+		return descriptions;
+	}
+
 	async save(exerciseName: string, description: string): Promise<ExerciseDescription> {
 		const normalizedName = normalizeExerciseName(exerciseName);
 

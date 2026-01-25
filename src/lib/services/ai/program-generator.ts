@@ -1,6 +1,7 @@
 import { claudeClient } from './claude-client';
 import { conversationRepository } from '../storage/conversation-repository';
 import { programRepository } from '../storage/program-repository';
+import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
 import { GENERATION_SYSTEM_PROMPT } from './prompts/generation-prompt';
 import { REEVALUATION_SYSTEM_PROMPT } from './prompts/reevaluation-prompt';
 import { ProgramSchema } from '$lib/types/program';
@@ -74,15 +75,38 @@ export class ProgramGenerator {
 		if (!program) throw new Error('Program not found');
 		if (!conversation) throw new Error('Conversation not found');
 
+		// Extract all unique exercise names from the program
+		const exerciseNames = new Set<string>();
+		for (const workout of program.workouts) {
+			for (const exercise of workout.exercises) {
+				exerciseNames.add(exercise.name);
+			}
+		}
+
+		// Fetch exercise descriptions from database
+		let exerciseDetails = '';
+		try {
+			const descriptions = await exerciseDescriptionRepository.getByNames([...exerciseNames]);
+			if (descriptions.size > 0) {
+				const detailsArray: string[] = [];
+				for (const [name, description] of descriptions) {
+					detailsArray.push(`### ${name}\n${description}`);
+				}
+				exerciseDetails = `\n\nExercise Details (for reference when making modifications):\n${detailsArray.join('\n\n')}`;
+			}
+		} catch (err) {
+			console.warn('Failed to fetch exercise descriptions:', err);
+		}
+
 		const messages = conversation.messages.map((m) => ({
 			role: m.role,
 			content: m.content
 		}));
 
-		// Add context about the current program
+		// Add context about the current program and exercise details
 		messages.unshift({
 			role: 'user',
-			content: `Current program:\n${JSON.stringify(program, null, 2)}`
+			content: `Current program:\n${JSON.stringify(program, null, 2)}${exerciseDetails}`
 		});
 
 		// Add final prompt
