@@ -37,12 +37,26 @@
 		messageLoading = true;
 		try {
 			// Include program context in the initial message
+			const workoutDetails = program.workouts.map(w => {
+				const exerciseList = w.exercises.map(e => {
+					let details = `    - ${e.name}`;
+					if (e.sets) details += `: ${e.sets} sets`;
+					if (e.reps) details += ` x ${e.reps} reps`;
+					if (e.duration) details += `, ${e.duration}s`;
+					if (e.restBetweenSets) details += ` (${e.restBetweenSets}s rest)`;
+					return details;
+				}).join('\n');
+				return `${w.name} (${w.type}, ~${w.estimatedDuration}min):\n${exerciseList}`;
+			}).join('\n\n');
+
 			const contextMessage = `I have a workout program called "${program.name}" that I'd like to modify.
 
 Current program details:
 - Description: ${program.description}
 - Schedule: ${program.schedule.weeklyPattern.length} days per week
-- Workouts: ${program.workouts.map(w => w.name).join(', ')}
+
+Workouts:
+${workoutDetails}
 
 My request: ${initialRequest}`;
 
