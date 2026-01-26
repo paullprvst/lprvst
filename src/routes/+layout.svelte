@@ -41,15 +41,6 @@
 	>
 		<div class="max-w-7xl mx-auto px-4">
 			<div class="relative flex justify-around">
-				<!-- Sliding indicator -->
-				{#if activeIndex >= 0}
-					<div
-						class="absolute top-0 h-1 bg-gradient-to-r from-cyan-400 to-pink-500 rounded-full transition-all duration-300 ease-out"
-						style="width: {100 / navItems.length}%; left: {(activeIndex * 100) /
-							navItems.length}%;"
-					></div>
-				{/if}
-
 				{#each navItems as item, index}
 					{@const isActive = index === activeIndex}
 					<a
