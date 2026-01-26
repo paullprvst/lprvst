@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Exercise } from '$lib/types/program';
-	import type { ExerciseLog } from '$lib/types/workout-session';
+	import type { ExerciseLog, SetLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import Button from '../shared/Button.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
@@ -11,11 +11,47 @@
 	interface Props {
 		exercise: Exercise;
 		log: ExerciseLog;
-		onsetcomplete: (setNumber: number) => void;
+		onsetcomplete: (setNumber: number, data?: { reps?: number; weight?: number; duration?: number }) => void;
+		onsetupdate: (setNumber: number, data: { reps?: number; weight?: number; duration?: number }) => void;
 		onnext: () => void;
 	}
 
-	let { exercise, log, onsetcomplete, onnext }: Props = $props();
+	let { exercise, log, onsetcomplete, onsetupdate, onnext }: Props = $props();
+
+	// Parse default reps from exercise
+	function getDefaultReps(): number | undefined {
+		if (!exercise.reps) return undefined;
+		const match = exercise.reps.match(/^(\d+)/);
+		return match ? parseInt(match[1]) : undefined;
+	}
+
+	// Initialize input values for all sets
+	function initSetInputs() {
+		const inputs: Record<number, { reps?: number; weight?: number }> = {};
+		for (const set of log.sets) {
+			inputs[set.setNumber] = {
+				reps: set.reps ?? getDefaultReps(),
+				weight: set.weight
+			};
+		}
+		return inputs;
+	}
+
+	let setInputs = $state(initSetInputs());
+
+	// Re-init when exercise changes
+	$effect(() => {
+		exercise.id; // Track exercise changes
+		setInputs = initSetInputs();
+	});
+
+	function completeSet(set: SetLog) {
+		const input = setInputs[set.setNumber] || {};
+		onsetcomplete(set.setNumber, {
+			reps: input.reps,
+			weight: input.weight
+		});
+	}
 
 	const allSetsCompleted = $derived(log.sets.every((s) => s.completed));
 	const completedCount = $derived(log.sets.filter((s) => s.completed).length);
@@ -136,7 +172,7 @@
 			onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
 		/>
 	{:else if !allSetsCompleted}
-		<!-- Rep-based exercise: show set buttons -->
+		<!-- Rep-based exercise: show set forms -->
 		<Card>
 			<div class="space-y-4">
 				<div class="flex items-center justify-between">
@@ -146,43 +182,63 @@
 					</span>
 				</div>
 
-				<div class="grid grid-cols-2 gap-3">
+				<div class="space-y-3">
 					{#each log.sets as set, index}
-						<button
-							onclick={() => onsetcomplete(set.setNumber)}
-							class="relative flex items-center justify-center gap-2 px-4 py-4 rounded-xl border-2 transition-all duration-200 touch-target overflow-hidden group animate-scaleIn active:scale-95 {set.completed
-								? 'border-green-400 bg-green-500/15 dark:border-green-400 dark:bg-green-500/20'
-								: 'border-cyan-300 dark:border-cyan-500/50 surface hover:border-cyan-400 dark:hover:border-cyan-400 hover:bg-cyan-500/10 dark:hover:bg-cyan-500/15'}"
+						<div
+							class="p-3 rounded-xl border-2 transition-all duration-200 animate-scaleIn {set.completed
+								? 'border-green-400 bg-green-500/10 dark:border-green-400 dark:bg-green-500/15'
+								: 'border-cyan-300 dark:border-cyan-500/40 surface'}"
 							style="animation-delay: {index * 50}ms"
 						>
-							<!-- Checkmark animation -->
 							{#if set.completed}
-								<div
-									class="w-7 h-7 rounded-full bg-green-500 flex items-center justify-center shadow-sm animate-scaleIn"
-								>
-									<Check size={16} class="text-white" strokeWidth={3} />
+								<!-- Completed set display -->
+								<div class="flex items-center gap-3">
+									<div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-sm">
+										<Check size={16} class="text-white" strokeWidth={3} />
+									</div>
+									<div class="flex-1">
+										<span class="font-semibold text-green-600 dark:text-green-400">Set {set.setNumber}</span>
+										<span class="text-sm text-secondary ml-2">
+											{#if set.reps}{set.reps} reps{/if}
+											{#if set.reps && set.weight} @ {/if}
+											{#if set.weight}{set.weight} lbs{/if}
+											{#if !set.reps && !set.weight}Done{/if}
+										</span>
+									</div>
 								</div>
 							{:else}
-								<div
-									class="w-7 h-7 rounded-full border-2 border-cyan-400 dark:border-cyan-400 group-hover:border-cyan-500 transition-colors duration-200"
-								></div>
-							{/if}
+								<!-- Active set form -->
+								<div class="flex items-center gap-3">
+									<span class="font-semibold text-primary w-14">Set {set.setNumber}</span>
 
-							<span
-								class="font-semibold transition-colors duration-200 {set.completed
-									? 'text-green-600 dark:text-green-400'
-									: 'text-primary'}"
-							>
-								Set {set.setNumber}
-							</span>
+									<div class="flex-1 flex items-center gap-2">
+										<input
+											type="number"
+											bind:value={setInputs[set.setNumber].reps}
+											min="0"
+											placeholder="Reps"
+											class="w-20 px-3 py-2 text-center bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-sm text-[rgb(var(--color-text-primary))] input-focus-ring"
+										/>
+										<span class="text-muted text-sm">@</span>
+										<input
+											type="number"
+											bind:value={setInputs[set.setNumber].weight}
+											min="0"
+											step="0.5"
+											placeholder="lbs"
+											class="w-20 px-3 py-2 text-center bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-sm text-[rgb(var(--color-text-primary))] input-focus-ring"
+										/>
+									</div>
 
-							<!-- Ripple effect on complete -->
-							{#if set.completed}
-								<div
-									class="absolute inset-0 bg-green-500/5 pointer-events-none"
-								></div>
+									<button
+										onclick={() => completeSet(set)}
+										class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors active:scale-95"
+									>
+										DONE
+									</button>
+								</div>
 							{/if}
-						</button>
+						</div>
 					{/each}
 				</div>
 			</div>

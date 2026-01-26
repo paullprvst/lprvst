@@ -36,13 +36,21 @@ class WorkoutStore {
 		return this.currentExerciseIndex === this.workout.exercises.length - 1;
 	}
 
-	completeSet(setNumber: number) {
+	get upcomingExercise() {
+		if (!this.workout || this.isLastExercise) return null;
+		return this.workout.exercises[this.currentExerciseIndex + 1];
+	}
+
+	completeSet(setNumber: number, data?: { reps?: number; weight?: number; duration?: number }) {
 		if (!this.session || !this.currentExerciseLog || !this.currentExercise) return;
 
 		const set = this.currentExerciseLog.sets.find(s => s.setNumber === setNumber);
 		if (set && !set.completed) {
 			set.completed = true;
 			set.completedAt = new Date();
+			if (data?.reps !== undefined) set.reps = data.reps;
+			if (data?.weight !== undefined) set.weight = data.weight;
+			if (data?.duration !== undefined) set.duration = data.duration;
 
 			// Check if all sets are completed
 			const allCompleted = this.currentExerciseLog.sets.every(s => s.completed);
@@ -68,6 +76,16 @@ class WorkoutStore {
 	completeRest() {
 		this.resting = false;
 		this.restDuration = 0;
+	}
+
+	updateSetData(setNumber: number, data: { reps?: number; weight?: number; duration?: number }) {
+		if (!this.currentExerciseLog) return;
+		const set = this.currentExerciseLog.sets.find(s => s.setNumber === setNumber);
+		if (set) {
+			if (data.reps !== undefined) set.reps = data.reps;
+			if (data.weight !== undefined) set.weight = data.weight;
+			if (data.duration !== undefined) set.duration = data.duration;
+		}
 	}
 
 	nextExercise() {

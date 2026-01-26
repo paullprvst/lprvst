@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Timer, SkipForward } from 'lucide-svelte';
+	import { Timer, SkipForward, ChevronRight } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
+	import type { Exercise } from '$lib/types/program';
 
 	interface Props {
 		duration: number;
 		oncomplete: () => void;
 		label?: string;
+		nextExercise?: Exercise | null;
 	}
 
-	let { duration, oncomplete, label = 'Rest time remaining' }: Props = $props();
+	let { duration, oncomplete, label = 'Rest time remaining', nextExercise = null }: Props = $props();
 
 	let remaining = $state(0);
 	let startTime = $state(0);
@@ -138,4 +140,27 @@
 			{/snippet}
 		</Button>
 	</div>
+
+	<!-- Next exercise preview -->
+	{#if nextExercise}
+		<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-cyan-300/50 dark:border-cyan-500/30">
+			<div class="flex items-center gap-2 mb-2">
+				<ChevronRight size={16} class="text-cyan-600 dark:text-cyan-400" />
+				<span class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide">Up Next</span>
+			</div>
+			<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
+			<p class="text-sm text-secondary mt-1">
+				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}
+			</p>
+			{#if nextExercise.equipment && nextExercise.equipment.length > 0}
+				<div class="flex flex-wrap gap-1 mt-2">
+					{#each nextExercise.equipment as item}
+						<span class="px-2 py-0.5 text-xs bg-cyan-500/20 rounded text-cyan-700 dark:text-cyan-300">
+							{item}
+						</span>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>

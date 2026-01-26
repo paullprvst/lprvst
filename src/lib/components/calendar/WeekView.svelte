@@ -59,7 +59,7 @@
 <div class="space-y-6">
 	<!-- Week Calendar Card -->
 	<Card>
-		<div class="space-y-4">
+		<div class="space-y-3">
 			<!-- Week Navigation -->
 			<div class="flex items-center justify-between">
 				<button
@@ -97,7 +97,7 @@
 			<!-- Day headers -->
 			<div class="grid grid-cols-7 gap-1">
 				{#each DAY_NAMES_SHORT as day}
-					<div class="text-center text-xs font-medium text-muted py-2">
+					<div class="text-center text-xs font-medium text-muted py-1">
 						{day}
 					</div>
 				{/each}

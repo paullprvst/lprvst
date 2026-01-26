@@ -11,10 +11,13 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
-	import { X, CheckCircle, Trophy } from 'lucide-svelte';
+	import { X, CheckCircle, Trophy, Clock } from 'lucide-svelte';
+	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let loading = $state(true);
 	let showCompleteModal = $state(false);
+	let elapsedSeconds = $state(0);
+	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	onMount(async () => {
 		const sessionId = $page.params.id;
@@ -48,6 +51,13 @@
 		workoutStore.setSession(session, workout);
 		loading = false;
 
+		// Start elapsed time timer
+		const updateElapsed = () => {
+			elapsedSeconds = Math.floor((Date.now() - session.startedAt.getTime()) / 1000);
+		};
+		updateElapsed();
+		timerInterval = setInterval(updateElapsed, 1000);
+
 		// Request wake lock
 		try {
 			if ('wakeLock' in navigator) {
@@ -60,10 +70,18 @@
 
 	onDestroy(() => {
 		workoutStore.clear();
+		if (timerInterval) {
+			clearInterval(timerInterval);
+		}
 	});
 
-	function handleSetComplete(setNumber: number) {
-		workoutStore.completeSet(setNumber);
+	function handleSetComplete(setNumber: number, data?: { reps?: number; weight?: number; duration?: number }) {
+		workoutStore.completeSet(setNumber, data);
+		saveSession();
+	}
+
+	function handleSetUpdate(setNumber: number, data: { reps?: number; weight?: number; duration?: number }) {
+		workoutStore.updateSetData(setNumber, data);
 		saveSession();
 	}
 
@@ -118,10 +136,14 @@
 		<div class="flex items-center justify-between gap-4">
 			<div class="flex-1 min-w-0">
 				<h1 class="text-xl font-bold text-primary truncate">{workoutStore.workout.name}</h1>
-				<p class="text-sm text-secondary">
-					Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises
-						.length}
-				</p>
+				<div class="flex items-center gap-3 text-sm text-secondary">
+					<span>Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises.length}</span>
+					<span class="text-[rgb(var(--color-border))]">|</span>
+					<span class="flex items-center gap-1">
+						<Clock size={14} />
+						{formatDuration(elapsedSeconds)}
+					</span>
+				</div>
 			</div>
 			<button
 				onclick={abandonWorkout}
@@ -148,12 +170,14 @@
 				label={workoutStore.restType === 'set'
 					? 'Rest before next set'
 					: 'Rest before next exercise'}
+				nextExercise={workoutStore.restType === 'exercise' ? workoutStore.upcomingExercise : null}
 			/>
 		{:else}
 			<ExerciseDisplay
 				exercise={workoutStore.currentExercise}
 				log={workoutStore.currentExerciseLog}
 				onsetcomplete={handleSetComplete}
+				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
 			/>
 		{/if}
@@ -173,6 +197,10 @@
 				<p class="text-secondary">
 					Great job finishing <span class="font-medium">{workoutStore.workout.name}</span>.
 				</p>
+				<div class="flex items-center justify-center gap-1 text-lg font-semibold text-[rgb(var(--color-primary))]">
+					<Clock size={18} />
+					{formatDuration(elapsedSeconds)}
+				</div>
 			</div>
 
 			<Button onclick={completeWorkout} fullWidth={true} size="lg">

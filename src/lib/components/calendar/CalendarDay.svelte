@@ -19,7 +19,7 @@
 	// Build class string for complex conditional styling
 	const buttonClasses = $derived(() => {
 		const base =
-			'w-full aspect-square p-2 rounded-xl border-2 transition-all duration-200 touch-target relative overflow-hidden group';
+			'w-full aspect-[4/5] sm:aspect-square p-2 rounded-xl border-2 transition-all duration-200 touch-target relative overflow-hidden group';
 
 		if (isCurrentDay) {
 			return `${base} border-cyan-500 dark:border-cyan-400 bg-cyan-500/5 dark:bg-cyan-400/10 ${hasWorkout && !completed ? 'animate-glowPulse' : ''}`;
@@ -32,7 +32,7 @@
 </script>
 
 <button onclick={onclick} class={buttonClasses()} disabled={!isClickable}>
-	<div class="h-full flex flex-col items-center">
+	<div class="h-full flex flex-col items-center justify-start">
 		<!-- Date number -->
 		<div
 			class="text-sm font-semibold transition-colors duration-200 {isCurrentDay
@@ -45,12 +45,13 @@
 		</div>
 
 		<!-- Status indicator -->
-		<div class="flex-1 flex items-center justify-center">
+		<div class="flex-1 flex items-end justify-center pb-1 sm:items-center sm:pb-0">
 			{#if completed}
 				<div
-					class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm animate-scaleIn"
+					class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm animate-scaleIn"
 				>
-					<Check size={14} class="text-white" strokeWidth={3} />
+					<Check size={12} class="text-white sm:hidden" strokeWidth={3} />
+					<Check size={14} class="text-white hidden sm:block" strokeWidth={3} />
 				</div>
 			{:else if workout}
 				<div class="relative flex items-center justify-center">

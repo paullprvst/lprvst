@@ -3,16 +3,24 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { programRepository } from '$lib/services/storage/program-repository';
-	import type { Program } from '$lib/types/program';
+	import type { Program, Workout } from '$lib/types/program';
 	import WorkoutCard from '$lib/components/program/WorkoutCard.svelte';
+	import WorkoutEditor from '$lib/components/program/WorkoutEditor.svelte';
+	import Modal from '$lib/components/shared/Modal.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Calendar, Trash2, Sparkles } from 'lucide-svelte';
+	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X } from 'lucide-svelte';
 
 	let program = $state<Program | null>(null);
 	let loading = $state(true);
+	let saving = $state(false);
+
+	// Single workout edit modal
+	let showEditModal = $state(false);
+	let editingWorkoutIndex = $state<number | null>(null);
+	let editableWorkout = $state<Workout | null>(null);
 
 	onMount(async () => {
 		const id = $page.params.id;
@@ -22,6 +30,47 @@
 		}
 		loading = false;
 	});
+
+	function openEditModal(index: number) {
+		if (!program) return;
+		editingWorkoutIndex = index;
+		editableWorkout = JSON.parse(JSON.stringify(program.workouts[index]));
+		showEditModal = true;
+	}
+
+	function closeEditModal() {
+		showEditModal = false;
+		editingWorkoutIndex = null;
+		editableWorkout = null;
+	}
+
+	async function saveWorkout() {
+		if (!program || editingWorkoutIndex === null || !editableWorkout) return;
+		saving = true;
+		try {
+			const updatedWorkouts = [...program.workouts];
+			updatedWorkouts[editingWorkoutIndex] = editableWorkout;
+			await programRepository.update(program.id, { workouts: updatedWorkouts });
+			program.workouts = updatedWorkouts;
+			closeEditModal();
+		} finally {
+			saving = false;
+		}
+	}
+
+	async function deleteWorkout() {
+		if (!program || editingWorkoutIndex === null) return;
+		if (!confirm('Delete this workout?')) return;
+		saving = true;
+		try {
+			const updatedWorkouts = program.workouts.filter((_, i) => i !== editingWorkoutIndex);
+			await programRepository.update(program.id, { workouts: updatedWorkouts });
+			program.workouts = updatedWorkouts;
+			closeEditModal();
+		} finally {
+			saving = false;
+		}
+	}
 
 	async function handleDelete() {
 		if (!program) return;
@@ -93,8 +142,8 @@
 		<div>
 			<h2 class="text-xl font-semibold text-primary mb-3">Workouts</h2>
 			<div class="space-y-3">
-				{#each program.workouts as workout}
-					<WorkoutCard {workout} />
+				{#each program.workouts as workout, index}
+					<WorkoutCard {workout} onedit={() => openEditModal(index)} />
 				{/each}
 			</div>
 		</div>
@@ -115,4 +164,31 @@
 			</Button>
 		</div>
 	</div>
+
+	<!-- Edit workout modal -->
+	<Modal bind:open={showEditModal} title="Edit Workout" size="lg">
+		{#if editableWorkout}
+			<div class="space-y-4">
+				<WorkoutEditor
+					bind:workout={editableWorkout}
+					ondelete={deleteWorkout}
+				/>
+
+				<div class="flex gap-3 pt-2 sticky bottom-0 bg-[rgb(var(--color-surface))] pb-2">
+					<Button onclick={closeEditModal} variant="ghost" fullWidth={true}>
+						{#snippet children()}
+							<X size={18} />
+							Cancel
+						{/snippet}
+					</Button>
+					<Button onclick={saveWorkout} fullWidth={true} disabled={saving}>
+						{#snippet children()}
+							<Save size={18} />
+							{saving ? 'Saving...' : 'Save'}
+						{/snippet}
+					</Button>
+				</div>
+			</div>
+		{/if}
+	</Modal>
 {/if}

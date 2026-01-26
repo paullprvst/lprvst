@@ -3,15 +3,16 @@
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatWorkoutDuration } from '$lib/utils/formatters';
-	import { Clock, ChevronRight, Dumbbell, Flame, Snowflake } from 'lucide-svelte';
+	import { Clock, ChevronRight, Dumbbell, Flame, Snowflake, Edit2 } from 'lucide-svelte';
 
 	interface Props {
 		workout: Workout;
 		onclick?: () => void;
 		expandable?: boolean;
+		onedit?: () => void;
 	}
 
-	let { workout, onclick, expandable = true }: Props = $props();
+	let { workout, onclick, expandable = true, onedit }: Props = $props();
 
 	let expanded = $state(false);
 
@@ -87,7 +88,7 @@
 					{/if}
 				</div>
 
-				<!-- Chevron indicator -->
+					<!-- Chevron indicator -->
 				{#if onclick || expandable}
 					<ChevronRight
 						size={18}
@@ -149,6 +150,17 @@
 					</div>
 				{/if}
 			{/each}
+
+			<!-- Edit button -->
+			{#if onedit}
+				<button
+					onclick={(e) => { e.stopPropagation(); onedit(); }}
+					class="w-full mt-2 py-2 flex items-center justify-center gap-2 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors border border-cyan-300 dark:border-cyan-500/40"
+				>
+					<Edit2 size={16} />
+					Edit Workout
+				</button>
+			{/if}
 		</div>
 	{/if}
 </Card>
