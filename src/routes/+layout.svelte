@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import { page } from '$app/stores';
-	import { Dumbbell, Calendar, History, Settings } from 'lucide-svelte';
+	import { Dumbbell, Calendar, History, Settings, Scale } from 'lucide-svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 	import type { Snippet } from 'svelte';
 
@@ -14,6 +14,7 @@
 	const navItems = [
 		{ href: '/calendar', icon: Calendar, label: 'Calendar' },
 		{ href: '/', icon: Dumbbell, label: 'Workouts' },
+		{ href: '/body', icon: Scale, label: 'Body' },
 		{ href: '/history', icon: History, label: 'History' },
 		{ href: '/settings', icon: Settings, label: 'Settings' }
 	];
