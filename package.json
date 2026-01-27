@@ -30,6 +30,7 @@
     "@anthropic-ai/sdk": "^0.32.0",
     "@supabase/supabase-js": "^2.91.1",
     "chart.js": "^4.5.1",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.0.0",
     "lucide-svelte": "^0.462.0",
     "zod": "^3.22.4"

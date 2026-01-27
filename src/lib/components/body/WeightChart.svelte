@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { Chart, registerables } from 'chart.js';
+	import 'chartjs-adapter-date-fns';
 	import type { WeightEntry } from '$lib/types/weight-entry';
 	import Card from '$lib/components/shared/Card.svelte';
 	import { TrendingUp } from 'lucide-svelte';
@@ -14,7 +15,8 @@
 	let { entries }: Props = $props();
 
 	let canvas: HTMLCanvasElement;
-	let chart: Chart | null = null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let chart: Chart<'line', any> | null = null;
 
 	const sortedEntries = $derived(
 		[...entries].sort((a, b) => a.recordedAt.getTime() - b.recordedAt.getTime())
@@ -30,15 +32,15 @@
 			chart.destroy();
 		}
 
-		const labels = sortedEntries.map((e) =>
-			e.recordedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-		);
-		const data = sortedEntries.map((e) => e.weight);
+		const data = sortedEntries.map((e) => ({
+			x: e.recordedAt,
+			y: e.weight
+		}));
+		const weights = sortedEntries.map((e) => e.weight);
 
 		chart = new Chart(ctx, {
 			type: 'line',
 			data: {
-				labels,
 				datasets: [
 					{
 						label: 'Weight (kg)',
@@ -78,6 +80,14 @@
 				},
 				scales: {
 					x: {
+						type: 'time',
+						time: {
+							unit: 'day',
+							displayFormats: {
+								day: 'MMM d'
+							},
+							tooltipFormat: 'MMM d, yyyy'
+						},
 						grid: {
 							display: false
 						},
@@ -96,8 +106,8 @@
 							color: 'rgb(156, 163, 175)',
 							callback: (value) => `${value} kg`
 						},
-						suggestedMin: Math.min(...data) - 1,
-						suggestedMax: Math.max(...data) + 1
+						suggestedMin: Math.min(...weights) - 1,
+						suggestedMax: Math.max(...weights) + 1
 					}
 				}
 			}
