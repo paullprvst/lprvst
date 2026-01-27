@@ -25,7 +25,7 @@
 	async function loadEntries() {
 		loading = true;
 		try {
-			entries = await weightRepository.getRecent(30);
+			entries = await weightRepository.getAll();
 		} finally {
 			loading = false;
 		}
