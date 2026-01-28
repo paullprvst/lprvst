@@ -11,13 +11,31 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
-	import { X, CheckCircle, Trophy, Clock } from 'lucide-svelte';
+	import { X, CheckCircle, Trophy, Clock, ChevronDown, ChevronUp, Dumbbell } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let loading = $state(true);
 	let showCompleteModal = $state(false);
+	let showPlan = $state(false);
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+	function isExerciseCompleted(exerciseIndex: number): boolean {
+		if (!workoutStore.session) return false;
+		const exerciseLog = workoutStore.session.exercises[exerciseIndex];
+		if (!exerciseLog) return false;
+		return exerciseLog.sets.every(set => set.completed);
+	}
+
+	function formatExerciseTarget(exercise: { sets: number; reps?: string; duration?: number }): string {
+		if (exercise.duration) {
+			const mins = Math.floor(exercise.duration / 60);
+			const secs = exercise.duration % 60;
+			const timeStr = mins > 0 ? `${mins}m${secs > 0 ? ` ${secs}s` : ''}` : `${secs}s`;
+			return `${exercise.sets} × ${timeStr}`;
+		}
+		return `${exercise.sets} × ${exercise.reps || '?'} reps`;
+	}
 
 	onMount(async () => {
 		const sessionId = $page.params.id;
@@ -160,6 +178,60 @@
 				class="bg-gradient-to-r from-cyan-400 to-pink-500 h-full transition-all duration-300 ease-out"
 				style="width: {workoutStore.progress}%"
 			></div>
+		</div>
+
+		<!-- Session Plan (Collapsible) -->
+		<div class="card">
+			<button
+				onclick={() => showPlan = !showPlan}
+				class="w-full flex items-center justify-between p-3 text-left"
+			>
+				<div class="flex items-center gap-2 text-sm font-medium text-secondary">
+					<Dumbbell size={16} />
+					<span>Session Plan</span>
+				</div>
+				{#if showPlan}
+					<ChevronUp size={18} class="text-muted" />
+				{:else}
+					<ChevronDown size={18} class="text-muted" />
+				{/if}
+			</button>
+
+			{#if showPlan}
+				<div class="border-t border-[rgb(var(--color-border))] px-3 pb-3">
+					<div class="space-y-2 pt-3">
+						{#each workoutStore.workout.exercises as exercise, index}
+							{@const isCurrent = index === workoutStore.currentExerciseIndex}
+							{@const isCompleted = isExerciseCompleted(index)}
+							<div
+								class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
+							>
+								<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
+									{isCompleted ? 'bg-emerald-500/20 text-emerald-500' : isCurrent ? 'bg-[rgb(var(--color-primary))]/20 text-[rgb(var(--color-primary))]' : 'bg-gray-500/20 text-muted'}">
+									{#if isCompleted}
+										<CheckCircle size={14} />
+									{:else}
+										{index + 1}
+									{/if}
+								</div>
+								<div class="flex-1 min-w-0">
+									<div class="text-sm font-medium text-primary truncate {isCompleted ? 'line-through opacity-60' : ''}">
+										{exercise.name}
+									</div>
+									<div class="text-xs text-muted">
+										{formatExerciseTarget(exercise)}
+									</div>
+								</div>
+								{#if isCurrent}
+									<span class="text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]/10 px-2 py-0.5 rounded-full">
+										Current
+									</span>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<!-- Main content -->
