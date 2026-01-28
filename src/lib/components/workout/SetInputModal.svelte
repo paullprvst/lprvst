@@ -81,7 +81,7 @@
 
 		<!-- Weight input -->
 		<div>
-			<label class="block text-sm font-medium text-secondary mb-2">Weight (lbs/kg)</label>
+			<label class="block text-sm font-medium text-secondary mb-2">Weight (kg)</label>
 			<input
 				type="number"
 				bind:value={weight}

@@ -201,7 +201,7 @@
 										<span class="text-sm text-secondary ml-2">
 											{#if set.reps}{set.reps} reps{/if}
 											{#if set.reps && set.weight} @ {/if}
-											{#if set.weight}{set.weight} lbs{/if}
+											{#if set.weight}{set.weight} kg{/if}
 											{#if !set.reps && !set.weight}Done{/if}
 										</span>
 									</div>
@@ -225,7 +225,7 @@
 											bind:value={setInputs[set.setNumber].weight}
 											min="0"
 											step="0.5"
-											placeholder="lbs"
+											placeholder="kg"
 											class="w-20 px-3 py-2 text-center bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-sm text-[rgb(var(--color-text-primary))] input-focus-ring"
 										/>
 									</div>

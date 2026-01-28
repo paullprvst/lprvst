@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import type { WorkoutSession } from '$lib/types/workout-session';
@@ -7,7 +8,7 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
-	import { CheckCircle, Clock, History, Dumbbell } from 'lucide-svelte';
+	import { CheckCircle, Clock, History, Dumbbell, ChevronRight } from 'lucide-svelte';
 
 	interface SessionWithDetails {
 		session: WorkoutSession;
@@ -100,7 +101,11 @@
 	{:else}
 		<div class="space-y-3">
 			{#each sessions as { session, workout, program }, index}
-				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
+				<button
+					class="w-full text-left animate-slideUp group"
+					style="animation-delay: {index * 50}ms"
+					onclick={() => goto(`/history/${session.id}`)}
+				>
 					<Card>
 						<div class="flex items-center gap-4">
 							<!-- Success Icon -->
@@ -126,15 +131,18 @@
 								</div>
 							</div>
 
-							<!-- Date -->
-							<div class="text-xs text-muted text-right flex-shrink-0">
-								{formatDate(session.completedAt || session.startedAt, 'MMM d')}
-								<br />
-								{formatDate(session.completedAt || session.startedAt, 'h:mm a')}
+							<!-- Date and chevron -->
+							<div class="flex items-center gap-2 flex-shrink-0">
+								<div class="text-xs text-muted text-right">
+									{formatDate(session.completedAt || session.startedAt, 'MMM d')}
+									<br />
+									{formatDate(session.completedAt || session.startedAt, 'h:mm a')}
+								</div>
+								<ChevronRight size={20} class="text-muted" />
 							</div>
 						</div>
 					</Card>
-				</div>
+				</button>
 			{/each}
 		</div>
 	{/if}
