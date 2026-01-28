@@ -13,7 +13,7 @@
 
 	const navItems = [
 		{ href: '/calendar', icon: Calendar, label: 'Calendar' },
-		{ href: '/', icon: Dumbbell, label: 'Workouts' },
+		{ href: '/programs', icon: Dumbbell, label: 'Workouts' },
 		{ href: '/body', icon: Scale, label: 'Body' },
 		{ href: '/history', icon: History, label: 'History' },
 		{ href: '/settings', icon: Settings, label: 'Settings' }
@@ -22,9 +22,6 @@
 	// Get active index for indicator positioning
 	const activeIndex = $derived(
 		navItems.findIndex((item) => {
-			if (item.href === '/') {
-				return $page.url.pathname === '/';
-			}
 			return $page.url.pathname.startsWith(item.href);
 		})
 	);
