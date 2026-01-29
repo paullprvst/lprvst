@@ -1,6 +1,26 @@
 import type { WorkoutSession } from '$lib/types/workout-session';
 import type { Workout } from '$lib/types/program';
 
+// Default transition time between sets for time-based exercises when no rest is specified
+const DEFAULT_TRANSITION_TIME = 10;
+
+// Parse time duration from reps string (e.g., "2 minutes", "30 seconds", "90 sec")
+function parseTimeDuration(reps?: string): number | null {
+	if (!reps) return null;
+
+	const minuteMatch = reps.match(/(\d+\.?\d*)\s*(minutes?|min|m)\b/i);
+	if (minuteMatch) {
+		return Math.round(parseFloat(minuteMatch[1]) * 60);
+	}
+
+	const secondMatch = reps.match(/(\d+\.?\d*)\s*(seconds?|sec|s)\b/i);
+	if (secondMatch) {
+		return Math.round(parseFloat(secondMatch[1]));
+	}
+
+	return null;
+}
+
 class WorkoutStore {
 	session = $state<WorkoutSession | null>(null);
 	workout = $state<Workout | null>(null);
@@ -55,6 +75,10 @@ class WorkoutStore {
 			// Check if all sets are completed
 			const allCompleted = this.currentExerciseLog.sets.every(s => s.completed);
 
+			// Check if this is a time-based exercise
+			const effectiveDuration = this.currentExercise.duration || parseTimeDuration(this.currentExercise.reps);
+			const isTimeBased = effectiveDuration && effectiveDuration > 0;
+
 			if (allCompleted) {
 				// All sets done - show rest before next exercise (if not last exercise)
 				if (this.currentExercise.restBetweenExercises > 0 && !this.isLastExercise) {
@@ -63,6 +87,9 @@ class WorkoutStore {
 			} else if (this.currentExercise.restBetweenSets > 0) {
 				// More sets to do - show rest between sets
 				this.startRest(this.currentExercise.restBetweenSets, 'set');
+			} else if (isTimeBased) {
+				// Time-based exercise with no rest specified - add default transition time
+				this.startRest(DEFAULT_TRANSITION_TIME, 'set');
 			}
 		}
 	}

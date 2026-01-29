@@ -251,6 +251,7 @@
 				onsetcomplete={handleSetComplete}
 				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
+				isLastExercise={workoutStore.isLastExercise}
 			/>
 		{/if}
 	</div>

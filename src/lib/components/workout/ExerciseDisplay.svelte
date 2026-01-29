@@ -6,7 +6,7 @@
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
-	import { Check, ArrowRight, Flame, Snowflake, Dumbbell } from 'lucide-svelte';
+	import { Check, ArrowRight, Flame, Snowflake, Dumbbell, Trophy } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -14,9 +14,10 @@
 		onsetcomplete: (setNumber: number, data?: { reps?: number; weight?: number; duration?: number }) => void;
 		onsetupdate: (setNumber: number, data: { reps?: number; weight?: number; duration?: number }) => void;
 		onnext: () => void;
+		isLastExercise?: boolean;
 	}
 
-	let { exercise, log, onsetcomplete, onsetupdate, onnext }: Props = $props();
+	let { exercise, log, onsetcomplete, onsetupdate, onnext, isLastExercise = false }: Props = $props();
 
 	// Parse default reps from exercise
 	function getDefaultReps(): number | undefined {
@@ -164,13 +165,15 @@
 	<!-- Sets Card / Timer -->
 	{#if isTimeBased && nextIncompleteSet && effectiveDuration}
 		<!-- Time-based exercise: show timer -->
-		<ExerciseTimer
-			duration={effectiveDuration}
-			setNumber={nextIncompleteSet.setNumber}
-			totalSets={exercise.sets}
-			onsetcomplete={() => onsetcomplete(nextIncompleteSet.setNumber)}
-			onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
-		/>
+		{#key nextIncompleteSet.setNumber}
+			<ExerciseTimer
+				duration={effectiveDuration}
+				setNumber={nextIncompleteSet.setNumber}
+				totalSets={exercise.sets}
+				onsetcomplete={() => onsetcomplete(nextIncompleteSet.setNumber)}
+				onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
+			/>
+		{/key}
 	{:else if !allSetsCompleted}
 		<!-- Rep-based exercise: show set forms -->
 		<Card>
@@ -245,13 +248,18 @@
 		</Card>
 	{/if}
 
-	<!-- Next Exercise Button -->
+	<!-- Next Exercise / Finish Workout Button -->
 	{#if allSetsCompleted}
 		<div class="animate-slideUp">
 			<Button onclick={onnext} fullWidth={true} size="lg">
 				{#snippet children()}
-					Next Exercise
-					<ArrowRight size={20} />
+					{#if isLastExercise}
+						<Trophy size={20} />
+						Finish Workout
+					{:else}
+						Next Exercise
+						<ArrowRight size={20} />
+					{/if}
 				{/snippet}
 			</Button>
 		</div>
