@@ -4,12 +4,29 @@
 	import { Dumbbell, Calendar, History, Settings, Scale } from 'lucide-svelte';
 	import { themeStore } from '$lib/stores/theme-store.svelte';
 	import type { Snippet } from 'svelte';
+	import { onMount } from 'svelte';
+	import { browser } from '$app/environment';
 
 	interface Props {
 		children: Snippet;
 	}
 
 	let { children }: Props = $props();
+
+	onMount(async () => {
+		if (browser) {
+			const { registerSW } = await import('virtual:pwa-register');
+			registerSW({
+				immediate: true,
+				onRegistered(registration) {
+					console.log('SW registered:', registration);
+				},
+				onRegisterError(error) {
+					console.error('SW registration error:', error);
+				}
+			});
+		}
+	});
 
 	const navItems = [
 		{ href: '/calendar', icon: Calendar, label: 'Calendar' },
