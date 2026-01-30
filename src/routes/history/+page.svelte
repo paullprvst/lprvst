@@ -7,6 +7,7 @@
 	import type { Program, Workout } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
+	import WorkoutCalendarDots from '$lib/components/history/WorkoutCalendarDots.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
 	import { CheckCircle, Clock, History, Dumbbell, ChevronRight } from 'lucide-svelte';
 
@@ -17,12 +18,14 @@
 	}
 
 	let sessions = $state<SessionWithDetails[]>([]);
+	let allSessions = $state<WorkoutSession[]>([]);
 	let loading = $state(true);
 
 	onMount(async () => {
 		const completedSessions = await workoutSessionRepository.getCompleted();
 		const programs = await programRepository.getAll();
 
+		allSessions = completedSessions;
 		sessions = completedSessions
 			.map((session) => {
 				const program = programs.find((p) => p.id === session.programId);
@@ -68,8 +71,16 @@
 		<h1 class="text-2xl font-bold text-primary">Workout History</h1>
 	</div>
 
+	<!-- 3-Month Calendar Dots -->
+	{#if !loading && allSessions.length > 0}
+		<Card padding="md">
+			<WorkoutCalendarDots sessions={allSessions} />
+		</Card>
+	{/if}
+
 	{#if loading}
 		<div class="space-y-3">
+			<Skeleton variant="card" height="80px" />
 			{#each [1, 2, 3] as i}
 				<Card>
 					<div class="flex items-center gap-4">

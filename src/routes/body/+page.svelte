@@ -9,8 +9,11 @@
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import { Scale, TrendingDown, TrendingUp, Target } from 'lucide-svelte';
 
+	type TimeRange = 'month' | 'all';
+
 	let entries = $state<WeightEntry[]>([]);
 	let loading = $state(true);
+	let chartTimeRange = $state<TimeRange>('month');
 
 	const currentWeight = $derived(entries[0]?.weight);
 	const startWeight = $derived(entries[entries.length - 1]?.weight);
@@ -125,8 +128,28 @@
 
 		<!-- Weight Chart -->
 		<section>
-			<h2 class="text-sm font-semibold text-secondary mb-3">Trend</h2>
-			<WeightChart {entries} />
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-sm font-semibold text-secondary">Trend</h2>
+				<div class="flex items-center gap-1 p-1 rounded-lg bg-[rgb(var(--color-border)/0.3)]">
+					<button
+						class="px-3 py-1 text-xs font-medium rounded-md transition-colors {chartTimeRange === 'month'
+							? 'bg-[rgb(var(--color-surface))] text-primary shadow-sm'
+							: 'text-muted hover:text-secondary'}"
+						onclick={() => (chartTimeRange = 'month')}
+					>
+						Month
+					</button>
+					<button
+						class="px-3 py-1 text-xs font-medium rounded-md transition-colors {chartTimeRange === 'all'
+							? 'bg-[rgb(var(--color-surface))] text-primary shadow-sm'
+							: 'text-muted hover:text-secondary'}"
+						onclick={() => (chartTimeRange = 'all')}
+					>
+						All time
+					</button>
+				</div>
+			</div>
+			<WeightChart {entries} timeRange={chartTimeRange} />
 		</section>
 
 		<!-- Entry Form -->
