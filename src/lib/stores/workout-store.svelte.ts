@@ -32,8 +32,26 @@ class WorkoutStore {
 	setSession(session: WorkoutSession, workout: Workout) {
 		this.session = session;
 		this.workout = workout;
-		this.currentExerciseIndex = 0;
 		this.resting = false;
+
+		// Find the first incomplete exercise to resume from
+		let resumeIndex = 0;
+		for (let i = 0; i < workout.exercises.length; i++) {
+			const exercise = workout.exercises[i];
+			const log = session.exercises.find(e => e.exerciseId === exercise.id);
+			const allSetsCompleted = log?.sets.every(s => s.completed) ?? false;
+
+			if (!allSetsCompleted) {
+				resumeIndex = i;
+				break;
+			}
+			// If all sets are completed, move to next exercise
+			// If this was the last exercise, stay on it
+			if (i === workout.exercises.length - 1) {
+				resumeIndex = i;
+			}
+		}
+		this.currentExerciseIndex = resumeIndex;
 	}
 
 	get currentExercise() {

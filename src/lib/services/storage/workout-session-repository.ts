@@ -50,6 +50,20 @@ export class WorkoutSessionRepository {
 		return (data || []).map((row) => this.mapFromDb(row));
 	}
 
+	async getInProgress(): Promise<WorkoutSession[]> {
+		// Only return sessions started within the last 24 hours
+		const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.select()
+			.eq('status', 'in-progress')
+			.gte('started_at', cutoff)
+			.order('started_at', { ascending: false });
+
+		if (error) throw error;
+		return (data || []).map((row) => this.mapFromDb(row));
+	}
+
 	async getCompletedByDateRange(startDate: Date, endDate: Date): Promise<WorkoutSession[]> {
 		const { data, error } = await supabase
 			.from('workout_sessions')

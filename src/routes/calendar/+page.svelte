@@ -9,11 +9,14 @@
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
-	import { Calendar, Plus, ChevronDown } from 'lucide-svelte';
+	import { Calendar, Plus, ChevronDown, Play, X } from 'lucide-svelte';
+	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let programs = $state<Program[]>([]);
 	let selectedProgram = $state<Program | null>(null);
 	let completedSessions = $state<WorkoutSession[]>([]);
+	let inProgressSession = $state<WorkoutSession | null>(null);
+	let inProgressWorkoutName = $state<string | null>(null);
 	let loading = $state(true);
 
 	onMount(async () => {
@@ -23,8 +26,31 @@
 		}
 		// Load all completed sessions
 		completedSessions = await workoutSessionRepository.getCompleted();
+		// Check for in-progress sessions
+		const inProgressSessions = await workoutSessionRepository.getInProgress();
+		if (inProgressSessions.length > 0) {
+			inProgressSession = inProgressSessions[0];
+			// Find the workout name
+			const program = programs.find(p => p.id === inProgressSession!.programId);
+			const workout = program?.workouts.find(w => w.id === inProgressSession!.workoutId);
+			inProgressWorkoutName = workout?.name || 'Workout';
+		}
 		loading = false;
 	});
+
+	function resumeWorkout() {
+		if (inProgressSession) {
+			goto(`/workout/${inProgressSession.id}`);
+		}
+	}
+
+	async function discardInProgressSession() {
+		if (!inProgressSession) return;
+		if (!confirm('Are you sure you want to discard this in-progress workout?')) return;
+		await workoutSessionRepository.update(inProgressSession.id, { status: 'abandoned' });
+		inProgressSession = null;
+		inProgressWorkoutName = null;
+	}
 
 	async function startWorkout(workoutId: string, workoutIndex: number, date: Date) {
 		if (!selectedProgram) return;
@@ -100,6 +126,37 @@
 	</Card>
 {:else if selectedProgram}
 	<div class="space-y-4 animate-slideUp">
+		<!-- In-progress session banner -->
+		{#if inProgressSession}
+			<Card padding="md">
+				<div class="flex items-center gap-3">
+					<div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+						<Play size={20} class="text-amber-500" />
+					</div>
+					<div class="flex-1 min-w-0">
+						<p class="text-sm font-medium text-primary truncate">{inProgressWorkoutName}</p>
+						<p class="text-xs text-secondary">
+							Started {formatDuration(Math.floor((Date.now() - inProgressSession.startedAt.getTime()) / 1000))} ago
+						</p>
+					</div>
+					<div class="flex items-center gap-2">
+						<Button onclick={resumeWorkout} size="sm">
+							{#snippet children()}
+								Resume
+							{/snippet}
+						</Button>
+						<button
+							onclick={discardInProgressSession}
+							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-gray-500/10 transition-colors"
+							aria-label="Discard workout"
+						>
+							<X size={18} />
+						</button>
+					</div>
+				</div>
+			</Card>
+		{/if}
+
 		<!-- Program selector (if multiple programs) -->
 		{#if programs.length > 1}
 			<div class="relative">

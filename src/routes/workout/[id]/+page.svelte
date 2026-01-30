@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { goto, beforeNavigate } from '$app/navigation';
 	import { workoutStore } from '$lib/stores/workout-store.svelte';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
@@ -11,14 +11,44 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
-	import { X, CheckCircle, Trophy, Clock, ChevronDown, ChevronUp, Dumbbell } from 'lucide-svelte';
+	import { X, CheckCircle, Trophy, Clock, ChevronDown, ChevronUp, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let loading = $state(true);
 	let showCompleteModal = $state(false);
+	let showLeaveModal = $state(false);
 	let showPlan = $state(false);
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
+	let allowNavigation = $state(false);
+
+	// Prevent accidental navigation (back button, link clicks, etc.)
+	beforeNavigate(({ cancel }) => {
+		if (allowNavigation || loading || !workoutStore.session) return;
+		showLeaveModal = true;
+		cancel();
+	});
+
+	function openLeaveModal() {
+		showLeaveModal = true;
+	}
+
+	async function leaveAndResumeLater() {
+		// Session stays "in-progress" - user can resume from calendar
+		allowNavigation = true;
+		showLeaveModal = false;
+		goto('/calendar');
+	}
+
+	async function leaveAndAbandon() {
+		if (!workoutStore.session) return;
+		await workoutSessionRepository.update(workoutStore.session.id, {
+			status: 'abandoned'
+		});
+		allowNavigation = true;
+		showLeaveModal = false;
+		goto('/calendar');
+	}
 
 	function isExerciseCompleted(exerciseIndex: number): boolean {
 		if (!workoutStore.session) return false;
@@ -131,18 +161,11 @@
 	async function completeWorkout() {
 		if (!workoutStore.session) return;
 		await workoutSessionRepository.complete(workoutStore.session.id);
+		allowNavigation = true;
 		goto('/history');
 	}
 
-	async function abandonWorkout() {
-		if (!confirm('Are you sure you want to abandon this workout?')) return;
-		if (!workoutStore.session) return;
-		await workoutSessionRepository.update(workoutStore.session.id, {
-			status: 'abandoned'
-		});
-		goto('/calendar');
-	}
-</script>
+	</script>
 
 {#if loading}
 	<div class="flex justify-center py-12">
@@ -164,7 +187,7 @@
 				</div>
 			</div>
 			<button
-				onclick={abandonWorkout}
+				onclick={openLeaveModal}
 				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-gray-500/10 transition-colors duration-200 touch-target"
 				aria-label="Close workout"
 			>
@@ -282,6 +305,53 @@
 					Finish Workout
 				{/snippet}
 			</Button>
+		</div>
+	</Modal>
+
+	<!-- Leave workout modal -->
+	<Modal bind:open={showLeaveModal} size="sm">
+		<div class="space-y-6 py-4">
+			<div class="text-center space-y-2">
+				<h2 class="text-xl font-bold text-primary">Leave Workout?</h2>
+				<p class="text-secondary text-sm">
+					Your progress has been saved. What would you like to do?
+				</p>
+			</div>
+
+			<div class="space-y-3">
+				<button
+					onclick={leaveAndResumeLater}
+					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-gray-500/5 transition-colors text-left"
+				>
+					<div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+						<Pause size={20} class="text-amber-500" />
+					</div>
+					<div>
+						<p class="font-medium text-primary">Resume later</p>
+						<p class="text-sm text-secondary">Continue this workout from where you left off</p>
+					</div>
+				</button>
+
+				<button
+					onclick={leaveAndAbandon}
+					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-gray-500/5 transition-colors text-left"
+				>
+					<div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+						<Trash2 size={20} class="text-red-500" />
+					</div>
+					<div>
+						<p class="font-medium text-primary">Abandon workout</p>
+						<p class="text-sm text-secondary">Discard this session permanently</p>
+					</div>
+				</button>
+			</div>
+
+			<button
+				onclick={() => showLeaveModal = false}
+				class="w-full py-2 text-sm text-secondary hover:text-primary transition-colors"
+			>
+				Cancel
+			</button>
 		</div>
 	</Modal>
 {/if}
