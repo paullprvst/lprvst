@@ -1,0 +1,19 @@
+{
+  "protectionBypass": [
+    {
+      "path": "/manifest.webmanifest"
+    },
+    {
+      "path": "/sw.js"
+    },
+    {
+      "path": "/workbox-*.js"
+    },
+    {
+      "path": "/pwa-192x192.png"
+    },
+    {
+      "path": "/pwa-512x512.png"
+    }
+  ]
+}
