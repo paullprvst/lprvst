@@ -8,8 +8,8 @@ export default defineConfig({
 		SvelteKitPWA({
 			registerType: 'autoUpdate',
 			manifest: {
-				name: 'Leprevost Fitness',
-				short_name: 'Leprevost',
+				name: 'LPRV',
+				short_name: 'LPRV',
 				description: 'AI-powered fitness coach and workout planner',
 				theme_color: '#111827',
 				background_color: '#111827',
