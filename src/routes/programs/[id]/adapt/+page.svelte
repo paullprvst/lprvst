@@ -6,6 +6,7 @@
 	import { conversationRepository } from '$lib/services/storage/conversation-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import { programGenerator } from '$lib/services/ai/program-generator';
+	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
 	import type { Program } from '$lib/types/program';
 	import type { Conversation } from '$lib/types/conversation';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
@@ -25,8 +26,8 @@
 
 	onMount(async () => {
 		// Check for API key first
-		const apiKey = localStorage.getItem('anthropic_api_key');
-		if (!apiKey) {
+		const hasApiKey = await checkApiKeyStatus();
+		if (!hasApiKey) {
 			step = 'api-key-required';
 			loading = false;
 			return;

@@ -1,18 +1,19 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { streamMessage, sendMessage } from '$lib/server/claude-client';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth, getUserApiKey } from '$lib/server/auth';
 import { EXERCISE_DESCRIPTION_SYSTEM_PROMPT } from '$lib/services/ai/prompts/exercise-description-prompt';
 
 export const POST: RequestHandler = async (event) => {
-	await requireAuth(event);
+	const { user } = await requireAuth(event);
 
-	const body = await event.request.json();
-	const { exerciseName, equipment, notes, stream = true, apiKey } = body;
-
+	const apiKey = await getUserApiKey(user.id);
 	if (!apiKey) {
 		throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
 	}
+
+	const body = await event.request.json();
+	const { exerciseName, equipment, notes, stream = true } = body;
 
 	if (!exerciseName) {
 		throw error(400, 'Exercise name is required');

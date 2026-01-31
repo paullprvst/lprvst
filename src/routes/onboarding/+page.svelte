@@ -5,6 +5,7 @@
 	import { conversationRepository } from '$lib/services/storage/conversation-repository';
 	import { programGenerator } from '$lib/services/ai/program-generator';
 	import { userRepository } from '$lib/services/storage/user-repository';
+	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
 	import ObjectiveInput from '$lib/components/onboarding/ObjectiveInput.svelte';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -13,16 +14,18 @@
 	import { Key } from 'lucide-svelte';
 	import type { Conversation } from '$lib/types/conversation';
 
-	let step = $state<'api-key-required' | 'input' | 'conversation' | 'generating'>('input');
+	let step = $state<'api-key-required' | 'loading' | 'input' | 'conversation' | 'generating'>('loading');
 	let conversation = $state<Conversation | null>(null);
 	let loading = $state(false);
 	let readyToGenerate = $state(false);
 	let initialObjective = $state('');
 
-	onMount(() => {
-		const apiKey = localStorage.getItem('anthropic_api_key');
-		if (!apiKey) {
+	onMount(async () => {
+		const hasApiKey = await checkApiKeyStatus();
+		if (!hasApiKey) {
 			step = 'api-key-required';
+		} else {
+			step = 'input';
 		}
 	});
 
@@ -123,7 +126,11 @@
 </script>
 
 <div class="max-w-3xl mx-auto">
-	{#if step === 'api-key-required'}
+	{#if step === 'loading'}
+		<div class="flex justify-center py-12">
+			<LoadingSpinner size="lg" />
+		</div>
+	{:else if step === 'api-key-required'}
 		<Card>
 			<div class="text-center space-y-4 py-4">
 				<div class="w-16 h-16 mx-auto rounded-2xl bg-orange-500/10 flex items-center justify-center">

@@ -6,23 +6,34 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import { themeStore, type Theme } from '$lib/stores/theme-store.svelte';
 	import { signOut, getAuthState } from '$lib/stores/auth-store.svelte';
+	import { checkApiKeyStatus, saveApiKey } from '$lib/services/ai/api-client';
 	import { Sun, Moon, Monitor, Info, Check, LogOut, User, Key, Save } from 'lucide-svelte';
 
 	const auth = getAuthState();
 	let signingOut = $state(false);
 	let apiKey = $state('');
+	let hasApiKey = $state(false);
+	let saving = $state(false);
 	let saved = $state(false);
+	let loading = $state(true);
+	let showUpdateForm = $state(false);
 
-	onMount(() => {
-		const stored = localStorage.getItem('anthropic_api_key');
-		if (stored) {
-			apiKey = stored;
-		}
+	onMount(async () => {
+		hasApiKey = await checkApiKeyStatus();
+		loading = false;
 	});
 
-	function handleSaveApiKey() {
-		if (apiKey.trim()) {
-			localStorage.setItem('anthropic_api_key', apiKey.trim());
+	async function handleSaveApiKey() {
+		if (!apiKey.trim()) return;
+
+		saving = true;
+		const success = await saveApiKey(apiKey.trim());
+		saving = false;
+
+		if (success) {
+			hasApiKey = true;
+			apiKey = '';
+			showUpdateForm = false;
 			saved = true;
 			setTimeout(() => {
 				saved = false;
@@ -86,7 +97,7 @@
 
 			<div class="p-3 surface-elevated rounded-xl border border-theme">
 				<p class="text-sm text-secondary">
-					Your API key is stored locally in your browser. Get your API key from
+					Your API key is stored securely on the server and synced across all your devices. Get your API key from
 					<a
 						href="https://console.anthropic.com"
 						target="_blank"
@@ -98,19 +109,57 @@
 				</p>
 			</div>
 
-			<Input bind:value={apiKey} placeholder="sk-ant-..." disabled={false} />
+			{#if loading}
+				<div class="text-sm text-secondary">Checking API key status...</div>
+			{:else if hasApiKey && !showUpdateForm}
+				<div class="flex items-center justify-between gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+					<div class="flex items-center gap-3">
+						<Check size={24} class="text-emerald-500 flex-shrink-0" />
+						<div>
+							<p class="font-medium text-emerald-600 dark:text-emerald-400">API key configured</p>
+							<p class="text-sm text-emerald-600/70 dark:text-emerald-400/70">Your key is securely stored</p>
+						</div>
+					</div>
+					<Button onclick={() => showUpdateForm = true} variant="secondary">
+						{#snippet children()}
+							Change
+						{/snippet}
+					</Button>
+				</div>
+			{:else}
+				{#if hasApiKey}
+					<div class="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+						<Check size={20} class="text-emerald-500" />
+						<span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">API key configured</span>
+					</div>
+					<p class="text-sm text-muted">Enter a new key to replace the existing one:</p>
+				{/if}
 
-			<Button onclick={handleSaveApiKey} disabled={!apiKey.trim()} fullWidth>
-				{#snippet children()}
-					{#if saved}
-						<Check size={20} />
-						Saved!
-					{:else}
-						<Save size={20} />
-						Save API Key
+				<Input bind:value={apiKey} placeholder="sk-ant-..." disabled={saving} />
+
+				<div class="flex gap-3">
+					{#if hasApiKey}
+						<Button onclick={() => { showUpdateForm = false; apiKey = ''; }} variant="secondary">
+							{#snippet children()}
+								Cancel
+							{/snippet}
+						</Button>
 					{/if}
-				{/snippet}
-			</Button>
+					<Button onclick={handleSaveApiKey} disabled={!apiKey.trim() || saving} fullWidth>
+						{#snippet children()}
+							{#if saved}
+								<Check size={20} />
+								Saved!
+							{:else if saving}
+								Saving...
+							{:else}
+								<Save size={20} />
+								{hasApiKey ? 'Update API Key' : 'Save API Key'}
+							{/if}
+						{/snippet}
+					</Button>
+				</div>
+			{/if}
 		</div>
 	</Card>
 

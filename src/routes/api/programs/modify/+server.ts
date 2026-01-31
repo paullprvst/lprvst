@@ -1,18 +1,19 @@
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { sendMessage } from '$lib/server/claude-client';
-import { requireAuth } from '$lib/server/auth';
+import { requireAuth, getUserApiKey } from '$lib/server/auth';
 import { REEVALUATION_SYSTEM_PROMPT } from '$lib/services/ai/prompts/reevaluation-prompt';
 
 export const POST: RequestHandler = async (event) => {
-	await requireAuth(event);
+	const { user } = await requireAuth(event);
 
-	const body = await event.request.json();
-	const { messages, currentProgram, exerciseDetails, apiKey } = body;
-
+	const apiKey = await getUserApiKey(user.id);
 	if (!apiKey) {
 		throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
 	}
+
+	const body = await event.request.json();
+	const { messages, currentProgram, exerciseDetails } = body;
 
 	if (!messages || !Array.isArray(messages)) {
 		throw error(400, 'Messages array is required');

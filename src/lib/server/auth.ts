@@ -43,3 +43,30 @@ export async function requireAuth(event: RequestEvent) {
 	}
 	return session;
 }
+
+// Get API key for authenticated user from database
+export async function getUserApiKey(authUserId: string): Promise<string | null> {
+	const supabase = createServerClient();
+	const { data, error } = await supabase
+		.from('users')
+		.select('api_key')
+		.eq('auth_user_id', authUserId)
+		.single();
+
+	if (error || !data) {
+		return null;
+	}
+
+	return data.api_key;
+}
+
+// Save API key for authenticated user to database
+export async function saveUserApiKey(authUserId: string, apiKey: string): Promise<boolean> {
+	const supabase = createServerClient();
+	const { error } = await supabase
+		.from('users')
+		.update({ api_key: apiKey })
+		.eq('auth_user_id', authUserId);
+
+	return !error;
+}
