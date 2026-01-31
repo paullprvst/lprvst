@@ -4,9 +4,7 @@ import { requireAuth, getUserApiKey, saveUserApiKey } from '$lib/server/auth';
 
 export const GET: RequestHandler = async (event) => {
 	const { user } = await requireAuth(event);
-
 	const apiKey = await getUserApiKey(user.id);
-
 	return json({ hasApiKey: !!apiKey });
 };
 

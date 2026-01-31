@@ -18,9 +18,19 @@
 	let loading = $state(true);
 	let showUpdateForm = $state(false);
 
-	onMount(async () => {
-		hasApiKey = await checkApiKeyStatus();
-		loading = false;
+	onMount(() => {
+		// Wait for auth to be initialized before checking API key
+		const checkWhenReady = async () => {
+			if (!auth.initialized) {
+				setTimeout(checkWhenReady, 50);
+				return;
+			}
+			if (auth.isAuthenticated) {
+				hasApiKey = await checkApiKeyStatus();
+			}
+			loading = false;
+		};
+		checkWhenReady();
 	});
 
 	async function handleSaveApiKey() {

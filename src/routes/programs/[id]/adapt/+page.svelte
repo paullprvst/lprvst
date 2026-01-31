@@ -7,6 +7,7 @@
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import { programGenerator } from '$lib/services/ai/program-generator';
 	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
+	import { getAuthState } from '$lib/stores/auth-store.svelte';
 	import type { Program } from '$lib/types/program';
 	import type { Conversation } from '$lib/types/conversation';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
@@ -16,6 +17,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import { ArrowLeft, Send, Key } from 'lucide-svelte';
 
+	const auth = getAuthState();
 	let program = $state<Program | null>(null);
 	let conversation = $state<Conversation | null>(null);
 	let step = $state<'api-key-required' | 'input' | 'conversation' | 'generating'>('input');
@@ -24,20 +26,31 @@
 	let readyToModify = $state(false);
 	let initialRequest = $state('');
 
-	onMount(async () => {
-		// Check for API key first
-		const hasApiKey = await checkApiKeyStatus();
-		if (!hasApiKey) {
-			step = 'api-key-required';
-			loading = false;
-			return;
-		}
+	onMount(() => {
+		const checkWhenReady = async () => {
+			if (!auth.initialized) {
+				setTimeout(checkWhenReady, 50);
+				return;
+			}
+			if (!auth.isAuthenticated) {
+				step = 'api-key-required';
+				loading = false;
+				return;
+			}
+			const hasApiKey = await checkApiKeyStatus();
+			if (!hasApiKey) {
+				step = 'api-key-required';
+				loading = false;
+				return;
+			}
 
-		const id = $page.params.id;
-		if (id) {
-			program = await programRepository.get(id) || null;
-		}
-		loading = false;
+			const id = $page.params.id;
+			if (id) {
+				program = await programRepository.get(id) || null;
+			}
+			loading = false;
+		};
+		checkWhenReady();
 	});
 
 	async function handleRequestSubmit() {

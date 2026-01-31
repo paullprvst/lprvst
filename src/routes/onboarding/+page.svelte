@@ -6,6 +6,7 @@
 	import { programGenerator } from '$lib/services/ai/program-generator';
 	import { userRepository } from '$lib/services/storage/user-repository';
 	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
+	import { getAuthState } from '$lib/stores/auth-store.svelte';
 	import ObjectiveInput from '$lib/components/onboarding/ObjectiveInput.svelte';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -14,19 +15,31 @@
 	import { Key } from 'lucide-svelte';
 	import type { Conversation } from '$lib/types/conversation';
 
+	const auth = getAuthState();
 	let step = $state<'api-key-required' | 'loading' | 'input' | 'conversation' | 'generating'>('loading');
 	let conversation = $state<Conversation | null>(null);
 	let loading = $state(false);
 	let readyToGenerate = $state(false);
 	let initialObjective = $state('');
 
-	onMount(async () => {
-		const hasApiKey = await checkApiKeyStatus();
-		if (!hasApiKey) {
-			step = 'api-key-required';
-		} else {
-			step = 'input';
-		}
+	onMount(() => {
+		const checkWhenReady = async () => {
+			if (!auth.initialized) {
+				setTimeout(checkWhenReady, 50);
+				return;
+			}
+			if (!auth.isAuthenticated) {
+				step = 'api-key-required';
+				return;
+			}
+			const hasApiKey = await checkApiKeyStatus();
+			if (!hasApiKey) {
+				step = 'api-key-required';
+			} else {
+				step = 'input';
+			}
+		};
+		checkWhenReady();
 	});
 
 	async function handleObjectiveSubmit(objective: string) {

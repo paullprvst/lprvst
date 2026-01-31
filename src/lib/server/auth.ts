@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_SECRET_KEY } from '$env/static/private';
 import { PUBLIC_SUPABASE_URL } from '$env/static/public';
+import { error } from '@sveltejs/kit';
 import type { RequestEvent } from '@sveltejs/kit';
 
 // Server-side Supabase client with secret key for admin operations
@@ -36,10 +37,7 @@ export async function getSession(event: RequestEvent) {
 export async function requireAuth(event: RequestEvent) {
 	const session = await getSession(event);
 	if (!session) {
-		throw new Response(JSON.stringify({ error: 'Unauthorized' }), {
-			status: 401,
-			headers: { 'Content-Type': 'application/json' }
-		});
+		throw error(401, 'Unauthorized');
 	}
 	return session;
 }
@@ -53,11 +51,12 @@ export async function getUserApiKey(authUserId: string): Promise<string | null> 
 		.eq('auth_user_id', authUserId)
 		.single();
 
-	if (error || !data) {
+	if (error) {
+		console.error('getUserApiKey error:', error);
 		return null;
 	}
 
-	return data.api_key;
+	return data?.api_key ?? null;
 }
 
 // Save API key for authenticated user to database
@@ -68,5 +67,10 @@ export async function saveUserApiKey(authUserId: string, apiKey: string): Promis
 		.update({ api_key: apiKey })
 		.eq('auth_user_id', authUserId);
 
-	return !error;
+	if (error) {
+		console.error('saveUserApiKey error:', error);
+		return false;
+	}
+
+	return true;
 }
