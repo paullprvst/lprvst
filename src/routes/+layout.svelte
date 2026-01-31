@@ -53,46 +53,34 @@
 	const isAuthRoute = $derived(
 		$page.url.pathname === '/login' || $page.url.pathname === '/signup'
 	);
+
+	// Check if current route is an active workout (hide nav bar)
+	const isWorkoutRoute = $derived($page.url.pathname.startsWith('/workout/'));
 </script>
 
 <div class="min-h-screen flex flex-col">
 	<!-- Main Content -->
-	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 {auth.isAuthenticated && !isAuthRoute ? 'pb-32' : 'pb-8'}">
+	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 {auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute ? 'pb-32' : 'pb-8'}">
 		{@render children()}
 	</main>
 
-	<!-- Bottom Navigation with glass morphism (only show for authenticated users on non-auth routes) -->
-	{#if auth.isAuthenticated && !isAuthRoute}
+	<!-- Bottom Navigation with glass morphism (only show for authenticated users on non-auth/non-workout routes) -->
+	{#if auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute}
 		<nav
 			class="fixed bottom-0 left-0 right-0 z-[100] glass-heavy border-t border-theme safe-area-inset-bottom"
 		>
-			<div class="max-w-7xl mx-auto px-4">
-				<div class="relative flex justify-around">
-					{#each navItems as item, index}
-						{@const isActive = index === activeIndex}
-						<a
-							href={item.href}
-							class="relative flex flex-col items-center py-3 px-4 touch-target transition-all duration-200 group {isActive
-								? 'text-cyan-600 dark:text-cyan-400'
-								: 'text-secondary'}"
-						>
-							<div
-								class="p-1.5 rounded-xl transition-all duration-200 {isActive
-									? 'bg-cyan-500/15 dark:bg-cyan-400/20'
-									: 'group-hover:bg-gray-500/10'}"
-							>
-								<item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-							</div>
-							<span
-								class="text-xs mt-1 transition-all duration-200 {isActive
-									? 'font-semibold'
-									: 'font-medium'}"
-							>
-								{item.label}
-							</span>
-						</a>
-					{/each}
-				</div>
+			<div class="flex">
+				{#each navItems as item, index}
+					{@const isActive = index === activeIndex}
+					<a
+						href={item.href}
+						class="flex-1 flex items-center justify-center py-4 transition-all duration-200 {isActive
+							? 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10'
+							: 'text-secondary active:bg-gray-500/10'}"
+					>
+						<item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+					</a>
+				{/each}
 			</div>
 		</nav>
 	{/if}
