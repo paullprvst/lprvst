@@ -13,17 +13,25 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Input from '$lib/components/shared/Input.svelte';
-	import { ArrowLeft, Send } from 'lucide-svelte';
+	import { ArrowLeft, Send, Key } from 'lucide-svelte';
 
 	let program = $state<Program | null>(null);
 	let conversation = $state<Conversation | null>(null);
-	let step = $state<'input' | 'conversation' | 'generating'>('input');
+	let step = $state<'api-key-required' | 'input' | 'conversation' | 'generating'>('input');
 	let loading = $state(true);
 	let messageLoading = $state(false);
 	let readyToModify = $state(false);
 	let initialRequest = $state('');
 
 	onMount(async () => {
+		// Check for API key first
+		const apiKey = localStorage.getItem('anthropic_api_key');
+		if (!apiKey) {
+			step = 'api-key-required';
+			loading = false;
+			return;
+		}
+
 		const id = $page.params.id;
 		if (id) {
 			program = await programRepository.get(id) || null;
@@ -80,8 +88,8 @@ My request: ${initialRequest}`;
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
-			} else if (err.status === 401 || (error instanceof Error && error.message.includes('API key'))) {
-				alert('Failed to start conversation. Please check your API key in Settings.');
+			} else if (error instanceof Error && error.message.includes('API key')) {
+				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				alert(`Failed to start conversation: ${message}`);
@@ -112,6 +120,8 @@ My request: ${initialRequest}`;
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
+			} else if (error instanceof Error && error.message.includes('API key')) {
+				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				alert(`Failed to send message: ${message}`);
@@ -134,6 +144,8 @@ My request: ${initialRequest}`;
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
+			} else if (error instanceof Error && error.message.includes('API key')) {
+				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				alert(`Failed to modify program: ${message}`);
@@ -153,6 +165,25 @@ My request: ${initialRequest}`;
 {#if loading}
 	<div class="flex justify-center py-12">
 		<LoadingSpinner size="lg" />
+	</div>
+{:else if step === 'api-key-required'}
+	<div class="max-w-3xl mx-auto">
+		<Card>
+			<div class="text-center space-y-4 py-4">
+				<div class="w-16 h-16 mx-auto rounded-2xl bg-orange-500/10 flex items-center justify-center">
+					<Key size={32} class="text-orange-500" />
+				</div>
+				<h2 class="text-xl font-semibold text-primary">API Key Required</h2>
+				<p class="text-secondary max-w-md mx-auto">
+					To modify your workout program, you need to add your Anthropic API key first.
+				</p>
+				<Button onclick={() => goto('/settings')} fullWidth>
+					{#snippet children()}
+						Go to Settings
+					{/snippet}
+				</Button>
+			</div>
+		</Card>
 	</div>
 {:else if !program}
 	<Card>
