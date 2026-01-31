@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
-import { getUserId } from '$lib/stores/auth-store.svelte';
+import { getAuthUserId } from '$lib/stores/auth-store.svelte';
 import type { User } from '$lib/types/user';
 
 export class UserRepository {
 	async create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-		const authUserId = getUserId();
+		const authUserId = getAuthUserId();
 		if (!authUserId) {
 			throw new Error('User must be authenticated to create a profile');
 		}
@@ -48,7 +48,7 @@ export class UserRepository {
 	}
 
 	async getCurrentUser(): Promise<User | undefined> {
-		const authUserId = getUserId();
+		const authUserId = getAuthUserId();
 		if (!authUserId) return undefined;
 		return this.getByAuthUserId(authUserId);
 	}

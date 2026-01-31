@@ -3,6 +3,7 @@
 	import { conversationManager } from '$lib/services/ai/conversation-manager';
 	import { conversationRepository } from '$lib/services/storage/conversation-repository';
 	import { programGenerator } from '$lib/services/ai/program-generator';
+	import { userRepository } from '$lib/services/storage/user-repository';
 	import ObjectiveInput from '$lib/components/onboarding/ObjectiveInput.svelte';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -12,9 +13,11 @@
 	let conversation = $state<Conversation | null>(null);
 	let loading = $state(false);
 	let readyToGenerate = $state(false);
+	let initialObjective = $state('');
 
 	async function handleObjectiveSubmit(objective: string) {
 		loading = true;
+		initialObjective = objective;
 		try {
 			conversation = await conversationManager.createConversation('onboarding', objective);
 
@@ -34,7 +37,7 @@
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
 			} else if (err.status === 401 || (error instanceof Error && error.message.includes('API key'))) {
-				alert('Failed to start conversation. Please check your API key in Settings.');
+				alert('Failed to start conversation. Please try again.');
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				alert(`Failed to start conversation: ${message}`);
@@ -79,6 +82,14 @@
 
 		step = 'generating';
 		try {
+			// Update user profile with objectives to mark onboarding complete
+			const currentUser = await userRepository.getCurrentUser();
+			if (currentUser) {
+				await userRepository.update(currentUser.id, {
+					objectives: initialObjective
+				});
+			}
+
 			const program = await programGenerator.generateFromConversation(conversation.id);
 			await conversationManager.completeConversation(conversation.id);
 			goto(`/programs/${program.id}`);

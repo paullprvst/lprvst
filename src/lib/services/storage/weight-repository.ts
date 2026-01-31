@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
-import { getUserId } from '$lib/stores/auth-store.svelte';
+import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { WeightEntry } from '$lib/types/weight-entry';
 
 export class WeightRepository {
 	async create(entry: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<WeightEntry> {
-		const userId = getUserId();
+		const userId = await getAppUserId();
 		if (!userId) {
 			throw new Error('User must be authenticated to create a weight entry');
 		}

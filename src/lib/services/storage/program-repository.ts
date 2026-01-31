@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
-import { getUserId } from '$lib/stores/auth-store.svelte';
+import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { Program } from '$lib/types/program';
 
 export class ProgramRepository {
 	async create(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
-		const userId = getUserId();
+		const userId = await getAppUserId();
 		if (!userId) {
 			throw new Error('User must be authenticated to create a program');
 		}

@@ -1,5 +1,6 @@
 import type { User, Session } from '@supabase/supabase-js';
 import {
+	supabase,
 	signIn as supabaseSignIn,
 	signUp as supabaseSignUp,
 	signOut as supabaseSignOut,
@@ -21,6 +22,31 @@ let state = $state<AuthState>({
 	initialized: false
 });
 
+// Ensure user profile exists in the users table
+async function ensureUserProfile(authUserId: string) {
+	// Check if profile exists
+	const { data: existing } = await supabase
+		.from('users')
+		.select('id')
+		.eq('auth_user_id', authUserId)
+		.single();
+
+	if (!existing) {
+		// Create profile with defaults
+		await supabase.from('users').insert({
+			auth_user_id: authUserId,
+			objectives: '',
+			profile: {
+				fitnessLevel: 'beginner',
+				availableEquipment: [],
+				schedule: {
+					daysPerWeek: 3
+				}
+			}
+		});
+	}
+}
+
 // Initialize auth state
 export async function initializeAuth() {
 	if (state.initialized) return;
@@ -31,6 +57,11 @@ export async function initializeAuth() {
 		const session = await supabaseGetSession();
 		state.session = session;
 		state.user = session?.user ?? null;
+
+		// Ensure profile exists for authenticated users
+		if (session?.user) {
+			await ensureUserProfile(session.user.id);
+		}
 	} catch (err) {
 		console.error('Failed to get session:', err);
 	} finally {
@@ -39,9 +70,14 @@ export async function initializeAuth() {
 	}
 
 	// Subscribe to auth state changes
-	onAuthStateChange((session) => {
+	onAuthStateChange(async (session) => {
 		state.session = session;
 		state.user = session?.user ?? null;
+
+		// Ensure profile exists when user logs in
+		if (session?.user) {
+			await ensureUserProfile(session.user.id);
+		}
 	});
 }
 
@@ -58,6 +94,12 @@ export async function signIn(email: string, password: string): Promise<{ error: 
 
 		state.user = user;
 		state.session = session;
+
+		// Ensure profile exists
+		if (user) {
+			await ensureUserProfile(user.id);
+		}
+
 		return { error: null };
 	} finally {
 		state.loading = false;
@@ -95,6 +137,7 @@ export async function signOut(): Promise<{ error: Error | null }> {
 		if (!error) {
 			state.user = null;
 			state.session = null;
+			clearAppUserIdCache();
 		}
 
 		return { error };
@@ -108,9 +151,35 @@ export async function getAuthToken(): Promise<string | null> {
 	return state.session?.access_token ?? null;
 }
 
-// Get current user ID
-export function getUserId(): string | null {
+// Get current auth user ID (from Supabase Auth)
+export function getAuthUserId(): string | null {
 	return state.user?.id ?? null;
+}
+
+// Get current app user ID (from users table)
+// This requires a database lookup, so it's async
+let cachedAppUserId: string | null = null;
+
+export async function getAppUserId(): Promise<string | null> {
+	const authId = state.user?.id;
+	if (!authId) return null;
+
+	if (cachedAppUserId) return cachedAppUserId;
+
+	const { supabase } = await import('$lib/services/storage/supabase');
+	const { data } = await supabase
+		.from('users')
+		.select('id')
+		.eq('auth_user_id', authId)
+		.single();
+
+	cachedAppUserId = data?.id ?? null;
+	return cachedAppUserId;
+}
+
+// Clear cached app user ID (call on sign out)
+function clearAppUserIdCache() {
+	cachedAppUserId = null;
 }
 
 // Reactive getters

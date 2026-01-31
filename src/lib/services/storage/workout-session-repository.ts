@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
-import { getUserId } from '$lib/stores/auth-store.svelte';
+import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { WorkoutSession, ExerciseLog, SetLog } from '$lib/types/workout-session';
 
 export class WorkoutSessionRepository {
 	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
-		const userId = getUserId();
+		const userId = await getAppUserId();
 		if (!userId) {
 			throw new Error('User must be authenticated to create a workout session');
 		}

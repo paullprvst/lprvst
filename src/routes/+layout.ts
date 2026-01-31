@@ -1,18 +1,19 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
-import { getSession } from '$lib/services/storage/supabase';
+import { getSession, supabase } from '$lib/services/storage/supabase';
 
 export const load: LayoutLoad = async ({ url }) => {
 	// Only run auth checks in browser
 	if (!browser) {
-		return { session: null };
+		return { session: null, onboardingComplete: false };
 	}
 
 	const session = await getSession();
 
 	const publicRoutes = ['/login', '/signup'];
 	const isPublicRoute = publicRoutes.includes(url.pathname);
+	const isOnboarding = url.pathname === '/onboarding';
 
 	// Redirect unauthenticated users to login (except for public routes)
 	if (!session && !isPublicRoute) {
@@ -24,5 +25,27 @@ export const load: LayoutLoad = async ({ url }) => {
 		throw redirect(303, '/calendar');
 	}
 
-	return { session };
+	// Check if user has completed onboarding (has objectives set)
+	let onboardingComplete = false;
+	if (session) {
+		const { data } = await supabase
+			.from('users')
+			.select('objectives')
+			.eq('auth_user_id', session.user.id)
+			.single();
+
+		onboardingComplete = !!data?.objectives;
+
+		// Redirect users who haven't completed onboarding (unless already there)
+		if (!onboardingComplete && !isOnboarding && !isPublicRoute) {
+			throw redirect(303, '/onboarding');
+		}
+
+		// Redirect users who completed onboarding away from onboarding page
+		if (onboardingComplete && isOnboarding) {
+			throw redirect(303, '/calendar');
+		}
+	}
+
+	return { session, onboardingComplete };
 };
