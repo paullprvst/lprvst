@@ -1,5 +1,10 @@
 import { getAuthToken } from '$lib/stores/auth-store.svelte';
 
+function getApiKey(): string | null {
+	if (typeof localStorage === 'undefined') return null;
+	return localStorage.getItem('anthropic_api_key');
+}
+
 async function getHeaders(): Promise<HeadersInit> {
 	const token = await getAuthToken();
 	const headers: HeadersInit = {
@@ -11,11 +16,16 @@ async function getHeaders(): Promise<HeadersInit> {
 	return headers;
 }
 
-export async function postJSON<T>(url: string, body: unknown): Promise<T> {
+export async function postJSON<T>(url: string, body: Record<string, unknown>): Promise<T> {
+	const apiKey = getApiKey();
+	if (!apiKey) {
+		throw new Error('API key is required. Please add your Anthropic API key in Settings.');
+	}
+
 	const response = await fetch(url, {
 		method: 'POST',
 		headers: await getHeaders(),
-		body: JSON.stringify(body)
+		body: JSON.stringify({ ...body, apiKey })
 	});
 
 	if (!response.ok) {
@@ -28,13 +38,18 @@ export async function postJSON<T>(url: string, body: unknown): Promise<T> {
 
 export async function postStream(
 	url: string,
-	body: unknown,
+	body: Record<string, unknown>,
 	onChunk: (text: string) => void
 ): Promise<void> {
+	const apiKey = getApiKey();
+	if (!apiKey) {
+		throw new Error('API key is required. Please add your Anthropic API key in Settings.');
+	}
+
 	const response = await fetch(url, {
 		method: 'POST',
 		headers: await getHeaders(),
-		body: JSON.stringify(body)
+		body: JSON.stringify({ ...body, apiKey })
 	});
 
 	if (!response.ok) {
@@ -56,9 +71,8 @@ export async function postStream(
 
 		buffer += decoder.decode(value, { stream: true });
 
-		// Process complete SSE events
 		const lines = buffer.split('\n');
-		buffer = lines.pop() || ''; // Keep incomplete line in buffer
+		buffer = lines.pop() || '';
 
 		for (const line of lines) {
 			if (line.startsWith('data: ')) {

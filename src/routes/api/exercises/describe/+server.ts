@@ -8,13 +8,16 @@ export const POST: RequestHandler = async (event) => {
 	await requireAuth(event);
 
 	const body = await event.request.json();
-	const { exerciseName, equipment, notes, stream = true } = body;
+	const { exerciseName, equipment, notes, stream = true, apiKey } = body;
+
+	if (!apiKey) {
+		throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
+	}
 
 	if (!exerciseName) {
 		throw error(400, 'Exercise name is required');
 	}
 
-	// Build the prompt
 	let prompt = `Provide instructions for: ${exerciseName}`;
 	if (equipment && equipment.length > 0) {
 		prompt += `\nEquipment: ${equipment.join(', ')}`;
@@ -26,21 +29,20 @@ export const POST: RequestHandler = async (event) => {
 	const messages = [{ role: 'user' as const, content: prompt }];
 
 	if (stream) {
-		// Return streaming response using Server-Sent Events
 		const encoder = new TextEncoder();
 
 		const readable = new ReadableStream({
 			async start(controller) {
 				try {
-					for await (const chunk of streamMessage(messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT)) {
+					for await (const chunk of streamMessage(apiKey, messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT)) {
 						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
 					}
 					controller.enqueue(encoder.encode('data: [DONE]\n\n'));
 					controller.close();
 				} catch (err) {
-					console.error('Streaming error:', err);
+					const message = err instanceof Error ? err.message : 'Streaming failed';
 					controller.enqueue(
-						encoder.encode(`data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`)
+						encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
 					);
 					controller.close();
 				}
@@ -55,8 +57,7 @@ export const POST: RequestHandler = async (event) => {
 			}
 		});
 	} else {
-		// Return non-streaming response
-		const response = await sendMessage(messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT);
+		const response = await sendMessage(apiKey, messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT);
 		return json({ text: response });
 	}
 };

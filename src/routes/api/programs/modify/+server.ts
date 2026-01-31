@@ -8,7 +8,11 @@ export const POST: RequestHandler = async (event) => {
 	await requireAuth(event);
 
 	const body = await event.request.json();
-	const { messages, currentProgram, exerciseDetails } = body;
+	const { messages, currentProgram, exerciseDetails, apiKey } = body;
+
+	if (!apiKey) {
+		throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
+	}
 
 	if (!messages || !Array.isArray(messages)) {
 		throw error(400, 'Messages array is required');
@@ -18,7 +22,6 @@ export const POST: RequestHandler = async (event) => {
 		throw error(400, 'Current program is required');
 	}
 
-	// Build the full messages array with program context
 	const messagesWithContext = [
 		{
 			role: 'user' as const,
@@ -31,6 +34,6 @@ export const POST: RequestHandler = async (event) => {
 		}
 	];
 
-	const response = await sendMessage(messagesWithContext, REEVALUATION_SYSTEM_PROMPT);
+	const response = await sendMessage(apiKey, messagesWithContext, REEVALUATION_SYSTEM_PROMPT);
 	return json({ text: response });
 };

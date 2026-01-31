@@ -1,13 +1,34 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Card from '$lib/components/shared/Card.svelte';
+	import Input from '$lib/components/shared/Input.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { themeStore, type Theme } from '$lib/stores/theme-store.svelte';
 	import { signOut, getAuthState } from '$lib/stores/auth-store.svelte';
-	import { Sun, Moon, Monitor, Info, Check, LogOut, User } from 'lucide-svelte';
+	import { Sun, Moon, Monitor, Info, Check, LogOut, User, Key, Save } from 'lucide-svelte';
 
 	const auth = getAuthState();
 	let signingOut = $state(false);
+	let apiKey = $state('');
+	let saved = $state(false);
+
+	onMount(() => {
+		const stored = localStorage.getItem('anthropic_api_key');
+		if (stored) {
+			apiKey = stored;
+		}
+	});
+
+	function handleSaveApiKey() {
+		if (apiKey.trim()) {
+			localStorage.setItem('anthropic_api_key', apiKey.trim());
+			saved = true;
+			setTimeout(() => {
+				saved = false;
+			}, 2000);
+		}
+	}
 
 	async function handleSignOut() {
 		signingOut = true;
@@ -45,6 +66,49 @@
 				{#snippet children()}
 					<LogOut size={20} />
 					{signingOut ? 'Signing out...' : 'Sign Out'}
+				{/snippet}
+			</Button>
+		</div>
+	</Card>
+
+	<!-- API Key -->
+	<Card>
+		<div class="space-y-4">
+			<div class="flex items-center gap-3">
+				<div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+					<Key size={20} class="text-orange-500" />
+				</div>
+				<div>
+					<h2 class="text-lg font-semibold text-primary">Anthropic API Key</h2>
+					<p class="text-sm text-secondary">Required for AI program generation</p>
+				</div>
+			</div>
+
+			<div class="p-3 surface-elevated rounded-xl border border-theme">
+				<p class="text-sm text-secondary">
+					Your API key is stored locally in your browser. Get your API key from
+					<a
+						href="https://console.anthropic.com"
+						target="_blank"
+						rel="noopener"
+						class="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
+					>
+						console.anthropic.com
+					</a>
+				</p>
+			</div>
+
+			<Input bind:value={apiKey} placeholder="sk-ant-..." disabled={false} />
+
+			<Button onclick={handleSaveApiKey} disabled={!apiKey.trim()} fullWidth>
+				{#snippet children()}
+					{#if saved}
+						<Check size={20} />
+						Saved!
+					{:else}
+						<Save size={20} />
+						Save API Key
+					{/if}
 				{/snippet}
 			</Button>
 		</div>
