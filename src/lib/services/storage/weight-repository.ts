@@ -1,11 +1,18 @@
 import { supabase } from './supabase';
+import { getUserId } from '$lib/stores/auth-store.svelte';
 import type { WeightEntry } from '$lib/types/weight-entry';
 
 export class WeightRepository {
 	async create(entry: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<WeightEntry> {
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User must be authenticated to create a weight entry');
+		}
+
 		const { data, error } = await supabase
 			.from('weight_entries')
 			.insert({
+				user_id: userId,
 				weight: entry.weight,
 				recorded_at: entry.recordedAt.toISOString().split('T')[0],
 				notes: entry.notes
@@ -79,6 +86,7 @@ export class WeightRepository {
 	private mapFromDb(data: Record<string, unknown>): WeightEntry {
 		return {
 			id: data.id as string,
+			userId: data.user_id as string | undefined,
 			weight: Number(data.weight),
 			recordedAt: new Date(data.recorded_at as string),
 			notes: data.notes as string | undefined,

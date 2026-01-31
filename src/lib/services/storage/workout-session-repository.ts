@@ -1,11 +1,18 @@
 import { supabase } from './supabase';
+import { getUserId } from '$lib/stores/auth-store.svelte';
 import type { WorkoutSession, ExerciseLog, SetLog } from '$lib/types/workout-session';
 
 export class WorkoutSessionRepository {
 	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User must be authenticated to create a workout session');
+		}
+
 		const { data, error } = await supabase
 			.from('workout_sessions')
 			.insert({
+				user_id: userId,
 				workout_id: session.workoutId,
 				program_id: session.programId,
 				status: session.status,
@@ -111,6 +118,7 @@ export class WorkoutSessionRepository {
 		const exercises = (data.exercises as Array<Record<string, unknown>>) || [];
 		return {
 			id: data.id as string,
+			userId: data.user_id as string | undefined,
 			workoutId: data.workout_id as string,
 			programId: data.program_id as string,
 			startedAt: new Date(data.started_at as string),

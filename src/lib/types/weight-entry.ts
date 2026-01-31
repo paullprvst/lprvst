@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export interface WeightEntry {
 	id: string;
+	userId?: string;
 	weight: number;
 	recordedAt: Date;
 	notes?: string;

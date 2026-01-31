@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export interface Program {
 	id: string;
+	userId?: string;
 	name: string;
 	description: string;
 	startDate: Date;

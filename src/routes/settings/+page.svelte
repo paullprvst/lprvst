@@ -1,30 +1,21 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import Card from '$lib/components/shared/Card.svelte';
-	import Input from '$lib/components/shared/Input.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { themeStore, type Theme } from '$lib/stores/theme-store.svelte';
-	import { Save, Sun, Moon, Monitor, Key, Info, Check } from 'lucide-svelte';
+	import { signOut, getAuthState } from '$lib/stores/auth-store.svelte';
+	import { Sun, Moon, Monitor, Info, Check, LogOut, User } from 'lucide-svelte';
 
-	let apiKey = $state('');
-	let saved = $state(false);
+	const auth = getAuthState();
+	let signingOut = $state(false);
 
-	onMount(() => {
-		// Load API key from localStorage
-		const stored = localStorage.getItem('anthropic_api_key');
-		if (stored) {
-			apiKey = stored;
+	async function handleSignOut() {
+		signingOut = true;
+		const { error } = await signOut();
+		if (!error) {
+			goto('/login');
 		}
-	});
-
-	function handleSave() {
-		if (apiKey.trim()) {
-			localStorage.setItem('anthropic_api_key', apiKey.trim());
-			saved = true;
-			setTimeout(() => {
-				saved = false;
-			}, 2000);
-		}
+		signingOut = false;
 	}
 
 	const themeOptions: { value: Theme; icon: typeof Sun; label: string }[] = [
@@ -36,6 +27,28 @@
 
 <div class="space-y-6 animate-slideUp">
 	<h1 class="text-2xl font-bold text-primary">Settings</h1>
+
+	<!-- Account -->
+	<Card>
+		<div class="space-y-4">
+			<div class="flex items-center gap-3">
+				<div class="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center">
+					<User size={20} class="text-cyan-500 dark:text-cyan-400" />
+				</div>
+				<div>
+					<h2 class="text-lg font-semibold text-primary">Account</h2>
+					<p class="text-sm text-secondary">{auth.user?.email || 'Not signed in'}</p>
+				</div>
+			</div>
+
+			<Button onclick={handleSignOut} disabled={signingOut} variant="secondary" fullWidth>
+				{#snippet children()}
+					<LogOut size={20} />
+					{signingOut ? 'Signing out...' : 'Sign Out'}
+				{/snippet}
+			</Button>
+		</div>
+	</Card>
 
 	<!-- Theme Selection -->
 	<Card>
@@ -83,50 +96,6 @@
 					</button>
 				{/each}
 			</div>
-		</div>
-	</Card>
-
-	<!-- API Key -->
-	<Card>
-		<div class="space-y-4">
-			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-					<Key size={20} class="text-orange-500" />
-				</div>
-				<div>
-					<h2 class="text-lg font-semibold text-primary">Anthropic API Key</h2>
-					<p class="text-sm text-secondary">Required for AI program generation</p>
-				</div>
-			</div>
-
-			<div class="p-3 surface-elevated rounded-xl border border-theme">
-				<p class="text-sm text-secondary">
-					Your API key is stored locally in your browser and is used to generate workout programs.
-					Get your API key from
-					<a
-						href="https://console.anthropic.com"
-						target="_blank"
-						rel="noopener"
-						class="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
-					>
-						console.anthropic.com
-					</a>
-				</p>
-			</div>
-
-			<Input bind:value={apiKey} placeholder="sk-ant-..." disabled={false} />
-
-			<Button onclick={handleSave} disabled={!apiKey.trim()} fullWidth>
-				{#snippet children()}
-					{#if saved}
-						<Check size={20} />
-						Saved!
-					{:else}
-						<Save size={20} />
-						Save API Key
-					{/if}
-				{/snippet}
-			</Button>
 		</div>
 	</Card>
 

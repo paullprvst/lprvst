@@ -1,5 +1,6 @@
 export interface User {
 	id: string;
+	authUserId?: string;
 	objectives: string;
 	profile: UserProfile;
 	createdAt: Date;

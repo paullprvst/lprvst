@@ -1,5 +1,6 @@
 export interface WorkoutSession {
 	id: string;
+	userId?: string;
 	workoutId: string;
 	programId: string;
 	startedAt: Date;

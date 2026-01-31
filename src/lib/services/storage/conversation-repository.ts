@@ -1,17 +1,23 @@
 import { supabase } from './supabase';
+import { getUserId } from '$lib/stores/auth-store.svelte';
 import type { Conversation, Message } from '$lib/types/conversation';
 
 export class ConversationRepository {
 	async create(
 		conversation: Omit<Conversation, 'id' | 'createdAt' | 'updatedAt'>
 	): Promise<Conversation> {
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User must be authenticated to create a conversation');
+		}
+
 		const { data, error } = await supabase
 			.from('conversations')
 			.insert({
+				user_id: userId,
 				type: conversation.type,
 				messages: conversation.messages,
 				status: conversation.status,
-				user_id: conversation.userId || null,
 				program_id: conversation.programId || null
 			})
 			.select()

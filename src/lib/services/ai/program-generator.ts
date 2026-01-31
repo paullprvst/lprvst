@@ -1,9 +1,7 @@
-import { claudeClient } from './claude-client';
+import { postJSON } from './api-client';
 import { conversationRepository } from '../storage/conversation-repository';
 import { programRepository } from '../storage/program-repository';
 import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
-import { GENERATION_SYSTEM_PROMPT } from './prompts/generation-prompt';
-import { REEVALUATION_SYSTEM_PROMPT } from './prompts/reevaluation-prompt';
 import { ProgramSchema } from '$lib/types/program';
 import type { Program } from '$lib/types/program';
 
@@ -48,15 +46,11 @@ export class ProgramGenerator {
 			content: m.content
 		}));
 
-		// Add a final prompt to generate the program
-		messages.push({
-			role: 'user',
-			content: 'Please generate my workout program now as JSON.'
+		const response = await postJSON<{ text: string }>('/api/programs/generate', {
+			messages
 		});
 
-		const response = await claudeClient.sendMessage(messages, GENERATION_SYSTEM_PROMPT);
-
-		const jsonString = this.extractJSON(response);
+		const jsonString = this.extractJSON(response.text);
 		const program = this.parseAndValidate(jsonString);
 
 		// Save to database (repository will generate ID)
@@ -84,7 +78,7 @@ export class ProgramGenerator {
 		}
 
 		// Fetch exercise descriptions from database
-		let exerciseDetails = '';
+		let exerciseDetails: string | undefined;
 		try {
 			const descriptions = await exerciseDescriptionRepository.getByNames([...exerciseNames]);
 			if (descriptions.size > 0) {
@@ -92,7 +86,7 @@ export class ProgramGenerator {
 				for (const [name, description] of descriptions) {
 					detailsArray.push(`### ${name}\n${description}`);
 				}
-				exerciseDetails = `\n\nExercise Details (for reference when making modifications):\n${detailsArray.join('\n\n')}`;
+				exerciseDetails = detailsArray.join('\n\n');
 			}
 		} catch (err) {
 			console.warn('Failed to fetch exercise descriptions:', err);
@@ -103,21 +97,13 @@ export class ProgramGenerator {
 			content: m.content
 		}));
 
-		// Add context about the current program and exercise details
-		messages.unshift({
-			role: 'user',
-			content: `Current program:\n${JSON.stringify(program, null, 2)}${exerciseDetails}`
+		const response = await postJSON<{ text: string }>('/api/programs/modify', {
+			messages,
+			currentProgram: program,
+			exerciseDetails
 		});
 
-		// Add final prompt
-		messages.push({
-			role: 'user',
-			content: 'Please provide the modified workout program as JSON.'
-		});
-
-		const response = await claudeClient.sendMessage(messages, REEVALUATION_SYSTEM_PROMPT);
-
-		const jsonString = this.extractJSON(response);
+		const jsonString = this.extractJSON(response.text);
 		const modifiedProgram = this.parseAndValidate(jsonString);
 
 		// Update existing program

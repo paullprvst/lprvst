@@ -1,11 +1,18 @@
 import { supabase } from './supabase';
+import { getUserId } from '$lib/stores/auth-store.svelte';
 import type { Program } from '$lib/types/program';
 
 export class ProgramRepository {
 	async create(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User must be authenticated to create a program');
+		}
+
 		const { data, error } = await supabase
 			.from('programs')
 			.insert({
+				user_id: userId,
 				name: program.name,
 				description: program.description,
 				start_date: program.startDate,
@@ -60,6 +67,7 @@ export class ProgramRepository {
 	private mapFromDb(data: Record<string, unknown>): Program {
 		return {
 			id: data.id as string,
+			userId: data.user_id as string | undefined,
 			name: data.name as string,
 			description: data.description as string,
 			startDate: new Date(data.start_date as string),

@@ -1,11 +1,18 @@
 import { supabase } from './supabase';
+import { getUserId } from '$lib/stores/auth-store.svelte';
 import type { User } from '$lib/types/user';
 
 export class UserRepository {
 	async create(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+		const authUserId = getUserId();
+		if (!authUserId) {
+			throw new Error('User must be authenticated to create a profile');
+		}
+
 		const { data, error } = await supabase
 			.from('users')
 			.insert({
+				auth_user_id: authUserId,
 				objectives: user.objectives,
 				profile: user.profile
 			})
@@ -24,6 +31,26 @@ export class UserRepository {
 			throw error;
 		}
 		return this.mapFromDb(data);
+	}
+
+	async getByAuthUserId(authUserId: string): Promise<User | undefined> {
+		const { data, error } = await supabase
+			.from('users')
+			.select()
+			.eq('auth_user_id', authUserId)
+			.single();
+
+		if (error) {
+			if (error.code === 'PGRST116') return undefined;
+			throw error;
+		}
+		return this.mapFromDb(data);
+	}
+
+	async getCurrentUser(): Promise<User | undefined> {
+		const authUserId = getUserId();
+		if (!authUserId) return undefined;
+		return this.getByAuthUserId(authUserId);
 	}
 
 	async getFirst(): Promise<User | undefined> {
@@ -59,6 +86,7 @@ export class UserRepository {
 	private mapFromDb(data: Record<string, unknown>): User {
 		return {
 			id: data.id as string,
+			authUserId: data.auth_user_id as string | undefined,
 			objectives: data.objectives as string,
 			profile: data.profile as User['profile'],
 			createdAt: new Date(data.created_at as string),

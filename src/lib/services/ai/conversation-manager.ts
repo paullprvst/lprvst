@@ -1,9 +1,7 @@
-import { claudeClient } from './claude-client';
+import { postJSON, postStream } from './api-client';
 import { conversationRepository } from '../storage/conversation-repository';
 import { programRepository } from '../storage/program-repository';
 import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
-import { ONBOARDING_SYSTEM_PROMPT } from './prompts/onboarding-prompt';
-import { REEVALUATION_CONVERSATION_PROMPT } from './prompts/reevaluation-prompt';
 import type { Conversation, Message } from '$lib/types/conversation';
 
 export class ConversationManager {
@@ -43,17 +41,10 @@ export class ConversationManager {
 			throw new Error('Conversation not found');
 		}
 
-		let systemPrompt =
-			conversation.type === 'onboarding'
-				? ONBOARDING_SYSTEM_PROMPT
-				: REEVALUATION_CONVERSATION_PROMPT;
-
-		// For reevaluation conversations, include exercise details in the system prompt
+		// For reevaluation conversations, include exercise details
+		let exerciseDetails: string | undefined;
 		if (conversation.type === 'reevaluation' && conversation.programId) {
-			const exerciseDetails = await this.getExerciseDetailsForProgram(conversation.programId);
-			if (exerciseDetails) {
-				systemPrompt += `\n\nExercise Details (for reference when discussing modifications):\n${exerciseDetails}`;
-			}
+			exerciseDetails = await this.getExerciseDetailsForProgram(conversation.programId);
 		}
 
 		const messages = conversation.messages.map((m) => ({
@@ -64,12 +55,27 @@ export class ConversationManager {
 		let responseText = '';
 
 		if (onChunk) {
-			await claudeClient.streamMessage(messages, systemPrompt, (chunk) => {
-				responseText += chunk;
-				onChunk(chunk);
-			});
+			await postStream(
+				'/api/chat',
+				{
+					messages,
+					conversationType: conversation.type,
+					exerciseDetails,
+					stream: true
+				},
+				(chunk) => {
+					responseText += chunk;
+					onChunk(chunk);
+				}
+			);
 		} else {
-			responseText = await claudeClient.sendMessage(messages, systemPrompt);
+			const response = await postJSON<{ text: string }>('/api/chat', {
+				messages,
+				conversationType: conversation.type,
+				exerciseDetails,
+				stream: false
+			});
+			responseText = response.text;
 		}
 
 		const assistantMessage: Message = {
@@ -83,10 +89,10 @@ export class ConversationManager {
 		return responseText;
 	}
 
-	private async getExerciseDetailsForProgram(programId: string): Promise<string | null> {
+	private async getExerciseDetailsForProgram(programId: string): Promise<string | undefined> {
 		try {
 			const program = await programRepository.get(programId);
-			if (!program) return null;
+			if (!program) return undefined;
 
 			// Extract all unique exercise names from the program
 			const exerciseNames = new Set<string>();
@@ -98,7 +104,7 @@ export class ConversationManager {
 
 			// Fetch exercise descriptions from database
 			const descriptions = await exerciseDescriptionRepository.getByNames([...exerciseNames]);
-			if (descriptions.size === 0) return null;
+			if (descriptions.size === 0) return undefined;
 
 			const detailsArray: string[] = [];
 			for (const [name, description] of descriptions) {
@@ -107,7 +113,7 @@ export class ConversationManager {
 			return detailsArray.join('\n\n');
 		} catch (err) {
 			console.warn('Failed to fetch exercise descriptions:', err);
-			return null;
+			return undefined;
 		}
 	}
 

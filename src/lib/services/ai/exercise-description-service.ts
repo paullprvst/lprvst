@@ -1,5 +1,4 @@
-import { claudeClient } from './claude-client';
-import { EXERCISE_DESCRIPTION_SYSTEM_PROMPT } from './prompts/exercise-description-prompt';
+import { postStream } from './api-client';
 import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
 
 // In-memory cache for instant access during session
@@ -42,21 +41,17 @@ export async function getExerciseDescription(
 		console.warn('Failed to fetch from DB, generating fresh:', err);
 	}
 
-	// Build the prompt
-	let prompt = `Provide instructions for: ${exerciseName}`;
-	if (equipment && equipment.length > 0) {
-		prompt += `\nEquipment: ${equipment.join(', ')}`;
-	}
-	if (notes) {
-		prompt += `\nAdditional context: ${notes}`;
-	}
-
-	// Stream from Claude
+	// Stream from server API
 	let fullResponse = '';
 
-	await claudeClient.streamMessage(
-		[{ role: 'user', content: prompt }],
-		EXERCISE_DESCRIPTION_SYSTEM_PROMPT,
+	await postStream(
+		'/api/exercises/describe',
+		{
+			exerciseName,
+			equipment,
+			notes,
+			stream: true
+		},
 		(chunk) => {
 			fullResponse += chunk;
 			onChunk(chunk);
