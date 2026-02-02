@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 	import { Timer, SkipForward, Play } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
@@ -10,9 +10,10 @@
 		totalSets: number;
 		onsetcomplete: () => void;
 		onskip: () => void;
+		autoStart?: boolean;
 	}
 
-	let { duration, setNumber, totalSets, onsetcomplete, onskip }: Props = $props();
+	let { duration, setNumber, totalSets, onsetcomplete, onskip, autoStart = false }: Props = $props();
 
 	let remaining = $state(duration);
 	let lastSecond = $state(duration);
@@ -109,6 +110,12 @@
 		onskip();
 	}
 
+	onMount(() => {
+		if (autoStart) {
+			start();
+		}
+	});
+
 	onDestroy(() => {
 		if (intervalId) clearInterval(intervalId);
 	});
@@ -128,8 +135,11 @@
 <div
 	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-cyan-300 dark:border-cyan-500/40 shadow-lg animate-scaleIn"
 >
-	<!-- Subtle gradient background -->
-	<div class="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-pink-500/10 dark:from-cyan-500/15 dark:to-pink-500/15 pointer-events-none"></div>
+	<!-- Dynamic color background based on timer progress -->
+	<div
+		class="absolute inset-0 pointer-events-none transition-colors duration-500"
+		style="background-color: color-mix(in srgb, {timerColor()} 15%, transparent)"
+	></div>
 
 	<!-- Header -->
 	<div class="relative flex items-center justify-center gap-2 text-cyan-600 dark:text-cyan-400">
@@ -181,18 +191,6 @@
 				{/if}
 			</span>
 		</div>
-	</div>
-
-	<!-- Progress indicator dots -->
-	<div class="relative z-10 flex justify-center gap-2">
-		{#each Array(5) as _, i}
-			{@const dotProgress = ((5 - i) / 5) * 100}
-			<div
-				class="w-2 h-2 rounded-full transition-all duration-300"
-				class:animate-pulse={isRunning && progress <= dotProgress && progress > dotProgress - 20}
-				style="background-color: {progress > dotProgress ? 'rgb(var(--color-border))' : timerColor()}"
-			></div>
-		{/each}
 	</div>
 
 	<!-- Buttons -->

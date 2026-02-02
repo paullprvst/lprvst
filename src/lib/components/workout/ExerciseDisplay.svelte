@@ -214,6 +214,7 @@
 	<!-- Sets Card / Timer -->
 	{#if isTimeBased && nextIncompleteSet && effectiveDuration}
 		<!-- Time-based exercise: show timer -->
+		<!-- Auto-start if not first set and no rest between sets (coming from 10s transition) -->
 		{#key nextIncompleteSet.setNumber}
 			<ExerciseTimer
 				duration={effectiveDuration}
@@ -221,6 +222,7 @@
 				totalSets={exercise.sets}
 				onsetcomplete={() => onsetcomplete(nextIncompleteSet.setNumber)}
 				onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
+				autoStart={nextIncompleteSet.setNumber > 1 && exercise.restBetweenSets === 0}
 			/>
 		{/key}
 	{:else if !allSetsCompleted}
