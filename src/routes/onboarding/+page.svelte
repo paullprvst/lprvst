@@ -161,7 +161,7 @@
 			</div>
 		</Card>
 	{:else if step === 'input'}
-		<ObjectiveInput onsubmit={handleObjectiveSubmit} />
+		<ObjectiveInput onsubmit={handleObjectiveSubmit} {loading} />
 	{:else if step === 'conversation' && conversation}
 		<AIConversation
 			messages={conversation.messages}

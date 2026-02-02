@@ -45,6 +45,7 @@
 
 	const widthClass = $derived(fullWidth ? 'w-full' : '');
 	const isDisabled = $derived(disabled || loading);
+	const spinnerColor = $derived(variant === 'primary' || variant === 'danger' ? 'white' : 'primary');
 </script>
 
 <button
@@ -55,7 +56,7 @@
 	class:pointer-events-none={loading}
 >
 	{#if loading}
-		<LoadingSpinner size="sm" />
+		<LoadingSpinner size="sm" color={spinnerColor} />
 		<span class="opacity-0">
 			{@render children()}
 		</span>

@@ -159,7 +159,7 @@
 			<Button onclick={() => goto(`/programs/${program!.id}/adapt`)} fullWidth={true} size="lg" variant="secondary">
 				{#snippet children()}
 					<Sparkles size={20} />
-					Adapt Program with AI
+					Chat with AI
 				{/snippet}
 			</Button>
 		</div>

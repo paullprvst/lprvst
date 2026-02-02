@@ -12,5 +12,6 @@ export interface Conversation {
 export interface Message {
 	role: 'user' | 'assistant';
 	content: string;
+	displayContent?: string; // Optional content shown in UI (when different from AI context)
 	timestamp: Date;
 }

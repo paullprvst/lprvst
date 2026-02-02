@@ -82,7 +82,8 @@ ${workoutDetails}
 
 My request: ${initialRequest}`;
 
-			conversation = await conversationManager.createConversation('reevaluation', contextMessage, program.id);
+			// Pass displayContent as just the user's request (not the full program context)
+			conversation = await conversationManager.createConversation('reevaluation', contextMessage, program.id, initialRequest);
 
 			// Get initial AI response
 			await conversationManager.getAssistantResponse(conversation.id);
@@ -219,20 +220,20 @@ My request: ${initialRequest}`;
 			>
 				<ArrowLeft size={24} />
 			</button>
-			<h1 class="text-xl font-bold text-primary">Adapt: {program.name}</h1>
+			<h1 class="text-xl font-bold text-primary">Chat: {program.name}</h1>
 		</div>
 
 		{#if step === 'input'}
 			<Card>
 				<div class="space-y-4">
 					<p class="text-secondary">
-						Tell me what you'd like to change about your program. For example:
+						Ask questions or request modifications to your program. For example:
 					</p>
 					<ul class="text-sm text-muted space-y-1 ml-4">
-						<li>- "I want to work out 4 days instead of 3"</li>
-						<li>- "Add more upper body exercises"</li>
+						<li>- "Why did you choose these exercises?"</li>
+						<li>- "Is this program good for building strength?"</li>
 						<li>- "I injured my shoulder, need to avoid overhead movements"</li>
-						<li>- "Make the workouts shorter, around 30 minutes"</li>
+						<li>- "Add more upper body exercises"</li>
 						<li>- "I got a barbell, can we add compound lifts?"</li>
 					</ul>
 
@@ -240,7 +241,7 @@ My request: ${initialRequest}`;
 						<div class="flex-1">
 							<Input
 								bind:value={initialRequest}
-								placeholder="What would you like to change?"
+								placeholder="Ask a question or request a modification..."
 								disabled={messageLoading}
 								onkeydown={handleKeydown}
 							/>

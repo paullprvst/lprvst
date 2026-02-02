@@ -6,14 +6,15 @@
 
 	interface Props {
 		onsubmit: (objective: string) => void;
+		loading?: boolean;
 	}
 
-	let { onsubmit }: Props = $props();
+	let { onsubmit, loading = false }: Props = $props();
 
 	let objective = $state('');
 
 	function handleSubmit() {
-		if (objective.trim()) {
+		if (objective.trim() && !loading) {
 			onsubmit(objective.trim());
 		}
 	}
@@ -56,9 +57,10 @@
 					onkeydown={handleKeydown}
 					maxLength={500}
 					showCharCount={true}
+					disabled={loading}
 				/>
 
-				<Button onclick={handleSubmit} disabled={!objective.trim()} fullWidth={true} size="lg">
+				<Button onclick={handleSubmit} disabled={!objective.trim() || loading} fullWidth={true} size="lg" {loading}>
 					{#snippet children()}
 						Start Conversation
 					{/snippet}
@@ -72,7 +74,8 @@
 					{#each ['Build muscle', 'Lose weight', 'Get stronger', 'Improve endurance'] as suggestion}
 						<button
 							onclick={() => (objective = suggestion)}
-							class="px-3 py-1.5 text-sm rounded-full border border-theme text-secondary hover:text-primary hover:border-[rgb(var(--color-primary))] transition-all duration-200"
+							disabled={loading}
+							class="px-3 py-1.5 text-sm rounded-full border border-theme text-secondary hover:text-primary hover:border-[rgb(var(--color-primary))] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{suggestion}
 						</button>

@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import type { Message } from '$lib/types/conversation';
 	import Input from '../shared/Input.svelte';
 	import Button from '../shared/Button.svelte';
@@ -87,7 +86,7 @@
 							: 'surface-elevated border border-theme rounded-bl-md'}"
 					>
 						<p class="whitespace-pre-wrap text-sm leading-relaxed">
-							{cleanMessageContent(message.content)}
+							{cleanMessageContent(message.displayContent ?? message.content)}
 						</p>
 					</div>
 				</div>
@@ -124,16 +123,18 @@
 		</div>
 	</Card>
 
-	{#if readyToGenerate}
-		<div class="animate-slideUp">
-			<Button onclick={ongenerate} fullWidth={true} size="lg">
-				{#snippet children()}
-					<Sparkles size={20} />
-					{generateButtonText}
-				{/snippet}
-			</Button>
-		</div>
-	{:else}
+	<div class="space-y-3">
+		{#if readyToGenerate}
+			<div class="animate-slideUp">
+				<Button onclick={ongenerate} fullWidth={true} size="lg">
+					{#snippet children()}
+						<Sparkles size={20} />
+						{generateButtonText}
+					{/snippet}
+				</Button>
+			</div>
+		{/if}
+
 		<div class="flex gap-3 animate-slideUp">
 			<div class="flex-1">
 				<Input
@@ -149,5 +150,5 @@
 				{/snippet}
 			</Button>
 		</div>
-	{/if}
+	</div>
 </div>

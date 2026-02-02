@@ -77,6 +77,7 @@ export class ConversationRepository {
 			messages: messages.map((m) => ({
 				role: m.role as Message['role'],
 				content: m.content as string,
+				displayContent: m.displayContent as string | undefined,
 				timestamp: new Date(m.timestamp as string)
 			})),
 			status: data.status as Conversation['status'],

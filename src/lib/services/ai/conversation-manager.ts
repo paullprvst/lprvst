@@ -8,7 +8,8 @@ export class ConversationManager {
 	async createConversation(
 		type: 'onboarding' | 'reevaluation',
 		initialMessage: string,
-		programId?: string
+		programId?: string,
+		displayContent?: string
 	): Promise<Conversation> {
 		const conversation = await conversationRepository.create({
 			type,
@@ -17,14 +18,15 @@ export class ConversationManager {
 			programId
 		});
 
-		await this.addUserMessage(conversation.id, initialMessage);
+		await this.addUserMessage(conversation.id, initialMessage, displayContent);
 		return conversation;
 	}
 
-	async addUserMessage(conversationId: string, content: string): Promise<Message> {
+	async addUserMessage(conversationId: string, content: string, displayContent?: string): Promise<Message> {
 		const message: Message = {
 			role: 'user',
 			content,
+			displayContent,
 			timestamp: new Date()
 		};
 
