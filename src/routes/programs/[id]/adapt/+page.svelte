@@ -246,13 +246,9 @@ My request: ${initialRequest}`;
 								onkeydown={handleKeydown}
 							/>
 						</div>
-						<Button onclick={handleRequestSubmit} disabled={!initialRequest.trim() || messageLoading}>
+						<Button onclick={handleRequestSubmit} disabled={!initialRequest.trim() || messageLoading} loading={messageLoading}>
 							{#snippet children()}
-								{#if messageLoading}
-									<LoadingSpinner size="sm" />
-								{:else}
-									<Send size={20} />
-								{/if}
+								<Send size={20} />
 							{/snippet}
 						</Button>
 					</div>

@@ -57,9 +57,6 @@
 >
 	{#if loading}
 		<LoadingSpinner size="sm" color={spinnerColor} />
-		<span class="opacity-0">
-			{@render children()}
-		</span>
 	{:else}
 		{@render children()}
 	{/if}
