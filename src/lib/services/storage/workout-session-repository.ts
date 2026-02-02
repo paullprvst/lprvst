@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { getAppUserId } from '$lib/stores/auth-store.svelte';
-import type { WorkoutSession, ExerciseLog, SetLog } from '$lib/types/workout-session';
+import type { WorkoutSession, ExerciseLog, SetLog, ExerciseWithLastPerformance } from '$lib/types/workout-session';
+import { programRepository } from './program-repository';
 
 export class WorkoutSessionRepository {
 	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
@@ -112,6 +113,81 @@ export class WorkoutSessionRepository {
 	async delete(id: string): Promise<void> {
 		const { error } = await supabase.from('workout_sessions').delete().eq('id', id);
 		if (error) throw error;
+	}
+
+	async getAllExercisesWithLastPerformance(): Promise<ExerciseWithLastPerformance[]> {
+		// Get all completed sessions
+		const sessions = await this.getCompleted();
+		if (sessions.length === 0) return [];
+
+		// Get all programs to map exercise IDs to names
+		const programs = await programRepository.getAll();
+		const exerciseNameMap = new Map<string, string>();
+		for (const program of programs) {
+			for (const workout of program.workouts) {
+				for (const exercise of workout.exercises) {
+					if (!exerciseNameMap.has(exercise.id)) {
+						exerciseNameMap.set(exercise.id, exercise.name);
+					}
+				}
+			}
+		}
+
+		// Group by exercise ID, keeping track of the most recent performance
+		const exerciseMap = new Map<string, { lastPerformedAt: Date; lastSets: SetLog[] }>();
+
+		for (const session of sessions) {
+			const sessionDate = session.completedAt || session.startedAt;
+			for (const exerciseLog of session.exercises) {
+				if (exerciseLog.skipped) continue;
+				const completedSets = exerciseLog.sets.filter(s => s.completed);
+				if (completedSets.length === 0) continue;
+
+				const existing = exerciseMap.get(exerciseLog.exerciseId);
+				if (!existing || sessionDate > existing.lastPerformedAt) {
+					exerciseMap.set(exerciseLog.exerciseId, {
+						lastPerformedAt: sessionDate,
+						lastSets: completedSets
+					});
+				}
+			}
+		}
+
+		// Convert to array and add exercise names
+		const result: ExerciseWithLastPerformance[] = [];
+		for (const [exerciseId, data] of exerciseMap) {
+			const exerciseName = exerciseNameMap.get(exerciseId);
+			if (exerciseName) {
+				result.push({
+					exerciseId,
+					exerciseName,
+					lastPerformedAt: data.lastPerformedAt,
+					lastSets: data.lastSets
+				});
+			}
+		}
+
+		// Sort by most recently performed
+		result.sort((a, b) => b.lastPerformedAt.getTime() - a.lastPerformedAt.getTime());
+
+		return result;
+	}
+
+	async getLastPerformanceForExercise(exerciseId: string): Promise<ExerciseLog | null> {
+		// Get all completed sessions sorted by completion date (most recent first)
+		const sessions = await this.getCompleted();
+
+		for (const session of sessions) {
+			const exerciseLog = session.exercises.find(e => e.exerciseId === exerciseId);
+			if (exerciseLog && !exerciseLog.skipped) {
+				const completedSets = exerciseLog.sets.filter(s => s.completed);
+				if (completedSets.length > 0) {
+					return exerciseLog;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private mapFromDb(data: Record<string, unknown>): WorkoutSession {

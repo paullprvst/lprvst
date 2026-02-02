@@ -15,9 +15,10 @@
 		onsetupdate: (setNumber: number, data: { reps?: number; weight?: number; duration?: number }) => void;
 		onnext: () => void;
 		isLastExercise?: boolean;
+		lastPerformance?: ExerciseLog;
 	}
 
-	let { exercise, log, onsetcomplete, onsetupdate, onnext, isLastExercise = false }: Props = $props();
+	let { exercise, log, onsetcomplete, onsetupdate, onnext, isLastExercise = false, lastPerformance }: Props = $props();
 
 	// Parse default reps from exercise
 	function getDefaultReps(): number | undefined {
@@ -104,6 +105,45 @@
 	};
 
 	const config = $derived(typeConfig[exercise.type] || typeConfig.main);
+
+	function formatLastPerformance(exerciseLog: ExerciseLog): string {
+		const sets = exerciseLog.sets.filter(s => s.completed);
+		if (sets.length === 0) return '';
+
+		const reps = sets.map(s => s.reps).filter((r): r is number => r !== undefined);
+		const weights = sets.map(s => s.weight).filter((w): w is number => w !== undefined);
+		const durations = sets.map(s => s.duration).filter((d): d is number => d !== undefined);
+
+		// Time-based exercise
+		if (durations.length > 0 && reps.length === 0) {
+			const totalDuration = durations.reduce((a, b) => a + b, 0);
+			const mins = Math.floor(totalDuration / 60);
+			const secs = totalDuration % 60;
+			return mins > 0 ? `${sets.length} sets, ${mins}m ${secs}s` : `${sets.length} sets, ${secs}s`;
+		}
+
+		// No reps data
+		if (reps.length === 0) return `${sets.length} sets`;
+
+		const allSameReps = reps.every(r => r === reps[0]);
+		const allSameWeight = weights.length === 0 || weights.every(w => w === weights[0]);
+
+		if (allSameReps && allSameWeight) {
+			const weightStr = weights.length > 0 ? ` @ ${weights[0]}kg` : '';
+			return `${sets.length}×${reps[0]}${weightStr}`;
+		}
+
+		const minReps = Math.min(...reps);
+		const maxReps = Math.max(...reps);
+		const repsStr = minReps === maxReps ? `${minReps}` : `${minReps}-${maxReps}`;
+
+		if (weights.length > 0) {
+			const maxWeight = Math.max(...weights);
+			return `${sets.length}×${repsStr} @ ${maxWeight}kg`;
+		}
+
+		return `${sets.length}×${repsStr}`;
+	}
 </script>
 
 <div class="space-y-4 animate-slideUp">
@@ -158,6 +198,15 @@
 						{formatRestTime(exercise.restBetweenSets)} between sets
 					</p>
 				</div>
+
+				<!-- Last performance -->
+				{#if lastPerformance}
+					<div class="p-3 bg-gray-500/10 rounded-xl border border-gray-300 dark:border-gray-600/40">
+						<p class="text-xs font-medium text-secondary">
+							Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
+						</p>
+					</div>
+				{/if}
 			</div>
 		</Card>
 	</div>

@@ -1,5 +1,6 @@
-import type { WorkoutSession } from '$lib/types/workout-session';
+import type { WorkoutSession, ExerciseLog } from '$lib/types/workout-session';
 import type { Workout } from '$lib/types/program';
+import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 
 // Default transition time between sets for time-based exercises when no rest is specified
 const DEFAULT_TRANSITION_TIME = 10;
@@ -28,6 +29,7 @@ class WorkoutStore {
 	resting = $state(false);
 	restDuration = $state(0);
 	restType = $state<'set' | 'exercise'>('set');
+	lastPerformances = $state<Map<string, ExerciseLog>>(new Map());
 
 	setSession(session: WorkoutSession, workout: Workout) {
 		this.session = session;
@@ -147,6 +149,24 @@ class WorkoutStore {
 		this.resting = false;
 		this.restDuration = 0;
 		this.restType = 'set';
+		this.lastPerformances = new Map();
+	}
+
+	async loadLastPerformances() {
+		if (!this.workout) return;
+
+		const performances = new Map<string, ExerciseLog>();
+		for (const exercise of this.workout.exercises) {
+			const lastPerformance = await workoutSessionRepository.getLastPerformanceForExercise(exercise.id);
+			if (lastPerformance) {
+				performances.set(exercise.id, lastPerformance);
+			}
+		}
+		this.lastPerformances = performances;
+	}
+
+	getLastPerformance(exerciseId: string): ExerciseLog | undefined {
+		return this.lastPerformances.get(exerciseId);
 	}
 }
 

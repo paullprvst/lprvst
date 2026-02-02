@@ -97,6 +97,7 @@
 		}
 
 		workoutStore.setSession(session, workout);
+		await workoutStore.loadLastPerformances();
 		loading = false;
 
 		// Start elapsed time timer
@@ -275,6 +276,7 @@
 				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
 				isLastExercise={workoutStore.isLastExercise}
+				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.id)}
 			/>
 		{/if}
 	</div>

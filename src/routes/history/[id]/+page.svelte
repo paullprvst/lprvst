@@ -34,20 +34,11 @@
 		}
 
 		const loadedProgram = await programRepository.get(loadedSession.programId);
-		if (!loadedProgram) {
-			goto('/history');
-			return;
-		}
-
-		const loadedWorkout = loadedProgram.workouts.find((w) => w.id === loadedSession.workoutId);
-		if (!loadedWorkout) {
-			goto('/history');
-			return;
-		}
+		const loadedWorkout = loadedProgram?.workouts.find((w) => w.id === loadedSession.workoutId);
 
 		session = loadedSession;
-		program = loadedProgram;
-		workout = loadedWorkout;
+		program = loadedProgram || null;
+		workout = loadedWorkout || null;
 		loading = false;
 	});
 
@@ -131,7 +122,7 @@
 		<div class="flex justify-center py-12">
 			<LoadingSpinner size="lg" />
 		</div>
-	{:else if session && workout && program}
+	{:else if session}
 		<!-- Summary Card -->
 		<Card>
 			<div class="space-y-4">
@@ -142,8 +133,8 @@
 						<CheckCircle size={24} class="text-[rgb(var(--color-success))]" />
 					</div>
 					<div class="flex-1 min-w-0">
-						<h2 class="text-lg font-bold text-primary">{workout.name}</h2>
-						<p class="text-sm text-secondary">{program.name}</p>
+						<h2 class="text-lg font-bold text-primary">{workout?.name || 'Deleted workout'}</h2>
+						<p class="text-sm text-secondary">{program?.name || 'Deleted program'}</p>
 					</div>
 				</div>
 
@@ -177,17 +168,16 @@
 
 			{#each session.exercises as exerciseLog, exerciseIndex}
 				{@const exercise = getExerciseById(exerciseLog.exerciseId)}
-				{#if exercise}
-					<Card>
-						<div class="space-y-3">
-							<div class="flex items-center justify-between">
-								<h4 class="font-semibold text-primary">{exercise.name}</h4>
-								{#if exerciseLog.skipped}
-									<span class="text-xs px-2 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full">
-										Skipped
-									</span>
-								{/if}
-							</div>
+				<Card>
+					<div class="space-y-3">
+						<div class="flex items-center justify-between">
+							<h4 class="font-semibold text-primary">{exercise?.name || 'Unknown exercise'}</h4>
+							{#if exerciseLog.skipped}
+								<span class="text-xs px-2 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full">
+									Skipped
+								</span>
+							{/if}
+						</div>
 
 							<!-- Sets -->
 							<div class="space-y-2">
@@ -271,7 +261,6 @@
 							{/if}
 						</div>
 					</Card>
-				{/if}
 			{/each}
 		</div>
 	{/if}

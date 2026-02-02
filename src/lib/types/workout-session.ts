@@ -24,3 +24,10 @@ export interface SetLog {
 	duration?: number;
 	completedAt?: Date;
 }
+
+export interface ExerciseWithLastPerformance {
+	exerciseId: string;
+	exerciseName: string;
+	lastPerformedAt: Date;
+	lastSets: SetLog[];
+}
