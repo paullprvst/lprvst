@@ -46,13 +46,27 @@
 			return `${completedSets.length}×${reps[0]}${weightStr}`;
 		}
 
-		const maxReps = Math.max(...reps);
-		if (weights.length > 0) {
-			const maxWeight = Math.max(...weights);
-			return `${completedSets.length}×${maxReps}@${maxWeight}kg`;
+		// Group sets by reps (and weight if applicable) to show accurate breakdown
+		// e.g., 3x12 + 1x15 instead of misleading 4x15
+		const groups: { reps: number; weight?: number; count: number }[] = [];
+		for (let i = 0; i < completedSets.length; i++) {
+			const setReps = completedSets[i].reps;
+			const setWeight = completedSets[i].weight;
+			if (setReps === undefined) continue;
+
+			const existing = groups.find(g => g.reps === setReps && g.weight === setWeight);
+			if (existing) {
+				existing.count++;
+			} else {
+				groups.push({ reps: setReps, weight: setWeight, count: 1 });
+			}
 		}
 
-		return `${completedSets.length}×${maxReps}`;
+		const hasWeights = weights.length > 0;
+		return groups.map(g => {
+			const weightStr = hasWeights && g.weight !== undefined ? `@${g.weight}kg` : '';
+			return `${g.count}×${g.reps}${weightStr}`;
+		}).join(', ');
 	}
 
 	let expanded = $state(false);
