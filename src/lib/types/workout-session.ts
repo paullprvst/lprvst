@@ -11,6 +11,7 @@ export interface WorkoutSession {
 
 export interface ExerciseLog {
 	exerciseId: string;
+	exerciseName: string;
 	sets: SetLog[];
 	notes?: string;
 	skipped?: boolean;

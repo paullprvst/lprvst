@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Workout } from '$lib/types/program';
+	import type { ExerciseLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatWorkoutDuration } from '$lib/utils/formatters';
@@ -10,9 +11,49 @@
 		onclick?: () => void;
 		expandable?: boolean;
 		onedit?: () => void;
+		lastPerformances?: Map<string, ExerciseLog>;
 	}
 
-	let { workout, onclick, expandable = true, onedit }: Props = $props();
+	let { workout, onclick, expandable = true, onedit, lastPerformances }: Props = $props();
+
+	function formatLastPerformance(exerciseName: string): string | null {
+		if (!lastPerformances) return null;
+		const log = lastPerformances.get(exerciseName.toLowerCase().trim());
+		if (!log) return null;
+
+		const completedSets = log.sets.filter(s => s.completed);
+		if (completedSets.length === 0) return null;
+
+		const reps = completedSets.map(s => s.reps).filter((r): r is number => r !== undefined);
+		const weights = completedSets.map(s => s.weight).filter((w): w is number => w !== undefined);
+		const durations = completedSets.map(s => s.duration).filter((d): d is number => d !== undefined);
+
+		// Time-based exercise
+		if (durations.length > 0 && reps.length === 0) {
+			const totalDuration = durations.reduce((a, b) => a + b, 0);
+			const mins = Math.floor(totalDuration / 60);
+			const secs = totalDuration % 60;
+			return mins > 0 ? `${completedSets.length}×${mins}m${secs > 0 ? `${secs}s` : ''}` : `${completedSets.length}×${secs}s`;
+		}
+
+		if (reps.length === 0) return `${completedSets.length} sets`;
+
+		const allSameReps = reps.every(r => r === reps[0]);
+		const allSameWeight = weights.length === 0 || weights.every(w => w === weights[0]);
+
+		if (allSameReps && allSameWeight) {
+			const weightStr = weights.length > 0 ? `@${weights[0]}kg` : '';
+			return `${completedSets.length}×${reps[0]}${weightStr}`;
+		}
+
+		const maxReps = Math.max(...reps);
+		if (weights.length > 0) {
+			const maxWeight = Math.max(...weights);
+			return `${completedSets.length}×${maxReps}@${maxWeight}kg`;
+		}
+
+		return `${completedSets.length}×${maxReps}`;
+	}
 
 	let expanded = $state(false);
 
@@ -131,6 +172,7 @@
 						</div>
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
+								{@const lastPerf = formatLastPerformance(exercise.name)}
 								<div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-500/5">
 									<div class="flex items-center gap-1.5 min-w-0">
 										<span class="text-sm text-primary truncate">{exercise.name}</span>
@@ -141,9 +183,16 @@
 											size={12}
 										/>
 									</div>
-									<span class="text-xs text-muted flex-shrink-0 ml-2">
-										{formatExerciseDetails(exercise)}
-									</span>
+									<div class="flex items-center gap-2 flex-shrink-0 ml-2">
+										{#if lastPerf}
+											<span class="text-xs text-emerald-600 dark:text-emerald-400">
+												{lastPerf}
+											</span>
+										{/if}
+										<span class="text-xs text-muted">
+											{formatExerciseDetails(exercise)}
+										</span>
+									</div>
 								</div>
 							{/each}
 						</div>

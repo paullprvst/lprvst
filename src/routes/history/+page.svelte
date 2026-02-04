@@ -3,14 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
-	import type { WorkoutSession, ExerciseWithLastPerformance, SetLog } from '$lib/types/workout-session';
+	import type { WorkoutSession } from '$lib/types/workout-session';
 	import type { Program, Workout } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import WorkoutCalendarDots from '$lib/components/history/WorkoutCalendarDots.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
-	import { CheckCircle, Clock, History, Dumbbell, ChevronRight, ChevronDown, ChevronUp, TrendingUp } from 'lucide-svelte';
-	import { formatDistanceToNow } from 'date-fns';
+	import { CheckCircle, Clock, History, Dumbbell, ChevronRight } from 'lucide-svelte';
 
 	interface SessionWithDetails {
 		session: WorkoutSession;
@@ -20,16 +19,7 @@
 
 	let sessions = $state<SessionWithDetails[]>([]);
 	let allSessions = $state<WorkoutSession[]>([]);
-	let exercises = $state<ExerciseWithLastPerformance[]>([]);
 	let loading = $state(true);
-	let showExercises = $state(false);
-	let exerciseSearch = $state('');
-
-	const filteredExercises = $derived(
-		exerciseSearch.trim()
-			? exercises.filter(e => e.exerciseName.toLowerCase().includes(exerciseSearch.toLowerCase()))
-			: exercises
-	);
 
 	onMount(async () => {
 		const completedSessions = await workoutSessionRepository.getCompleted();
@@ -42,48 +32,8 @@
 			return { session, workout, program };
 		});
 
-		exercises = await workoutSessionRepository.getAllExercisesWithLastPerformance();
-
 		loading = false;
 	});
-
-	function formatSets(sets: SetLog[]): string {
-		if (sets.length === 0) return '';
-
-		const reps = sets.map(s => s.reps).filter((r): r is number => r !== undefined);
-		const weights = sets.map(s => s.weight).filter((w): w is number => w !== undefined);
-		const durations = sets.map(s => s.duration).filter((d): d is number => d !== undefined);
-
-		// Time-based exercise
-		if (durations.length > 0 && reps.length === 0) {
-			const totalDuration = durations.reduce((a, b) => a + b, 0);
-			const mins = Math.floor(totalDuration / 60);
-			const secs = totalDuration % 60;
-			return mins > 0 ? `${sets.length} sets, ${mins}m ${secs}s` : `${sets.length} sets, ${secs}s`;
-		}
-
-		// No reps data
-		if (reps.length === 0) return `${sets.length} sets`;
-
-		const allSameReps = reps.every(r => r === reps[0]);
-		const allSameWeight = weights.length === 0 || weights.every(w => w === weights[0]);
-
-		if (allSameReps && allSameWeight) {
-			const weightStr = weights.length > 0 ? ` @ ${weights[0]}kg` : '';
-			return `${sets.length}×${reps[0]}${weightStr}`;
-		}
-
-		const minReps = Math.min(...reps);
-		const maxReps = Math.max(...reps);
-		const repsStr = minReps === maxReps ? `${minReps}` : `${minReps}-${maxReps}`;
-
-		if (weights.length > 0) {
-			const maxWeight = Math.max(...weights);
-			return `${sets.length}×${repsStr} @ ${maxWeight}kg`;
-		}
-
-		return `${sets.length}×${repsStr}`;
-	}
 
 	function formatDuration(session: WorkoutSession): string {
 		if (!session.completedAt) return 'N/A';
@@ -120,58 +70,6 @@
 		<Card padding="md">
 			<WorkoutCalendarDots sessions={allSessions} />
 		</Card>
-	{/if}
-
-	<!-- Exercise Progress (Collapsible) -->
-	{#if !loading && exercises.length > 0}
-		<div class="card">
-			<button
-				onclick={() => showExercises = !showExercises}
-				class="w-full flex items-center justify-between p-4 text-left"
-			>
-				<div class="flex items-center gap-3">
-					<div class="w-8 h-8 rounded-lg bg-[rgb(var(--color-primary)/0.1)] flex items-center justify-center">
-						<TrendingUp size={16} class="text-[rgb(var(--color-primary))]" />
-					</div>
-					<div>
-						<span class="font-medium text-primary">Exercise Progress</span>
-						<span class="text-sm text-secondary ml-2">({exercises.length} exercises)</span>
-					</div>
-				</div>
-				{#if showExercises}
-					<ChevronUp size={20} class="text-muted" />
-				{:else}
-					<ChevronDown size={20} class="text-muted" />
-				{/if}
-			</button>
-
-			{#if showExercises}
-				<div class="border-t border-[rgb(var(--color-border))] px-4 pb-4">
-					<input
-						type="text"
-						bind:value={exerciseSearch}
-						placeholder="Search exercises..."
-						class="w-full mt-3 px-3 py-2 text-sm bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-[rgb(var(--color-text-primary))] placeholder:text-muted input-focus-ring"
-					/>
-					<div class="space-y-2 pt-3">
-						{#each filteredExercises as exercise}
-							<div class="flex items-center gap-3 p-3 rounded-xl bg-[rgb(var(--color-surface))]">
-								<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-[rgb(var(--color-primary)/0.1)] flex items-center justify-center">
-									<Dumbbell size={18} class="text-[rgb(var(--color-primary))]" />
-								</div>
-								<div class="flex-1 min-w-0">
-									<h4 class="font-medium text-primary text-sm truncate">{exercise.exerciseName}</h4>
-									<p class="text-xs text-secondary">{formatSets(exercise.lastSets)}</p>
-								</div>
-								<div class="text-xs text-muted text-right flex-shrink-0">
-									{formatDistanceToNow(exercise.lastPerformedAt, { addSuffix: true })}
-								</div>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
-		</div>
 	{/if}
 
 	{#if loading}

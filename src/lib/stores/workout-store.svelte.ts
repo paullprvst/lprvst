@@ -157,16 +157,16 @@ class WorkoutStore {
 
 		const performances = new Map<string, ExerciseLog>();
 		for (const exercise of this.workout.exercises) {
-			const lastPerformance = await workoutSessionRepository.getLastPerformanceForExercise(exercise.id);
+			const lastPerformance = await workoutSessionRepository.getLastPerformanceByName(exercise.name);
 			if (lastPerformance) {
-				performances.set(exercise.id, lastPerformance);
+				performances.set(exercise.name.toLowerCase().trim(), lastPerformance);
 			}
 		}
 		this.lastPerformances = performances;
 	}
 
-	getLastPerformance(exerciseId: string): ExerciseLog | undefined {
-		return this.lastPerformances.get(exerciseId);
+	getLastPerformance(exerciseName: string): ExerciseLog | undefined {
+		return this.lastPerformances.get(exerciseName.toLowerCase().trim());
 	}
 }
 

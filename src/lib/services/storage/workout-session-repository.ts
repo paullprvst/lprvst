@@ -190,6 +190,24 @@ export class WorkoutSessionRepository {
 		return null;
 	}
 
+	async getLastPerformanceByName(exerciseName: string): Promise<ExerciseLog | null> {
+		const sessions = await this.getCompleted();
+		const normalizedName = exerciseName.toLowerCase().trim();
+
+		for (const session of sessions) {
+			const exerciseLog = session.exercises.find(
+				e => e.exerciseName?.toLowerCase().trim() === normalizedName
+			);
+			if (exerciseLog && !exerciseLog.skipped) {
+				const completedSets = exerciseLog.sets.filter(s => s.completed);
+				if (completedSets.length > 0) {
+					return exerciseLog;
+				}
+			}
+		}
+		return null;
+	}
+
 	private mapFromDb(data: Record<string, unknown>): WorkoutSession {
 		const exercises = (data.exercises as Array<Record<string, unknown>>) || [];
 		return {
@@ -202,6 +220,7 @@ export class WorkoutSessionRepository {
 			status: data.status as WorkoutSession['status'],
 			exercises: exercises.map((e) => ({
 				exerciseId: e.exerciseId as string,
+				exerciseName: (e.exerciseName as string) || '',
 				sets: (e.sets as Array<Record<string, unknown>>).map((s) => ({
 					setNumber: s.setNumber as number,
 					completed: s.completed as boolean,

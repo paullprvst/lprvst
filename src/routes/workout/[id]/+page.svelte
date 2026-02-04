@@ -276,7 +276,7 @@
 				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
 				isLastExercise={workoutStore.isLastExercise}
-				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.id)}
+				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.name)}
 			/>
 		{/if}
 	</div>

@@ -3,7 +3,9 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import type { Program, Workout } from '$lib/types/program';
+	import type { ExerciseLog } from '$lib/types/workout-session';
 	import WorkoutCard from '$lib/components/program/WorkoutCard.svelte';
 	import WorkoutEditor from '$lib/components/program/WorkoutEditor.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
@@ -11,11 +13,13 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X } from 'lucide-svelte';
+	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download } from 'lucide-svelte';
+	import { exportProgramToPdf } from '$lib/utils/pdf-export';
 
 	let program = $state<Program | null>(null);
 	let loading = $state(true);
 	let saving = $state(false);
+	let lastPerformances = $state<Map<string, ExerciseLog>>(new Map());
 
 	// Single workout edit modal
 	let showEditModal = $state(false);
@@ -27,6 +31,26 @@
 		if (id) {
 			const loaded = await programRepository.get(id);
 			program = loaded || null;
+
+			// Load last performances for all exercises
+			if (program) {
+				const performances = new Map<string, ExerciseLog>();
+				const exerciseNames = new Set<string>();
+
+				for (const workout of program.workouts) {
+					for (const exercise of workout.exercises) {
+						exerciseNames.add(exercise.name);
+					}
+				}
+
+				for (const name of exerciseNames) {
+					const lastPerf = await workoutSessionRepository.getLastPerformanceByName(name);
+					if (lastPerf) {
+						performances.set(name.toLowerCase().trim(), lastPerf);
+					}
+				}
+				lastPerformances = performances;
+			}
 		}
 		loading = false;
 	});
@@ -143,7 +167,7 @@
 			<h2 class="text-xl font-semibold text-primary mb-3">Workouts</h2>
 			<div class="space-y-3">
 				{#each program.workouts as workout, index}
-					<WorkoutCard {workout} onedit={() => openEditModal(index)} />
+					<WorkoutCard {workout} onedit={() => openEditModal(index)} {lastPerformances} />
 				{/each}
 			</div>
 		</div>
@@ -160,6 +184,13 @@
 				{#snippet children()}
 					<Sparkles size={20} />
 					Chat with AI
+				{/snippet}
+			</Button>
+
+			<Button onclick={() => exportProgramToPdf(program!)} fullWidth={true} size="lg" variant="ghost">
+				{#snippet children()}
+					<Download size={20} />
+					Export as PDF
 				{/snippet}
 			</Button>
 		</div>

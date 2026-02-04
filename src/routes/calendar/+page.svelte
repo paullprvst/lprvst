@@ -61,6 +61,7 @@
 			status: 'in-progress',
 			exercises: selectedProgram.workouts[workoutIndex].exercises.map((e) => ({
 				exerciseId: e.id,
+				exerciseName: e.name,
 				sets: Array(e.sets)
 					.fill(null)
 					.map((_, i) => ({
