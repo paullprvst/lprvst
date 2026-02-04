@@ -208,6 +208,39 @@ export class WorkoutSessionRepository {
 		return null;
 	}
 
+	async getLastPerformancesForExercises(
+		exercises: Array<{ name: string; id: string }>
+	): Promise<Map<string, ExerciseLog>> {
+		const sessions = await this.getCompleted();
+		const results = new Map<string, ExerciseLog>();
+
+		for (const { name, id } of exercises) {
+			const normalizedName = name.toLowerCase().trim();
+			// Already found? Skip
+			if (results.has(normalizedName)) continue;
+
+			// Search through sessions once
+			for (const session of sessions) {
+				// Try by name first
+				let exerciseLog = session.exercises.find(
+					e => e.exerciseName?.toLowerCase().trim() === normalizedName
+				);
+				// Fall back to ID
+				if (!exerciseLog) {
+					exerciseLog = session.exercises.find(e => e.exerciseId === id);
+				}
+				if (exerciseLog && !exerciseLog.skipped) {
+					const completedSets = exerciseLog.sets.filter(s => s.completed);
+					if (completedSets.length > 0) {
+						results.set(normalizedName, exerciseLog);
+						break;
+					}
+				}
+			}
+		}
+		return results;
+	}
+
 	private mapFromDb(data: Record<string, unknown>): WorkoutSession {
 		const exercises = (data.exercises as Array<Record<string, unknown>>) || [];
 		return {

@@ -33,29 +33,15 @@
 			const loaded = await programRepository.get(id);
 			program = loaded || null;
 
-			// Load last performances for all exercises
+			// Load last performances for all exercises in a single batch query
 			if (program) {
-				const performances = new Map<string, ExerciseLog>();
-				const exercises = new Map<string, string>(); // name -> id mapping
-
+				const exercises: Array<{ name: string; id: string }> = [];
 				for (const workout of program.workouts) {
 					for (const exercise of workout.exercises) {
-						exercises.set(exercise.name, exercise.id);
+						exercises.push({ name: exercise.name, id: exercise.id });
 					}
 				}
-
-				for (const [name, exerciseId] of exercises) {
-					// Try by name first (for newer sessions with exerciseName stored)
-					let lastPerf = await workoutSessionRepository.getLastPerformanceByName(name);
-					// Fall back to ID lookup (for older sessions without exerciseName)
-					if (!lastPerf) {
-						lastPerf = await workoutSessionRepository.getLastPerformanceForExercise(exerciseId);
-					}
-					if (lastPerf) {
-						performances.set(name.toLowerCase().trim(), lastPerf);
-					}
-				}
-				lastPerformances = performances;
+				lastPerformances = await workoutSessionRepository.getLastPerformancesForExercises(exercises);
 			}
 		}
 		loading = false;

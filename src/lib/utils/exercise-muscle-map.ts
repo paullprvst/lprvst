@@ -1056,20 +1056,29 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 	}
 ];
 
+// Cache for inferred muscle targets to avoid repeated regex matching
+const muscleCache = new Map<string, MuscleTarget[] | undefined>();
+
 /**
  * Infer target muscles for an exercise based on its name
  */
 export function inferTargetMuscles(exerciseName: string): MuscleTarget[] | undefined {
 	const normalizedName = exerciseName.toLowerCase().trim();
 
+	if (muscleCache.has(normalizedName)) {
+		return muscleCache.get(normalizedName);
+	}
+
 	for (const mapping of EXERCISE_MAPPINGS) {
 		for (const pattern of mapping.patterns) {
 			if (pattern.test(normalizedName)) {
+				muscleCache.set(normalizedName, mapping.targets);
 				return mapping.targets;
 			}
 		}
 	}
 
+	muscleCache.set(normalizedName, undefined);
 	return undefined;
 }
 
