@@ -9,11 +9,84 @@ interface ExerciseMapping {
 const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 	// Chest exercises
 	{
-		patterns: [/bench\s*press/i, /chest\s*press/i, /push[\s-]*up/i, /pushup/i],
+		patterns: [/bench\s*press/i, /chest\s*press/i, /floor\s*press/i],
 		targets: [
 			{ muscle: 'chest', activation: 'primary' },
 			{ muscle: 'shoulders_front', activation: 'secondary' },
 			{ muscle: 'triceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/push[\s-]*up/i, /pushup/i, /wall\s*push/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' },
+			{ muscle: 'triceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/wide[\s-]*grip\s*push/i, /wide\s*push[\s-]*up/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' },
+			{ muscle: 'triceps', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/diamond\s*push/i, /close[\s-]*grip\s*push/i, /narrow\s*push/i, /tricep\s*push[\s-]*up/i],
+		targets: [
+			{ muscle: 'triceps', activation: 'primary' },
+			{ muscle: 'chest', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/decline\s*push[\s-]*up/i, /feet[\s-]*elevated\s*push/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/pike\s*push[\s-]*up/i, /pike\s*pushup/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'chest', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/handstand\s*push[\s-]*up/i, /hspu/i, /wall\s*handstand/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'traps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/archer\s*push/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/pseudo\s*planche/i, /planche\s*push/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/ring\s*push[\s-]*up/i, /ring\s*pushup/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
 		]
 	},
 	{
@@ -39,6 +112,42 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 		]
 	},
 	{
+		patterns: [/cable\s*cross[\s-]*over/i, /crossover/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/pec[\s-]*deck/i, /machine\s*fl[yi]/i, /butterfly/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' }
+		]
+	},
+	{
+		patterns: [/landmine\s*press/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/pull[\s-]*over/i, /pullover/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/svend\s*press/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
 		patterns: [/dip/i],
 		targets: [
 			{ muscle: 'chest', activation: 'primary' },
@@ -46,14 +155,64 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'shoulders_front', activation: 'secondary' }
 		]
 	},
+	{
+		patterns: [/ring\s*dip/i],
+		targets: [
+			{ muscle: 'chest', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/tricep\s*dip/i, /bench\s*dip/i],
+		targets: [
+			{ muscle: 'triceps', activation: 'primary' },
+			{ muscle: 'chest', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
 
 	// Back exercises
 	{
-		patterns: [/pull[\s-]*up/i, /pullup/i, /chin[\s-]*up/i, /chinup/i],
+		patterns: [/pull[\s-]*up/i, /pullup/i],
 		targets: [
 			{ muscle: 'lats', activation: 'primary' },
 			{ muscle: 'biceps', activation: 'secondary' },
 			{ muscle: 'rhomboids', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/chin[\s-]*up/i, /chinup/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'primary' },
+			{ muscle: 'rhomboids', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/neutral[\s-]*grip\s*pull/i, /hammer\s*grip\s*pull/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' },
+			{ muscle: 'forearms', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/muscle[\s-]*up/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'chest', activation: 'secondary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'biceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/scapular\s*pull/i, /scap\s*pull/i],
+		targets: [
+			{ muscle: 'lats', activation: 'secondary' },
+			{ muscle: 'rhomboids', activation: 'primary' },
+			{ muscle: 'traps', activation: 'secondary' }
 		]
 	},
 	{
@@ -62,6 +221,13 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'lats', activation: 'primary' },
 			{ muscle: 'biceps', activation: 'secondary' },
 			{ muscle: 'rhomboids', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/straight[\s-]*arm\s*pull/i, /stiff[\s-]*arm\s*pull/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'stabilizer' }
 		]
 	},
 	{
@@ -90,6 +256,40 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 		]
 	},
 	{
+		patterns: [/seal\s*row/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'rhomboids', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/meadows\s*row/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'rhomboids', activation: 'secondary' },
+			{ muscle: 'biceps', activation: 'secondary' },
+			{ muscle: 'lower_back', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/inverted\s*row/i, /body\s*row/i, /australian\s*row/i, /ring\s*row/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'rhomboids', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/chest[\s-]*supported.*row/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'rhomboids', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' }
+		]
+	},
+	{
 		patterns: [/t[\s-]*bar\s*row/i],
 		targets: [
 			{ muscle: 'lats', activation: 'primary' },
@@ -103,6 +303,43 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'shoulders_rear', activation: 'primary' },
 			{ muscle: 'rhomboids', activation: 'secondary' },
 			{ muscle: 'traps', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/sumo\s*deadlift/i, /sumo\s*dead\s*lift/i],
+		targets: [
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' },
+			{ muscle: 'inner_thighs', activation: 'secondary' },
+			{ muscle: 'lower_back', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/deficit\s*deadlift/i],
+		targets: [
+			{ muscle: 'lower_back', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'primary' },
+			{ muscle: 'quads', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/rack\s*pull/i, /block\s*pull/i],
+		targets: [
+			{ muscle: 'lower_back', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'traps', activation: 'primary' },
+			{ muscle: 'forearms', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/trap[\s-]*bar\s*deadlift/i, /hex[\s-]*bar/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' },
+			{ muscle: 'lower_back', activation: 'secondary' }
 		]
 	},
 	{
@@ -139,6 +376,13 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 		]
 	},
 	{
+		patterns: [/jefferson\s*curl/i],
+		targets: [
+			{ muscle: 'hamstrings', activation: 'primary' },
+			{ muscle: 'lower_back', activation: 'primary' }
+		]
+	},
+	{
 		patterns: [/shrug/i],
 		targets: [{ muscle: 'traps', activation: 'primary' }]
 	},
@@ -150,6 +394,40 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'shoulders_front', activation: 'primary' },
 			{ muscle: 'triceps', activation: 'secondary' },
 			{ muscle: 'traps', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/z[\s-]*press/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/push\s*press/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'quads', activation: 'secondary' },
+			{ muscle: 'glutes', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/jerk/i, /split\s*jerk/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'triceps', activation: 'secondary' },
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/behind.*neck.*press/i, /btn\s*press/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'shoulders_rear', activation: 'secondary' },
+			{ muscle: 'triceps', activation: 'secondary' }
 		]
 	},
 	{
@@ -260,6 +538,31 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 
 	// Leg exercises - Quads
 	{
+		patterns: [/goblet\s*squat/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'abs', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/box\s*squat/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/zercher/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'abs', activation: 'primary' },
+			{ muscle: 'biceps', activation: 'secondary' }
+		]
+	},
+	{
 		patterns: [/squat/i],
 		targets: [
 			{ muscle: 'quads', activation: 'primary' },
@@ -286,6 +589,32 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'quads', activation: 'primary' },
 			{ muscle: 'glutes', activation: 'primary' },
 			{ muscle: 'hamstrings', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/pistol\s*squat/i, /single[\s-]*leg\s*squat/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/skater\s*squat/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/single[\s-]*leg.*deadlift/i, /one[\s-]*leg.*deadlift/i, /sldl/i],
+		targets: [
+			{ muscle: 'hamstrings', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'lower_back', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'stabilizer' }
 		]
 	},
 	{
@@ -321,10 +650,26 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 		targets: [{ muscle: 'hamstrings', activation: 'primary' }]
 	},
 	{
-		patterns: [/nordic/i, /ham.*raise/i],
+		patterns: [/nordic/i],
 		targets: [
 			{ muscle: 'hamstrings', activation: 'primary' },
 			{ muscle: 'glutes', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/glute[\s-]*ham\s*raise/i, /ghr/i],
+		targets: [
+			{ muscle: 'hamstrings', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'lower_back', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/reverse\s*hyper/i],
+		targets: [
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' },
+			{ muscle: 'lower_back', activation: 'secondary' }
 		]
 	},
 
@@ -334,6 +679,26 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 		targets: [
 			{ muscle: 'glutes', activation: 'primary' },
 			{ muscle: 'hamstrings', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/cable\s*pull[\s-]*through/i, /pull[\s-]*through/i],
+		targets: [
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'hamstrings', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/band\s*walk/i, /monster\s*walk/i, /lateral\s*band/i, /crab\s*walk/i],
+		targets: [
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'quads', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/fire\s*hydrant/i],
+		targets: [
+			{ muscle: 'glutes', activation: 'primary' }
 		]
 	},
 	{
@@ -373,6 +738,53 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'abs', activation: 'primary' },
 			{ muscle: 'obliques', activation: 'secondary' },
 			{ muscle: 'lower_back', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/side\s*plank/i],
+		targets: [
+			{ muscle: 'obliques', activation: 'primary' },
+			{ muscle: 'abs', activation: 'secondary' },
+			{ muscle: 'glutes', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/l[\s-]*sit/i],
+		targets: [
+			{ muscle: 'abs', activation: 'primary' },
+			{ muscle: 'hip_flexors', activation: 'primary' },
+			{ muscle: 'quads', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/pallof/i, /anti[\s-]*rotation/i],
+		targets: [
+			{ muscle: 'abs', activation: 'primary' },
+			{ muscle: 'obliques', activation: 'primary' }
+		]
+	},
+	{
+		patterns: [/wood[\s-]*chop/i, /cable\s*chop/i],
+		targets: [
+			{ muscle: 'obliques', activation: 'primary' },
+			{ muscle: 'abs', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/landmine\s*rotation/i, /landmine\s*twist/i],
+		targets: [
+			{ muscle: 'obliques', activation: 'primary' },
+			{ muscle: 'abs', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'stabilizer' }
+		]
+	},
+	{
+		patterns: [/copenhagen/i],
+		targets: [
+			{ muscle: 'inner_thighs', activation: 'primary' },
+			{ muscle: 'obliques', activation: 'secondary' },
+			{ muscle: 'abs', activation: 'secondary' }
 		]
 	},
 	{
@@ -486,6 +898,64 @@ const EXERCISE_MAPPINGS: ExerciseMapping[] = [
 			{ muscle: 'abs', activation: 'primary' },
 			{ muscle: 'shoulders_front', activation: 'primary' },
 			{ muscle: 'glutes', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/medicine\s*ball\s*slam/i, /ball\s*slam/i],
+		targets: [
+			{ muscle: 'lats', activation: 'primary' },
+			{ muscle: 'abs', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/battle\s*rope/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'abs', activation: 'secondary' },
+			{ muscle: 'forearms', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/sled\s*push/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'calves', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/sled\s*pull/i, /sled\s*drag/i],
+		targets: [
+			{ muscle: 'hamstrings', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'lats', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/prowler/i],
+		targets: [
+			{ muscle: 'quads', activation: 'primary' },
+			{ muscle: 'glutes', activation: 'primary' },
+			{ muscle: 'shoulders_front', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/man[\s-]*maker/i],
+		targets: [
+			{ muscle: 'chest', activation: 'secondary' },
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'lats', activation: 'secondary' },
+			{ muscle: 'quads', activation: 'secondary' }
+		]
+	},
+	{
+		patterns: [/devil[\s-]*press/i],
+		targets: [
+			{ muscle: 'shoulders_front', activation: 'primary' },
+			{ muscle: 'chest', activation: 'secondary' },
+			{ muscle: 'glutes', activation: 'secondary' },
+			{ muscle: 'hamstrings', activation: 'secondary' }
 		]
 	},
 
