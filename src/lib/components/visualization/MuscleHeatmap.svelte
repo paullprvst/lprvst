@@ -63,23 +63,8 @@
 </script>
 
 <Card>
-	<div class="space-y-4">
-		<div class="flex items-center justify-between">
-			<h3 class="text-lg font-semibold text-foreground">Muscle Activation</h3>
-
-			{#if hasData}
-				<div class="flex items-center gap-2">
-					<button
-						class="rounded-md px-3 py-1.5 text-sm transition-colors {viewMode === 'program'
-							? 'bg-primary text-primary-foreground'
-							: 'bg-surface-secondary text-foreground-secondary hover:bg-surface-tertiary'}"
-						onclick={showProgramView}
-					>
-						All Workouts
-					</button>
-				</div>
-			{/if}
-		</div>
+	<div class="space-y-3">
+		<h3 class="text-lg font-semibold text-foreground">Muscle Activation</h3>
 
 		{#if !hasData}
 			<div class="py-8 text-center text-foreground-secondary">
@@ -103,14 +88,22 @@
 			</div>
 		{:else}
 			<!-- Workout selector pills -->
-			{#if program.workouts.length > 1}
-				<div class="flex flex-wrap gap-2">
+			{#if program.workouts.length > 0}
+				<div class="flex flex-wrap gap-1.5">
+					<button
+						class="rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors {viewMode === 'program'
+							? 'bg-primary/90 text-primary-foreground'
+							: 'bg-white/5 text-foreground-secondary hover:bg-white/10'}"
+						onclick={showProgramView}
+					>
+						All
+					</button>
 					{#each program.workouts as workout, index}
 						<button
-							class="rounded-full px-3 py-1 text-sm transition-colors {viewMode === 'workout' &&
+							class="rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors {viewMode === 'workout' &&
 							selectedWorkout === index
-								? 'bg-primary text-primary-foreground'
-								: 'bg-surface-secondary text-foreground-secondary hover:bg-surface-tertiary'}"
+								? 'bg-primary/90 text-primary-foreground'
+								: 'bg-white/5 text-foreground-secondary hover:bg-white/10'}"
 							onclick={() => selectWorkout(index)}
 						>
 							{workout.name}
@@ -132,24 +125,24 @@
 			</div>
 
 			<!-- Legend -->
-			<div class="flex items-center justify-center gap-4 text-xs text-foreground-secondary">
-				<div class="flex items-center gap-1.5">
+			<div class="flex items-center justify-center gap-3 text-xs text-foreground-secondary">
+				<div class="flex items-center gap-1">
 					<div
-						class="h-3 w-3 rounded-sm"
+						class="h-2.5 w-2.5 rounded-sm"
 						style="background-color: rgb(var(--color-primary)); opacity: 0.3;"
 					></div>
 					<span>Low</span>
 				</div>
-				<div class="flex items-center gap-1.5">
+				<div class="flex items-center gap-1">
 					<div
-						class="h-3 w-3 rounded-sm"
+						class="h-2.5 w-2.5 rounded-sm"
 						style="background-color: rgb(var(--color-primary)); opacity: 0.6;"
 					></div>
 					<span>Medium</span>
 				</div>
-				<div class="flex items-center gap-1.5">
+				<div class="flex items-center gap-1">
 					<div
-						class="h-3 w-3 rounded-sm"
+						class="h-2.5 w-2.5 rounded-sm"
 						style="background-color: rgb(var(--color-primary)); opacity: 1;"
 					></div>
 					<span>High</span>

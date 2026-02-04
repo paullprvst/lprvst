@@ -178,8 +178,6 @@
 			</div>
 		</Card>
 
-		<MuscleHeatmap {program} />
-
 		<div>
 			<h2 class="text-xl font-semibold text-primary mb-3">Weekly Schedule</h2>
 			<div class="space-y-3">
@@ -214,6 +212,8 @@
 				{/snippet}
 			</Button>
 		</div>
+
+		<MuscleHeatmap {program} />
 	</div>
 
 	<!-- Edit workout modal -->
