@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Settings | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';

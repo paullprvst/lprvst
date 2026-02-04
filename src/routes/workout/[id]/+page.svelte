@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Workout | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';

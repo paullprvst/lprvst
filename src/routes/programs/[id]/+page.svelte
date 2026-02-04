@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>{program?.name ?? 'Program'} | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';

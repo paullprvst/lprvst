@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Sign In | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { signIn, getAuthState } from '$lib/stores/auth-store.svelte';

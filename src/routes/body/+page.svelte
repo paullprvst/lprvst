@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Body | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { weightRepository } from '$lib/services/storage/weight-repository';

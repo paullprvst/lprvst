@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>History | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';

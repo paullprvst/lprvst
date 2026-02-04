@@ -1,3 +1,7 @@
+<svelte:head>
+	<title>Programs | AI Fitness Coach</title>
+</svelte:head>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { programRepository } from '$lib/services/storage/program-repository';
