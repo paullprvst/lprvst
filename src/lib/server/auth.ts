@@ -74,3 +74,51 @@ export async function saveUserApiKey(authUserId: string, apiKey: string): Promis
 
 	return true;
 }
+
+// Get user preferences from database
+export async function getUserPreferences(
+	authUserId: string
+): Promise<Record<string, unknown> | null> {
+	const supabase = createServerClient();
+	const { data, error } = await supabase
+		.from('users')
+		.select('preferences')
+		.eq('auth_user_id', authUserId)
+		.single();
+
+	if (error) {
+		console.error('getUserPreferences error:', error);
+		return null;
+	}
+
+	return data?.preferences ?? {};
+}
+
+// Save user preferences to database (partial merge)
+export async function saveUserPreferences(
+	authUserId: string,
+	preferences: Record<string, unknown>
+): Promise<boolean> {
+	const supabase = createServerClient();
+
+	// First get existing preferences
+	const { data: existing } = await supabase
+		.from('users')
+		.select('preferences')
+		.eq('auth_user_id', authUserId)
+		.single();
+
+	const merged = { ...(existing?.preferences ?? {}), ...preferences };
+
+	const { error } = await supabase
+		.from('users')
+		.update({ preferences: merged })
+		.eq('auth_user_id', authUserId);
+
+	if (error) {
+		console.error('saveUserPreferences error:', error);
+		return false;
+	}
+
+	return true;
+}

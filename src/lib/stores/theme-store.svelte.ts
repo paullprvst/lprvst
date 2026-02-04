@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { getAuthState, getAuthToken } from './auth-store.svelte';
 
 export type Theme = 'light' | 'dark' | 'system';
 
@@ -61,12 +62,77 @@ class ThemeStore {
 				localStorage.setItem('theme', theme);
 			}
 			this.applyTheme();
+
+			// Save to server if authenticated (non-blocking)
+			this.saveToServer(theme);
 		}
 	}
 
 	toggle() {
 		const newTheme = this.effectiveTheme === 'light' ? 'dark' : 'light';
 		this.setTheme(newTheme);
+	}
+
+	// Load theme from server and apply if authenticated
+	async syncFromServer() {
+		if (!browser) return;
+
+		const auth = getAuthState();
+		if (!auth.isAuthenticated) return;
+
+		try {
+			const token = await getAuthToken();
+			if (!token) return;
+
+			const response = await fetch('/api/user/preferences', {
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
+
+			if (!response.ok) return;
+
+			const data = await response.json();
+			const serverTheme = data.preferences?.theme as Theme | undefined;
+
+			if (serverTheme && serverTheme !== this.theme) {
+				// Server has a theme preference, apply it
+				this.theme = serverTheme;
+				if (serverTheme === 'system') {
+					localStorage.removeItem('theme');
+				} else {
+					localStorage.setItem('theme', serverTheme);
+				}
+				this.applyTheme();
+			} else if (!serverTheme && this.theme !== 'system') {
+				// Server has no preference but we have a local one, sync it up
+				this.saveToServer(this.theme);
+			}
+		} catch (err) {
+			console.error('Failed to sync theme from server:', err);
+		}
+	}
+
+	// Save theme to server (non-blocking)
+	private async saveToServer(theme: Theme) {
+		const auth = getAuthState();
+		if (!auth.isAuthenticated) return;
+
+		try {
+			const token = await getAuthToken();
+			if (!token) return;
+
+			await fetch('/api/user/preferences', {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${token}`
+				},
+				body: JSON.stringify({ theme })
+			});
+		} catch (err) {
+			console.error('Failed to save theme to server:', err);
+		}
 	}
 }
 

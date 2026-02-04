@@ -7,6 +7,7 @@ import {
 	getSession as supabaseGetSession,
 	onAuthStateChange
 } from '$lib/services/storage/supabase';
+import { themeStore } from './theme-store.svelte';
 
 interface AuthState {
 	user: User | null;
@@ -61,6 +62,7 @@ export async function initializeAuth() {
 		// Ensure profile exists for authenticated users
 		if (session?.user) {
 			await ensureUserProfile(session.user.id);
+			await themeStore.syncFromServer();
 		}
 	} catch (err) {
 		console.error('Failed to get session:', err);
@@ -77,6 +79,7 @@ export async function initializeAuth() {
 		// Ensure profile exists when user logs in
 		if (session?.user) {
 			await ensureUserProfile(session.user.id);
+			await themeStore.syncFromServer();
 		}
 	});
 }
@@ -98,6 +101,7 @@ export async function signIn(email: string, password: string): Promise<{ error: 
 		// Ensure profile exists
 		if (user) {
 			await ensureUserProfile(user.id);
+			await themeStore.syncFromServer();
 		}
 
 		return { error: null };

@@ -1,8 +1,13 @@
+export interface UserPreferences {
+	theme?: 'light' | 'dark' | 'system';
+}
+
 export interface User {
 	id: string;
 	authUserId?: string;
 	objectives: string;
 	profile: UserProfile;
+	preferences?: UserPreferences;
 	createdAt: Date;
 	updatedAt: Date;
 }
