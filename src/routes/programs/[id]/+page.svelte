@@ -12,6 +12,7 @@
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
+	import MuscleHeatmap from '$lib/components/visualization/MuscleHeatmap.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
 	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download } from 'lucide-svelte';
 	import { exportProgramToPdf } from '$lib/utils/pdf-export';
@@ -176,6 +177,8 @@
 				</div>
 			</div>
 		</Card>
+
+		<MuscleHeatmap {program} />
 
 		<div>
 			<h2 class="text-xl font-semibold text-primary mb-3">Weekly Schedule</h2>

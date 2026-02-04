@@ -45,7 +45,12 @@ Return ONLY valid JSON matching this exact structure:
           "restBetweenExercises": 90,
           "equipment": ["dumbbells"],
           "notes": "Focus on controlled movement",
-          "type": "warmup"
+          "type": "warmup",
+          "targetMuscles": [
+            {"muscle": "chest", "activation": "primary"},
+            {"muscle": "shoulders_front", "activation": "secondary"},
+            {"muscle": "triceps", "activation": "stabilizer"}
+          ]
         }
       ]
     }
@@ -61,5 +66,9 @@ Important:
 - restBetweenSets: seconds to rest after each set (typical: 30-90s for most exercises)
 - restBetweenExercises: seconds to rest before starting the next exercise (typical: 60-120s)
 - Always include warmup exercises (type: "warmup") and optionally cooldown (type: "cooldown")
+- targetMuscles: array of muscles targeted by this exercise with activation level
+  - muscle: one of "chest", "shoulders_front", "biceps", "forearms", "abs", "obliques", "hip_flexors", "quads", "inner_thighs", "tibialis", "traps", "shoulders_rear", "lats", "rhomboids", "lower_back", "triceps", "glutes", "hamstrings", "calves"
+  - activation: "primary" (main target), "secondary" (significant involvement), or "stabilizer" (supporting role)
+  - Include 1-4 target muscles per exercise, with at least one primary
 
 Do not include any markdown formatting or explanation. Return ONLY the JSON object.`;

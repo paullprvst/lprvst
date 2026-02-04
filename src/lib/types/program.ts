@@ -1,5 +1,39 @@
 import { z } from 'zod';
 
+// 20 muscle groups for visualization
+export const MUSCLE_GROUPS = [
+	// Front view (10)
+	'chest',
+	'shoulders_front',
+	'biceps',
+	'forearms',
+	'abs',
+	'obliques',
+	'hip_flexors',
+	'quads',
+	'inner_thighs',
+	'tibialis',
+	// Back view (10)
+	'traps',
+	'shoulders_rear',
+	'lats',
+	'rhomboids',
+	'lower_back',
+	'triceps',
+	'glutes',
+	'hamstrings',
+	'calves'
+] as const;
+
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
+
+export type MuscleActivation = 'primary' | 'secondary' | 'stabilizer';
+
+export interface MuscleTarget {
+	muscle: MuscleGroup;
+	activation: MuscleActivation;
+}
+
 export interface Program {
 	id: string;
 	userId?: string;
@@ -42,9 +76,39 @@ export interface Exercise {
 	equipment?: string[];
 	notes?: string;
 	type: 'warmup' | 'main' | 'cooldown';
+	targetMuscles?: MuscleTarget[];
 }
 
 // Zod schemas for validation
+export const MuscleGroupSchema = z.enum([
+	'chest',
+	'shoulders_front',
+	'biceps',
+	'forearms',
+	'abs',
+	'obliques',
+	'hip_flexors',
+	'quads',
+	'inner_thighs',
+	'tibialis',
+	'traps',
+	'shoulders_rear',
+	'lats',
+	'rhomboids',
+	'lower_back',
+	'triceps',
+	'glutes',
+	'hamstrings',
+	'calves'
+]);
+
+export const MuscleActivationSchema = z.enum(['primary', 'secondary', 'stabilizer']);
+
+export const MuscleTargetSchema = z.object({
+	muscle: MuscleGroupSchema,
+	activation: MuscleActivationSchema
+});
+
 export const ExerciseSchema = z.object({
 	id: z.string(),
 	name: z.string(),
@@ -55,7 +119,8 @@ export const ExerciseSchema = z.object({
 	restBetweenExercises: z.number(),
 	equipment: z.array(z.string()).optional(),
 	notes: z.string().optional(),
-	type: z.enum(['warmup', 'main', 'cooldown'])
+	type: z.enum(['warmup', 'main', 'cooldown']),
+	targetMuscles: z.array(MuscleTargetSchema).optional()
 });
 
 export const WorkoutSchema = z.object({
