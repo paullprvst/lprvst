@@ -103,6 +103,20 @@
 			goto('/');
 		}
 	}
+
+	// Workouts sorted by day of week
+	const sortedSchedule = $derived(
+		program
+			? [...program.schedule.weeklyPattern]
+					.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+					.map((pattern) => ({
+						dayName: DAY_NAMES[pattern.dayOfWeek],
+						workout: program.workouts[pattern.workoutIndex],
+						workoutIndex: pattern.workoutIndex
+					}))
+					.filter((item) => item.workout)
+			: []
+	);
 </script>
 
 {#if loading}
@@ -164,10 +178,13 @@
 		</Card>
 
 		<div>
-			<h2 class="text-xl font-semibold text-primary mb-3">Workouts</h2>
+			<h2 class="text-xl font-semibold text-primary mb-3">Weekly Schedule</h2>
 			<div class="space-y-3">
-				{#each program.workouts as workout, index}
-					<WorkoutCard {workout} onedit={() => openEditModal(index)} {lastPerformances} />
+				{#each sortedSchedule as { dayName, workout, workoutIndex }}
+					<div>
+						<p class="text-sm font-medium text-muted mb-1.5">{dayName}</p>
+						<WorkoutCard {workout} onedit={() => openEditModal(workoutIndex)} {lastPerformances} />
+					</div>
 				{/each}
 			</div>
 		</div>
