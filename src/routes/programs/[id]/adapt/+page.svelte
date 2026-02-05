@@ -20,6 +20,7 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Input from '$lib/components/shared/Input.svelte';
 	import { ArrowLeft, Send, Key } from 'lucide-svelte';
+	import { DAY_NAMES } from '$lib/utils/date-helpers';
 
 	const auth = getAuthState();
 	let program = $state<Program | null>(null);
@@ -63,6 +64,15 @@
 		messageLoading = true;
 		try {
 			// Include program context in the initial message
+			// Build schedule mapping: which workout is on which day
+			const scheduleDetails = program.schedule.weeklyPattern
+				.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+				.map(p => {
+					const workout = program.workouts[p.workoutIndex];
+					return `  - ${DAY_NAMES[p.dayOfWeek]}: ${workout?.name ?? 'Unknown'}`;
+				})
+				.join('\n');
+
 			const workoutDetails = program.workouts.map(w => {
 				const exerciseList = w.exercises.map(e => {
 					let details = `    - ${e.name}`;
@@ -79,7 +89,8 @@
 
 Current program details:
 - Description: ${program.description}
-- Schedule: ${program.schedule.weeklyPattern.length} days per week
+- Weekly schedule (0=Monday convention):
+${scheduleDetails}
 
 Workouts:
 ${workoutDetails}
