@@ -3,9 +3,7 @@
 		addWeeks,
 		subWeeks,
 		startOfWeek,
-		endOfWeek,
-		isThisWeek,
-		startOfToday
+		isThisWeek
 	} from 'date-fns';
 	import {
 		getWeekSchedule,
@@ -58,10 +56,10 @@
 
 <div class="space-y-6">
 	<!-- Week Calendar Card -->
-	<Card>
+	<Card variant="info">
 		<div class="space-y-3">
 			<!-- Week Navigation -->
-			<div class="flex items-center justify-between">
+			<div class="flex items-center justify-between gap-2">
 				<button
 					onclick={previousWeek}
 					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
@@ -70,8 +68,8 @@
 					<ChevronLeft size={20} class="text-secondary" />
 				</button>
 
-				<div class="flex items-center gap-3">
-					<h2 class="text-lg font-semibold text-primary">
+				<div class="flex-1 min-w-0 flex flex-col items-center">
+					<h2 class="text-sm sm:text-lg font-semibold text-primary text-center leading-tight">
 						{formatDate(currentWeekStart, 'MMM d')} - {formatDate(
 							weekSchedule[6].date,
 							'MMM d, yyyy'
@@ -80,7 +78,7 @@
 					{#if !isCurrentWeek}
 						<button
 							onclick={goToToday}
-							class="px-2.5 py-1 text-xs font-medium text-brand bg-brand-soft rounded-full hover:opacity-90 transition-colors duration-200"
+							class="mt-1 px-2.5 py-1 text-xs font-medium text-brand bg-brand-soft rounded-full hover:opacity-90 transition-colors duration-200 touch-target"
 						>
 							Today
 						</button>
@@ -106,7 +104,7 @@
 			</div>
 
 			<!-- Calendar days grid -->
-			<div class="grid grid-cols-7 gap-2">
+			<div class="grid grid-cols-7 gap-1.5 sm:gap-2">
 				{#each weekSchedule as day, index}
 					<div class="animate-scaleIn" style="animation-delay: {index * 30}ms">
 						<CalendarDay
@@ -131,7 +129,7 @@
 		<div class="space-y-3">
 			{#each upcomingWorkouts as day, index}
 				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
-					<div class="text-sm text-secondary mb-2 font-medium">
+					<div class="text-sm text-secondary mb-2 font-medium break-words">
 						{formatDate(day.date, 'EEEE, MMM d')}
 					</div>
 					<WorkoutCard
@@ -140,7 +138,7 @@
 					/>
 				</div>
 			{:else}
-				<Card>
+				<Card variant="info">
 					<div class="text-center py-8 space-y-2">
 						<CalendarDays size={32} class="mx-auto text-muted" />
 						<p class="text-secondary">No upcoming workouts scheduled</p>

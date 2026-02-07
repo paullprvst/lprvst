@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { isToday } from 'date-fns';
+	import { formatDate } from '$lib/utils/date-helpers';
 	import type { Workout } from '$lib/types/program';
 	import { Check } from 'lucide-svelte';
 
@@ -15,6 +16,12 @@
 	const isCurrentDay = $derived(isToday(date));
 	const hasWorkout = $derived(!!workout);
 	const isClickable = $derived(hasWorkout || completed);
+	const dayAriaLabel = $derived(() => {
+		const dateLabel = formatDate(date, 'EEEE, MMMM d');
+		if (completed) return `${dateLabel}, workout completed`;
+		if (hasWorkout) return `${dateLabel}, workout scheduled`;
+		return `${dateLabel}, no workout scheduled`;
+	});
 
 	// Build class string for complex conditional styling
 	const buttonClasses = $derived(() => {
@@ -31,7 +38,13 @@
 	});
 </script>
 
-<button onclick={onclick} class={buttonClasses()} disabled={!isClickable}>
+<button
+	type="button"
+	onclick={onclick}
+	class={buttonClasses()}
+	disabled={!isClickable}
+	aria-label={dayAriaLabel()}
+>
 	<div class="h-full flex flex-col items-center justify-start">
 		<!-- Date number -->
 		<div

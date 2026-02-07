@@ -263,35 +263,35 @@
 								</div>
 							{:else}
 								<!-- Active set form -->
-								<div class="flex items-center gap-3">
-										<span class="font-semibold text-primary w-14">Set {set.setNumber}</span>
+								<div class="flex flex-col sm:flex-row sm:items-center gap-3">
+										<span class="font-semibold text-primary sm:w-14">Set {set.setNumber}</span>
 
-										<div class="flex-1 flex items-center gap-2">
+										<div class="flex-1 grid grid-cols-2 gap-2 min-w-0 w-full">
 											<Input
 												type="number"
 												bind:value={setInputs[set.setNumber].reps}
 												min="0"
 												placeholder="Reps"
-												containerClass="w-20"
+												containerClass="w-full sm:w-20"
 												inputClass="px-3 py-2 text-center text-sm rounded-lg"
 												inputMode="numeric"
 											/>
-											<span class="text-muted text-sm">@</span>
 											<Input
 												type="number"
 												bind:value={setInputs[set.setNumber].weight}
 												min="0"
 												step="0.5"
 												placeholder="kg"
-												containerClass="w-20"
+												containerClass="w-full sm:w-20"
 												inputClass="px-3 py-2 text-center text-sm rounded-lg"
 												inputMode="decimal"
 											/>
 										</div>
 
 									<button
+										type="button"
 										onclick={() => completeSet(set)}
-										class="px-4 py-2 bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black font-semibold rounded-lg transition-colors active:scale-95"
+										class="w-full sm:w-auto px-4 py-2 bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black font-semibold rounded-lg transition-colors active:scale-95 touch-target"
 									>
 										DONE
 									</button>

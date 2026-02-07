@@ -131,10 +131,10 @@
 		</div>
 	</div>
 {:else if activePrograms.length === 0}
-	<Card padding="lg">
+	<Card padding="lg" variant="info">
 		<div class="text-center py-8 space-y-4">
 			<div
-				class="w-20 h-20 mx-auto rounded-2xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
+				class="w-20 h-20 mx-auto rounded-2xl bg-border-soft flex items-center justify-center"
 			>
 				<Calendar size={40} class="text-muted" />
 			</div>
@@ -170,8 +170,8 @@
 	<div class="space-y-4 animate-slideUp">
 		<!-- In-progress session banner -->
 		{#if inProgressSession}
-			<Card padding="md">
-				<div class="flex items-center gap-3">
+			<Card padding="md" variant="warning">
+				<div class="flex items-center gap-3 flex-wrap sm:flex-nowrap">
 					<div class="w-10 h-10 rounded-full bg-warning-soft flex items-center justify-center flex-shrink-0">
 						<Play size={20} class="text-warning" />
 					</div>
@@ -189,7 +189,8 @@
 						</Button>
 						<button
 							onclick={() => (showDiscardConfirm = true)}
-							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors"
+							type="button"
+							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors touch-target"
 							aria-label="Discard workout"
 						>
 							<X size={18} />

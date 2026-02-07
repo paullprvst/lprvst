@@ -176,14 +176,16 @@
 	<div class="space-y-6">
 		<div class="flex items-center gap-4">
 			<button
+				type="button"
 				onclick={() => goto('/programs')}
 				class="text-secondary hover:text-primary touch-target"
 				aria-label="Back to programs"
 			>
 				<ArrowLeft size={24} />
 			</button>
-			<h1 class="text-2xl font-bold text-primary flex-1">{program.name}</h1>
+			<h1 class="text-2xl font-bold text-primary flex-1 min-w-0 truncate">{program.name}</h1>
 			<button
+				type="button"
 				onclick={requestProgramDelete}
 				class="text-error hover:opacity-90 touch-target"
 				aria-label="Delete program"
@@ -192,7 +194,7 @@
 			</button>
 		</div>
 
-		<Card>
+		<Card variant="info">
 			<div class="space-y-4">
 				<div>
 					<h2 class="text-sm font-medium text-muted uppercase">Description</h2>

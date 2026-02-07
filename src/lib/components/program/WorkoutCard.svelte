@@ -70,6 +70,7 @@
 	}
 
 	let expanded = $state(false);
+	const isCardClickable = $derived(!!onclick);
 
 	const mainExercises = $derived(workout.exercises.filter((e) => e.type === 'main'));
 	const warmupExercises = $derived(workout.exercises.filter((e) => e.type === 'warmup'));
@@ -86,11 +87,12 @@
 	});
 
 	function handleCardClick() {
-		if (onclick) {
-			onclick();
-		} else if (expandable) {
-			expanded = !expanded;
-		}
+		if (onclick) onclick();
+	}
+
+	function toggleExpanded() {
+		if (!expandable || onclick) return;
+		expanded = !expanded;
 	}
 
 	function formatExerciseDetails(exercise: (typeof workout.exercises)[0]): string {
@@ -124,52 +126,93 @@
 	};
 </script>
 
-<Card variant={onclick || expandable ? 'interactive' : 'default'} onclick={handleCardClick}>
-	<div class="flex items-start gap-3">
-		<!-- Icon -->
-		<div
-			class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
+<Card variant={isCardClickable ? 'interactive' : 'default'} onclick={isCardClickable ? handleCardClick : undefined}>
+	{#if expandable && !onclick}
+		<button
+			type="button"
+			class="w-full flex items-start gap-3 text-left touch-target"
+			onclick={toggleExpanded}
+			aria-expanded={expanded}
+			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${workout.name}`}
 		>
-			<Dumbbell size={20} class="text-brand" />
-		</div>
+			<div
+				class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
+			>
+				<Dumbbell size={20} class="text-brand" />
+			</div>
 
-		<!-- Content -->
-		<div class="flex-1 min-w-0">
-			<div class="flex items-start justify-between gap-2">
-				<div class="min-w-0">
-					<h3 class="font-semibold text-primary leading-tight">{workout.name}</h3>
-					{#if workout.notes && !expanded}
-						<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
-					{/if}
-				</div>
-
-					<!-- Chevron indicator -->
-				{#if onclick || expandable}
+			<div class="flex-1 min-w-0">
+				<div class="flex items-start justify-between gap-2">
+					<div class="min-w-0">
+						<h3 class="font-semibold text-primary leading-tight">{workout.name}</h3>
+						{#if workout.notes && !expanded}
+							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
+						{/if}
+					</div>
 					<ChevronRight
 						size={18}
 						class="flex-shrink-0 text-muted transition-transform duration-200 {expanded
 							? 'rotate-90'
 							: ''}"
 					/>
+				</div>
+
+				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
+					<span class="flex items-center gap-1">
+						<Clock size={12} />
+						{formatWorkoutDuration(workout.estimatedDuration)}
+					</span>
+					<span>·</span>
+					<span>{mainExercises.length} exercises</span>
+				</div>
+
+				{#if !expanded}
+					<p class="text-xs text-muted mt-1.5 line-clamp-1">{exercisePreview()}</p>
 				{/if}
 			</div>
-
-			<!-- Meta row -->
-			<div class="flex items-center gap-2 mt-2 text-xs text-muted">
-				<span class="flex items-center gap-1">
-					<Clock size={12} />
-					{formatWorkoutDuration(workout.estimatedDuration)}
-				</span>
-				<span>·</span>
-				<span>{mainExercises.length} exercises</span>
+		</button>
+	{:else}
+		<div class="flex items-start gap-3">
+			<div
+				class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
+			>
+				<Dumbbell size={20} class="text-brand" />
 			</div>
 
-			<!-- Exercise preview (collapsed state) -->
-			{#if !expanded && expandable}
-				<p class="text-xs text-muted mt-1.5 line-clamp-1">{exercisePreview()}</p>
-			{/if}
+			<div class="flex-1 min-w-0">
+				<div class="flex items-start justify-between gap-2">
+					<div class="min-w-0">
+						<h3 class="font-semibold text-primary leading-tight">{workout.name}</h3>
+						{#if workout.notes && !expanded}
+							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
+						{/if}
+					</div>
+
+					{#if onclick || expandable}
+						<ChevronRight
+							size={18}
+							class="flex-shrink-0 text-muted transition-transform duration-200 {expanded
+								? 'rotate-90'
+								: ''}"
+						/>
+					{/if}
+				</div>
+
+				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
+					<span class="flex items-center gap-1">
+						<Clock size={12} />
+						{formatWorkoutDuration(workout.estimatedDuration)}
+					</span>
+					<span>·</span>
+					<span>{mainExercises.length} exercises</span>
+				</div>
+
+				{#if !expanded && expandable}
+					<p class="text-xs text-muted mt-1.5 line-clamp-1">{exercisePreview()}</p>
+				{/if}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<!-- Expanded exercise list -->
 	{#if expanded}
@@ -187,7 +230,7 @@
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
 								{@const lastPerf = formatLastPerformance(exercise.name)}
-								<div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft">
+								<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft">
 									<div class="flex items-center gap-1.5 min-w-0">
 										<span class="text-sm text-primary truncate">{exercise.name}</span>
 										<ExerciseInfoButton
@@ -197,7 +240,7 @@
 											size={12}
 										/>
 									</div>
-									<div class="flex items-center gap-2 flex-shrink-0 ml-2">
+									<div class="flex items-center gap-2 flex-shrink-0 sm:ml-2">
 										{#if lastPerf}
 											<span class="text-xs text-success">
 												{lastPerf}
@@ -217,8 +260,9 @@
 			<!-- Edit button -->
 			{#if onedit}
 				<button
-					onclick={(e) => { e.stopPropagation(); onedit(); }}
-					class="w-full mt-2 py-2 flex items-center justify-center gap-2 text-sm font-medium text-brand hover:bg-brand-soft rounded-lg transition-colors border border-brand-soft"
+					type="button"
+					onclick={onedit}
+					class="w-full mt-2 py-2 flex items-center justify-center gap-2 text-sm font-medium text-brand hover:bg-brand-soft rounded-lg transition-colors border border-brand-soft touch-target"
 				>
 					<Edit2 size={16} />
 					Edit Workout

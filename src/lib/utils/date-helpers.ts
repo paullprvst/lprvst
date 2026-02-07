@@ -6,9 +6,7 @@ import {
 	eachDayOfInterval,
 	format,
 	addDays,
-	isSameDay,
-	isToday,
-	parseISO
+	isSameDay
 } from 'date-fns';
 import type { Program, WeeklyPattern } from '$lib/types/program';
 import type { WorkoutSession } from '$lib/types/workout-session';

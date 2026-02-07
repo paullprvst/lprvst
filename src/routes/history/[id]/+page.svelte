@@ -122,8 +122,9 @@
 	<!-- Header -->
 	<div class="flex items-center gap-3">
 		<button
+			type="button"
 			onclick={() => goto('/history')}
-			class="p-2 rounded-xl hover:bg-border-soft transition-colors"
+			class="p-2 rounded-xl hover:bg-border-soft transition-colors touch-target"
 			aria-label="Back to history"
 		>
 			<ArrowLeft size={24} class="text-primary" />
@@ -137,7 +138,7 @@
 		</div>
 	{:else if session}
 		<!-- Summary Card -->
-		<Card>
+		<Card variant="success">
 			<div class="space-y-4">
 				<div class="flex items-start gap-4">
 					<div
@@ -151,7 +152,7 @@
 					</div>
 				</div>
 
-				<div class="grid grid-cols-3 gap-4 pt-2 border-t border-[rgb(var(--color-border))]">
+				<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-2 border-t border-[rgb(var(--color-border))]">
 					<div class="text-center">
 						<p class="text-xs text-muted uppercase tracking-wide">Date</p>
 						<p class="font-semibold text-primary mt-1">
@@ -197,7 +198,7 @@
 								{#each exerciseLog.sets as set, setIndex}
 									{@const isEditing = editingSet?.exerciseIndex === exerciseIndex && editingSet?.setIndex === setIndex}
 									<div
-										class="flex items-center gap-3 p-3 rounded-xl {set.completed
+										class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl {set.completed
 											? 'bg-success-soft border border-success-soft'
 											: 'bg-border-soft border border-theme'}"
 									>
@@ -207,44 +208,45 @@
 											<XCircle size={18} class="text-muted flex-shrink-0" />
 										{/if}
 
-										<span class="font-medium text-primary w-14">Set {set.setNumber}</span>
+										<span class="font-medium text-primary sm:w-14">Set {set.setNumber}</span>
 
 										{#if isEditing}
 											<!-- Edit mode -->
-											<div class="flex-1 flex items-center gap-2">
+											<div class="flex-1 grid grid-cols-2 gap-2 min-w-0 w-full">
 												<Input
 													type="number"
 													bind:value={editValues.reps}
 													min="0"
 													placeholder="Reps"
-													containerClass="w-20"
+													containerClass="w-full sm:w-20"
 													inputClass="px-3 py-2 text-center text-sm rounded-lg"
 													inputMode="numeric"
 												/>
-												<span class="text-muted text-sm">@</span>
 												<Input
 													type="number"
 													bind:value={editValues.weight}
 													min="0"
 													step="0.5"
 													placeholder="kg"
-													containerClass="w-20"
+													containerClass="w-full sm:w-20"
 													inputClass="px-3 py-2 text-center text-sm rounded-lg"
 													inputMode="decimal"
 												/>
 											</div>
-											<div class="flex items-center gap-1">
+											<div class="flex items-center gap-1 self-end sm:self-auto">
 												<button
+													type="button"
 													onclick={saveSetEdit}
 													disabled={saving}
-													class="p-2 rounded-lg bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black transition-colors disabled:opacity-50"
+													class="p-2 rounded-lg bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black transition-colors disabled:opacity-50 touch-target"
 													aria-label="Save"
 												>
 													<Save size={16} />
 												</button>
 												<button
+													type="button"
 													onclick={cancelEditing}
-													class="p-2 rounded-lg bg-border-soft hover:bg-[rgb(var(--color-border)/0.55)] text-primary transition-colors"
+													class="p-2 rounded-lg bg-border-soft hover:bg-[rgb(var(--color-border)/0.55)] text-primary transition-colors touch-target"
 													aria-label="Cancel"
 												>
 													<XCircle size={16} />
@@ -261,8 +263,9 @@
 											</div>
 											{#if set.completed}
 												<button
+													type="button"
 													onclick={() => startEditing(exerciseIndex, setIndex, set)}
-													class="p-2 rounded-lg hover:bg-border-soft text-muted hover:text-primary transition-colors"
+													class="p-2 rounded-lg hover:bg-border-soft text-muted hover:text-primary transition-colors touch-target"
 													aria-label="Edit set"
 												>
 													<Pencil size={16} />

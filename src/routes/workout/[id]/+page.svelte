@@ -233,7 +233,7 @@
 		<div class="flex items-center justify-between gap-4">
 			<div class="flex-1 min-w-0">
 				<h1 class="text-xl font-bold text-primary truncate">{workoutStore.workout.name}</h1>
-				<div class="flex items-center gap-3 text-sm text-secondary">
+				<div class="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-secondary">
 					<span>Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises.length}</span>
 					<span class="text-[rgb(var(--color-border))]">|</span>
 					<span class="flex items-center gap-1">
@@ -243,6 +243,7 @@
 				</div>
 			</div>
 			<button
+				type="button"
 				onclick={openLeaveModal}
 				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200 touch-target"
 				aria-label="Close workout"
@@ -262,8 +263,12 @@
 		<!-- Session Plan (Collapsible) -->
 		<div class="card">
 			<button
+				type="button"
 				onclick={() => showPlan = !showPlan}
-				class="w-full flex items-center justify-between p-3 text-left"
+				class="w-full flex items-center justify-between p-3 text-left touch-target"
+				aria-expanded={showPlan}
+				aria-controls="session-plan-panel"
+				aria-label={showPlan ? 'Collapse session plan' : 'Expand session plan'}
 			>
 				<div class="flex items-center gap-2 text-sm font-medium text-secondary">
 					<Dumbbell size={16} />
@@ -277,7 +282,7 @@
 			</button>
 
 			{#if showPlan}
-				<div class="border-t border-[rgb(var(--color-border))] px-3 pb-3">
+				<div id="session-plan-panel" class="border-t border-[rgb(var(--color-border))] px-3 pb-3">
 					<div class="space-y-2 pt-3">
 						{#each workoutStore.workout.exercises as exercise, index}
 							{@const isCurrent = index === workoutStore.currentExerciseIndex}
@@ -377,6 +382,7 @@
 
 			<div class="space-y-3">
 				<button
+					type="button"
 					onclick={leaveAndResumeLater}
 					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-border-soft transition-colors text-left"
 				>
@@ -390,6 +396,7 @@
 				</button>
 
 				<button
+					type="button"
 					onclick={leaveAndAbandon}
 					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-border-soft transition-colors text-left"
 				>
@@ -404,8 +411,9 @@
 			</div>
 
 			<button
+				type="button"
 				onclick={() => showLeaveModal = false}
-				class="w-full py-2 text-sm text-secondary hover:text-primary transition-colors"
+				class="w-full py-2 text-sm text-secondary hover:text-primary transition-colors touch-target"
 			>
 				Cancel
 			</button>

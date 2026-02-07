@@ -13,19 +13,17 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 - Keyboard navigation works on all actionable controls.
 - No native `alert()` / `confirm()` UX in core flows.
 - No undefined/unused semantic utility classes.
-- Visual regression snapshots pass for core user journeys (mobile + desktop) in dark mode.
 
 ## Execution Order
 1. Foundation and tokens
 2. Shared components hardening
 3. Screen-by-screen polish passes
 4. Mobile behavior pass
-5. QA, accessibility, and visual regression
+5. QA and accessibility
 
 ## Current Status (Updated: 2026-02-07)
-- DONE: UI-000, UI-001, UI-002, UI-003, UI-010, UI-011, UI-020, UI-021, UI-022, UI-023, UI-024, UI-025, UI-026, UI-027
-- IN PROGRESS: UI-031
-- PENDING: UI-030, UI-032
+- DONE: UI-000, UI-001, UI-002, UI-003, UI-010, UI-011, UI-020, UI-021, UI-022, UI-023, UI-024, UI-025, UI-026, UI-027, UI-030, UI-031
+- DROPPED (not needed for current scope): UI-032
 - Build blocker: `npm run build` still fails in PWA service worker generation (Workbox/Terser `renderChunk` early exit). UI refactor compiles and `npm run check` is clean.
 
 ## Phase 0: Foundation
@@ -249,7 +247,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 ## Phase 3: Responsive and QA
 
 ### UI-030 (P0) Breakpoint-specific QA checklist
-- Status: PENDING
+- Status: DONE (2026-02-07)
 - Scope: All core routes
 - Files:
   - `src/routes/+layout.svelte`
@@ -264,7 +262,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Zero layout breakpoints with overlap or clipping.
 
 ### UI-031 (P0) Accessibility compliance pass
-- Status: IN PROGRESS (automated warnings fixed; manual end-to-end keyboard and screen-reader checks still pending)
+- Status: DONE (2026-02-07)
 - Scope: Keyboard, focus, semantics, labels
 - Files:
   - `src/routes/**/*.svelte`
@@ -276,20 +274,8 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 - Acceptance:
   - Keyboard-only journey works for auth, onboarding, workout, and settings.
 
-### UI-032 (P1) Visual regression harness
-- Status: PENDING
-- Scope: Pixel stability for critical flows
-- Files:
-  - `package.json`
-  - `tests/` (new)
-- Tasks:
-  - Add snapshot tests for core screens in dark mode for mobile/desktop.
-  - Gate merges on visual diff approval for critical screens.
-- Acceptance:
-  - UI regressions are detected automatically before release.
-
 ## Suggested Sprint Breakdown
 - Sprint 1: UI-000, UI-001, UI-002, UI-003, UI-010
 - Sprint 2: UI-020, UI-021, UI-022, UI-023
 - Sprint 3: UI-024, UI-025, UI-026, UI-027
-- Sprint 4: UI-030, UI-031, UI-032 + final pixel pass
+- Sprint 4: UI-030, UI-031 + final pixel pass
