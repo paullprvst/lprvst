@@ -24,6 +24,13 @@
 		}
 	}
 
+	function handleBackdropKeydown(e: KeyboardEvent) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			handleClose();
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			handleClose();
@@ -46,8 +53,9 @@
 		use:portal
 		class="fixed inset-0 z-[500] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
 		onclick={handleBackdropClick}
+		onkeydown={handleBackdropKeydown}
 		role="button"
-		tabindex="-1"
+		tabindex="0"
 		in:backdropIn
 		out:backdropOut
 	>
@@ -64,7 +72,7 @@
 			<div class="sm:hidden flex justify-center pt-3 pb-1">
 				<button
 					onclick={handleClose}
-					class="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full"
+					class="w-10 h-1 bg-border-soft rounded-full"
 					aria-label="Close modal"
 				></button>
 			</div>

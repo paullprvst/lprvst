@@ -79,7 +79,7 @@
 			<Card padding="sm">
 				<div class="text-center">
 					<div class="flex items-center justify-center gap-1 mb-1">
-						<Scale size={14} class="text-cyan-500" />
+						<Scale size={14} class="text-brand" />
 						<span class="text-xs text-muted">Current</span>
 					</div>
 					<p class="text-lg font-bold text-primary">
@@ -92,7 +92,7 @@
 			<Card padding="sm">
 				<div class="text-center">
 					<div class="flex items-center justify-center gap-1 mb-1">
-						<Target size={14} class="text-purple-500" />
+						<Target size={14} class="text-accent" />
 						<span class="text-xs text-muted">Start</span>
 					</div>
 					<p class="text-lg font-bold text-primary">
@@ -106,9 +106,9 @@
 				<div class="text-center">
 					<div class="flex items-center justify-center gap-1 mb-1">
 						{#if totalChange && totalChange < 0}
-							<TrendingDown size={14} class="text-[rgb(var(--color-success))]" />
+							<TrendingDown size={14} class="text-success" />
 						{:else if totalChange && totalChange > 0}
-							<TrendingUp size={14} class="text-orange-500" />
+							<TrendingUp size={14} class="text-warning" />
 						{:else}
 							<TrendingUp size={14} class="text-muted" />
 						{/if}
@@ -116,9 +116,9 @@
 					</div>
 					<p
 						class="text-lg font-bold {totalChange && totalChange < 0
-							? 'text-[rgb(var(--color-success))]'
+							? 'text-success'
 							: totalChange && totalChange > 0
-								? 'text-orange-500'
+								? 'text-warning'
 								: 'text-primary'}"
 					>
 						{totalChange !== undefined

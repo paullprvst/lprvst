@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Exercise } from '$lib/types/program';
 	import Card from '../shared/Card.svelte';
-	import { Trash2, GripVertical, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import Input from '../shared/Input.svelte';
+	import Select from '../shared/Select.svelte';
+	import { Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -24,26 +26,11 @@
 			.filter(s => s.length > 0);
 	});
 
-	const inputClasses = `
-		w-full px-3 py-2
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-lg
-		text-sm
-		text-[rgb(var(--color-text-primary))]
-		placeholder:text-[rgb(var(--color-text-muted))]
-		input-focus-ring
-	`;
-
-	const selectClasses = `
-		w-full px-3 py-2
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-lg
-		text-sm
-		text-[rgb(var(--color-text-primary))]
-		input-focus-ring
-	`;
+	const typeOptions = [
+		{ value: 'warmup', label: 'Warm-up' },
+		{ value: 'main', label: 'Main' },
+		{ value: 'cooldown', label: 'Cool-down' }
+	];
 </script>
 
 <Card>
@@ -62,15 +49,18 @@
 					</button>
 				{/if}
 			</div>
-			<input
+			<Input
 				type="text"
 				bind:value={exercise.name}
+				ariaLabel="Exercise name"
 				placeholder="Exercise name"
-				class="{inputClasses} flex-1 font-medium"
+				containerClass="flex-1"
+				inputClass="px-3 py-2 rounded-lg font-medium"
 			/>
 			<button
 				onclick={ondelete}
-				class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors touch-target"
+				class="p-2 text-error hover:bg-error-soft rounded-lg transition-colors touch-target"
+				aria-label="Delete exercise"
 			>
 				<Trash2 size={18} />
 			</button>
@@ -78,32 +68,36 @@
 
 		<!-- Type selector -->
 		<div>
-			<label class="block text-xs font-medium text-muted mb-1">Type</label>
-			<select bind:value={exercise.type} class={selectClasses}>
-				<option value="warmup">Warm-up</option>
-				<option value="main">Main</option>
-				<option value="cooldown">Cool-down</option>
-			</select>
+			<label for="exercise-type-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Type</label>
+			<Select
+				id="exercise-type-{exercise.id}"
+				bind:value={exercise.type}
+				options={typeOptions}
+				ariaLabel="Exercise type"
+			/>
 		</div>
 
 		<!-- Sets & Reps row -->
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Sets</label>
-				<input
+				<label for="exercise-sets-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Sets</label>
+				<Input
+					id="exercise-sets-{exercise.id}"
 					type="number"
 					bind:value={exercise.sets}
 					min="1"
-					class={inputClasses}
+					inputMode="numeric"
+					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Reps / Duration</label>
-				<input
+				<label for="exercise-reps-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Reps / Duration</label>
+				<Input
+					id="exercise-reps-{exercise.id}"
 					type="text"
 					bind:value={exercise.reps}
 					placeholder="e.g., 8-12 or 30 seconds"
-					class={inputClasses}
+					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 		</div>
@@ -111,45 +105,58 @@
 		<!-- Rest times -->
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Rest between sets (sec)</label>
-				<input
+				<label for="exercise-rest-sets-{exercise.id}" class="block text-xs font-medium text-muted mb-1"
+					>Rest between sets (sec)</label
+				>
+				<Input
+					id="exercise-rest-sets-{exercise.id}"
 					type="number"
 					bind:value={exercise.restBetweenSets}
 					min="0"
-					class={inputClasses}
+					inputMode="numeric"
+					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Rest before next (sec)</label>
-				<input
+				<label for="exercise-rest-next-{exercise.id}" class="block text-xs font-medium text-muted mb-1"
+					>Rest before next (sec)</label
+				>
+				<Input
+					id="exercise-rest-next-{exercise.id}"
 					type="number"
 					bind:value={exercise.restBetweenExercises}
 					min="0"
-					class={inputClasses}
+					inputMode="numeric"
+					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 		</div>
 
 		<!-- Equipment -->
 		<div>
-			<label class="block text-xs font-medium text-muted mb-1">Equipment (comma-separated)</label>
-			<input
+			<label for="exercise-equipment-{exercise.id}" class="block text-xs font-medium text-muted mb-1"
+				>Equipment (comma-separated)</label
+			>
+			<Input
+				id="exercise-equipment-{exercise.id}"
 				type="text"
 				bind:value={equipmentText}
 				placeholder="e.g., Barbell, Bench"
-				class={inputClasses}
+				inputClass="px-3 py-2 rounded-lg text-sm"
 			/>
 		</div>
 
 		<!-- Notes -->
 		<div>
-			<label class="block text-xs font-medium text-muted mb-1">Notes</label>
-			<textarea
+			<label for="exercise-notes-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Notes</label>
+			<Input
+				id="exercise-notes-{exercise.id}"
 				bind:value={exercise.notes}
 				placeholder="Optional notes..."
-				rows="2"
-				class="{inputClasses} resize-none"
-			></textarea>
+				multiline
+				rows={2}
+				inputClass="px-3 py-2 rounded-lg text-sm resize-none"
+			/>
 		</div>
 	</div>
 </Card>

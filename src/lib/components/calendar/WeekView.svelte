@@ -65,6 +65,7 @@
 				<button
 					onclick={previousWeek}
 					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
+					aria-label="Previous week"
 				>
 					<ChevronLeft size={20} class="text-secondary" />
 				</button>
@@ -79,7 +80,7 @@
 					{#if !isCurrentWeek}
 						<button
 							onclick={goToToday}
-							class="px-2.5 py-1 text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)] rounded-full hover:bg-[rgb(var(--color-primary)/0.15)] transition-colors duration-200"
+							class="px-2.5 py-1 text-xs font-medium text-brand bg-brand-soft rounded-full hover:opacity-90 transition-colors duration-200"
 						>
 							Today
 						</button>
@@ -89,6 +90,7 @@
 				<button
 					onclick={nextWeek}
 					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
+					aria-label="Next week"
 				>
 					<ChevronRight size={20} class="text-secondary" />
 				</button>

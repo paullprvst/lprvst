@@ -15,8 +15,8 @@
 
 	let { duration, setNumber, totalSets, onsetcomplete, onskip, autoStart = false }: Props = $props();
 
-	let remaining = $state(duration);
-	let lastSecond = $state(duration);
+	let remaining = $state(0);
+	let lastSecond = $state(0);
 	let startTime = $state(0);
 	let intervalId: number | null = null;
 	let isRunning = $state(false);
@@ -28,7 +28,7 @@
 	const radius = 90;
 	const circumference = 2 * Math.PI * radius;
 
-	const halfDuration = Math.floor(duration / 2);
+	const halfDuration = $derived(Math.floor(duration / 2));
 
 	// Sound effects using Web Audio API for more control
 	function playBeep(frequency: number, durationMs: number, volume: number = 0.3) {
@@ -111,6 +111,8 @@
 	}
 
 	onMount(() => {
+		remaining = duration;
+		lastSecond = duration;
 		if (autoStart) {
 			start();
 		}
@@ -133,7 +135,7 @@
 </script>
 
 <div
-	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-cyan-300 dark:border-cyan-500/40 shadow-lg animate-scaleIn"
+	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-brand-soft shadow-lg animate-scaleIn"
 >
 	<!-- Dynamic color background based on timer progress -->
 	<div
@@ -142,7 +144,7 @@
 	></div>
 
 	<!-- Header -->
-	<div class="relative flex items-center justify-center gap-2 text-cyan-600 dark:text-cyan-400">
+	<div class="relative flex items-center justify-center gap-2 text-brand">
 		<Timer size={20} />
 		<span class="text-sm font-bold uppercase tracking-wide">Set {setNumber} of {totalSets}</span>
 	</div>

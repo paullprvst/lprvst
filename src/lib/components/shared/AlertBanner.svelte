@@ -8,10 +8,10 @@
 	let { variant = 'info', title, message }: Props = $props();
 
 	const variantClasses = {
-		info: 'bg-cyan-500/10 border-cyan-500/25 text-cyan-100',
-		success: 'bg-emerald-500/10 border-emerald-500/25 text-emerald-200',
-		warning: 'bg-amber-500/10 border-amber-500/25 text-amber-200',
-		error: 'bg-red-500/10 border-red-500/25 text-red-200'
+		info: 'bg-brand-soft border-brand-soft text-primary',
+		success: 'bg-success-soft border-success-soft text-success',
+		warning: 'bg-warning-soft border-warning-soft text-warning',
+		error: 'bg-error-soft border-error-soft text-error'
 	};
 </script>
 

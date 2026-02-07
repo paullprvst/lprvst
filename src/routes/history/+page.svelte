@@ -141,7 +141,7 @@
 					onclick={() => goto(`/history/${session.id}`)}
 				>
 					<Card>
-						<div class="flex items-center gap-4">
+						<div class="flex items-start sm:items-center gap-4">
 							<!-- Success Icon -->
 							<div
 								class="flex-shrink-0 w-12 h-12 rounded-xl bg-[rgb(var(--color-success)/0.1)] flex items-center justify-center"
@@ -163,10 +163,14 @@
 									<span class="text-[rgb(var(--color-border))]">|</span>
 									<span>{getCompletedSets(session)}/{getTotalSets(session)} sets</span>
 								</div>
+
+								<p class="text-xs text-muted mt-1 sm:hidden">
+									{formatDate(session.completedAt || session.startedAt, 'MMM d, h:mm a')}
+								</p>
 							</div>
 
 							<!-- Date and chevron -->
-							<div class="flex items-center gap-2 flex-shrink-0">
+							<div class="hidden sm:flex items-center gap-2 flex-shrink-0">
 								<div class="text-xs text-muted text-right">
 									{formatDate(session.completedAt || session.startedAt, 'MMM d')}
 									<br />

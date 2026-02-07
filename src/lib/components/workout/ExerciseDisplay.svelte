@@ -85,23 +85,23 @@
 		warmup: {
 			icon: Flame,
 			label: 'WARM-UP',
-			badgeClass: 'bg-orange-500/20 text-orange-600 dark:text-orange-400',
-			iconClass: 'bg-orange-500/20',
-			iconColor: 'text-orange-500 dark:text-orange-400'
+			badgeClass: 'bg-warning-soft text-warning',
+			iconClass: 'bg-warning-soft',
+			iconColor: 'text-warning'
 		},
 		main: {
 			icon: Dumbbell,
 			label: 'MAIN',
-			badgeClass: 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
-			iconClass: 'bg-cyan-500/20',
-			iconColor: 'text-cyan-500 dark:text-cyan-400'
+			badgeClass: 'bg-brand-soft text-brand',
+			iconClass: 'bg-brand-soft',
+			iconColor: 'text-brand'
 		},
 		cooldown: {
 			icon: Snowflake,
 			label: 'COOL-DOWN',
-			badgeClass: 'bg-sky-500/20 text-sky-600 dark:text-sky-400',
-			iconClass: 'bg-sky-500/20',
-			iconColor: 'text-sky-500 dark:text-sky-400'
+			badgeClass: 'bg-success-soft text-success',
+			iconClass: 'bg-success-soft',
+			iconColor: 'text-success'
 		}
 	};
 
@@ -149,7 +149,7 @@
 
 <div class="space-y-4 animate-slideUp">
 	<!-- Exercise Info Card -->
-	<div class="rounded-2xl border border-cyan-300 dark:border-cyan-500/40 overflow-hidden">
+	<div class="rounded-2xl border border-brand-soft overflow-hidden">
 		<Card padding="lg">
 			<div class="space-y-5">
 				<!-- Type badge and title -->
@@ -181,7 +181,7 @@
 					<div class="flex flex-wrap gap-2">
 						{#each exercise.equipment as item}
 							<span
-								class="px-3 py-1.5 text-sm bg-cyan-500/20 rounded-lg text-cyan-700 dark:text-cyan-300 font-medium"
+								class="px-3 py-1.5 text-sm bg-brand-soft rounded-lg text-brand font-medium"
 							>
 								{item}
 							</span>
@@ -190,8 +190,8 @@
 				{/if}
 
 				<!-- Target info -->
-				<div class="p-4 bg-gradient-to-br from-cyan-500/15 to-pink-500/15 dark:from-cyan-500/25 dark:to-pink-500/25 rounded-xl border border-cyan-300 dark:border-cyan-500/40">
-					<p class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide mb-1">Target</p>
+				<div class="p-4 bg-brand-soft rounded-xl border border-brand-soft">
+					<p class="text-xs font-bold text-brand uppercase tracking-wide mb-1">Target</p>
 					<p class="text-2xl font-bold text-primary">
 						{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
 					</p>
@@ -202,7 +202,7 @@
 
 				<!-- Last performance -->
 				{#if lastPerformance}
-					<div class="p-3 bg-gray-500/10 rounded-xl border border-gray-300 dark:border-gray-600/40">
+					<div class="p-3 bg-border-soft rounded-xl border border-theme">
 						<p class="text-xs font-medium text-secondary">
 							Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
 						</p>
@@ -232,7 +232,7 @@
 			<div class="space-y-4">
 				<div class="flex items-center justify-between">
 					<h3 class="font-semibold text-primary">Sets</h3>
-					<span class="text-sm font-bold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-600 dark:text-cyan-400">
+					<span class="text-sm font-bold px-3 py-1 rounded-full bg-brand-soft text-brand">
 						{completedCount}/{exercise.sets}
 					</span>
 				</div>
@@ -241,18 +241,18 @@
 					{#each log.sets as set, index}
 						<div
 							class="p-3 rounded-xl border-2 transition-all duration-200 animate-scaleIn {set.completed
-								? 'border-green-400 bg-green-500/10 dark:border-green-400 dark:bg-green-500/15'
-								: 'border-cyan-300 dark:border-cyan-500/40 surface'}"
+								? 'border-success-soft bg-success-soft'
+								: 'border-brand-soft surface'}"
 							style="animation-delay: {index * 50}ms"
 						>
 							{#if set.completed}
 								<!-- Completed set display -->
 								<div class="flex items-center gap-3">
-									<div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-sm">
+									<div class="w-8 h-8 rounded-full bg-[rgb(var(--color-success))] flex items-center justify-center shadow-sm">
 										<Check size={16} class="text-white" strokeWidth={3} />
 									</div>
 									<div class="flex-1">
-										<span class="font-semibold text-green-600 dark:text-green-400">Set {set.setNumber}</span>
+										<span class="font-semibold text-success">Set {set.setNumber}</span>
 										<span class="text-sm text-secondary ml-2">
 											{#if set.reps}{set.reps} reps{/if}
 											{#if set.reps && set.weight} @ {/if}
@@ -291,7 +291,7 @@
 
 									<button
 										onclick={() => completeSet(set)}
-										class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors active:scale-95"
+										class="px-4 py-2 bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black font-semibold rounded-lg transition-colors active:scale-95"
 									>
 										DONE
 									</button>

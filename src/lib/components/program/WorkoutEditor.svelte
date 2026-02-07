@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Workout, Exercise } from '$lib/types/program';
-	import Card from '../shared/Card.svelte';
 	import Button from '../shared/Button.svelte';
+	import Input from '../shared/Input.svelte';
+	import Select from '../shared/Select.svelte';
 	import ExerciseEditor from './ExerciseEditor.svelte';
 	import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
 
@@ -40,35 +41,23 @@
 		workout.exercises = exercises;
 	}
 
-	const inputClasses = `
-		w-full px-3 py-2
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-lg
-		text-sm
-		text-[rgb(var(--color-text-primary))]
-		placeholder:text-[rgb(var(--color-text-muted))]
-		input-focus-ring
-	`;
-
-	const selectClasses = `
-		w-full px-3 py-2
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-lg
-		text-sm
-		text-[rgb(var(--color-text-primary))]
-		input-focus-ring
-	`;
+	const workoutTypeOptions = [
+		{ value: 'strength', label: 'Strength' },
+		{ value: 'cardio', label: 'Cardio' },
+		{ value: 'flexibility', label: 'Flexibility' },
+		{ value: 'mobility', label: 'Mobility' },
+		{ value: 'mixed', label: 'Mixed' }
+	];
 </script>
 
-<div class="border-2 border-cyan-300 dark:border-cyan-500/40 rounded-2xl overflow-hidden">
+<div class="border-2 border-brand-soft rounded-2xl overflow-hidden">
 	<!-- Workout header -->
-	<div class="p-4 bg-cyan-500/10 dark:bg-cyan-500/15 border-b border-cyan-300 dark:border-cyan-500/40">
+	<div class="p-4 bg-brand-soft border-b border-brand-soft">
 		<div class="flex items-center gap-3">
 			<button
 				onclick={() => expanded = !expanded}
-				class="p-1 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 rounded-lg transition-colors"
+				class="p-1 text-brand hover:bg-brand-soft rounded-lg transition-colors"
+				aria-label={expanded ? 'Collapse workout' : 'Expand workout'}
 			>
 				{#if expanded}
 					<ChevronUp size={20} />
@@ -76,15 +65,18 @@
 					<ChevronDown size={20} />
 				{/if}
 			</button>
-			<input
+			<Input
 				type="text"
 				bind:value={workout.name}
 				placeholder="Workout name"
-				class="{inputClasses} flex-1 font-semibold bg-transparent border-none"
+				ariaLabel="Workout name"
+				containerClass="flex-1"
+				inputClass="px-3 py-2 rounded-lg font-semibold bg-transparent border-transparent"
 			/>
 			<button
 				onclick={ondelete}
-				class="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors touch-target"
+				class="p-2 text-error hover:bg-error-soft rounded-lg transition-colors touch-target"
+				aria-label="Delete workout"
 			>
 				<Trash2 size={18} />
 			</button>
@@ -93,34 +85,39 @@
 		<!-- Workout meta -->
 		<div class="grid grid-cols-2 gap-3 mt-3">
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Type</label>
-				<select bind:value={workout.type} class={selectClasses}>
-					<option value="strength">Strength</option>
-					<option value="cardio">Cardio</option>
-					<option value="flexibility">Flexibility</option>
-					<option value="mobility">Mobility</option>
-					<option value="mixed">Mixed</option>
-				</select>
+				<label for="workout-type-{workout.id}" class="block text-xs font-medium text-muted mb-1">Type</label>
+				<Select
+					id="workout-type-{workout.id}"
+					bind:value={workout.type}
+					options={workoutTypeOptions}
+					ariaLabel="Workout type"
+				/>
 			</div>
 			<div>
-				<label class="block text-xs font-medium text-muted mb-1">Est. Duration (min)</label>
-				<input
+				<label for="workout-duration-{workout.id}" class="block text-xs font-medium text-muted mb-1"
+					>Est. Duration (min)</label
+				>
+				<Input
+					id="workout-duration-{workout.id}"
 					type="number"
 					bind:value={workout.estimatedDuration}
 					min="1"
-					class={inputClasses}
+					inputMode="numeric"
+					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 		</div>
 
 		<div class="mt-3">
-			<label class="block text-xs font-medium text-muted mb-1">Notes</label>
-			<textarea
+			<label for="workout-notes-{workout.id}" class="block text-xs font-medium text-muted mb-1">Notes</label>
+			<Input
+				id="workout-notes-{workout.id}"
 				bind:value={workout.notes}
 				placeholder="Optional notes..."
-				rows="2"
-				class="{inputClasses} resize-none"
-			></textarea>
+				multiline
+				rows={2}
+				inputClass="px-3 py-2 rounded-lg text-sm resize-none"
+			/>
 		</div>
 	</div>
 

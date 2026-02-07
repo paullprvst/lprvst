@@ -31,7 +31,7 @@
 				<h3 class="font-semibold text-primary truncate">{program.name}</h3>
 				{#if program.isPaused}
 					<span
-						class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400 flex-shrink-0"
+						class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-warning-soft text-warning flex-shrink-0"
 					>
 						Paused
 					</span>

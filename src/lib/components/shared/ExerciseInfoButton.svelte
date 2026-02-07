@@ -66,7 +66,7 @@
 
 <button
 	onclick={handleClick}
-	class="text-muted hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors p-1 -m-1"
+	class="text-muted hover:text-brand transition-colors p-1 -m-1"
 	title="Exercise info"
 	aria-label="View exercise instructions for {exerciseName}"
 >
@@ -80,7 +80,7 @@
 				<LoadingSpinner />
 			</div>
 		{:else if error}
-			<div class="text-red-600 p-4 bg-red-50 rounded-lg">
+			<div class="text-error p-4 bg-error-soft border border-error-soft rounded-lg">
 				{error}
 			</div>
 		{:else}

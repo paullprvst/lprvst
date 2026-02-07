@@ -244,7 +244,7 @@
 			</div>
 			<button
 				onclick={openLeaveModal}
-				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-gray-500/10 transition-colors duration-200 touch-target"
+				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200 touch-target"
 				aria-label="Close workout"
 			>
 				<X size={24} />
@@ -254,7 +254,7 @@
 		<!-- Progress bar -->
 		<div class="w-full surface-elevated rounded-full h-2 overflow-hidden">
 			<div
-				class="bg-gradient-to-r from-cyan-400 to-pink-500 h-full transition-all duration-300 ease-out"
+				class="bg-[rgb(var(--color-primary))] h-full transition-all duration-300 ease-out"
 				style="width: {workoutStore.progress}%"
 			></div>
 		</div>
@@ -286,7 +286,7 @@
 								class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
 							>
 								<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
-									{isCompleted ? 'bg-emerald-500/20 text-emerald-500' : isCurrent ? 'bg-[rgb(var(--color-primary))]/20 text-[rgb(var(--color-primary))]' : 'bg-gray-500/20 text-muted'}">
+									{isCompleted ? 'bg-success-soft text-success' : isCurrent ? 'bg-brand-soft text-brand' : 'bg-border-soft text-muted'}">
 									{#if isCompleted}
 										<CheckCircle size={14} />
 									{:else}
@@ -340,9 +340,9 @@
 	<Modal bind:open={showCompleteModal} size="sm">
 		<div class="text-center space-y-6 py-4">
 			<div
-				class="w-20 h-20 mx-auto rounded-full bg-emerald-500/10 flex items-center justify-center"
+				class="w-20 h-20 mx-auto rounded-full bg-success-soft flex items-center justify-center"
 			>
-				<Trophy size={40} class="text-emerald-500" />
+				<Trophy size={40} class="text-success" />
 			</div>
 
 			<div class="space-y-2">
@@ -378,10 +378,10 @@
 			<div class="space-y-3">
 				<button
 					onclick={leaveAndResumeLater}
-					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-gray-500/5 transition-colors text-left"
+					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-border-soft transition-colors text-left"
 				>
-					<div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-						<Pause size={20} class="text-amber-500" />
+					<div class="w-10 h-10 rounded-full bg-warning-soft flex items-center justify-center flex-shrink-0">
+						<Pause size={20} class="text-warning" />
 					</div>
 					<div>
 						<p class="font-medium text-primary">Resume later</p>
@@ -391,10 +391,10 @@
 
 				<button
 					onclick={leaveAndAbandon}
-					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-gray-500/5 transition-colors text-left"
+					class="w-full flex items-center gap-4 p-4 rounded-xl border border-theme hover:bg-border-soft transition-colors text-left"
 				>
-					<div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-						<Trash2 size={20} class="text-red-500" />
+					<div class="w-10 h-10 rounded-full bg-error-soft flex items-center justify-center flex-shrink-0">
+						<Trash2 size={20} class="text-error" />
 					</div>
 					<div>
 						<p class="font-medium text-primary">Abandon workout</p>

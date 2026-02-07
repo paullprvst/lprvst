@@ -82,7 +82,7 @@
 
 			<p class="mt-6 text-center text-secondary">
 				Don't have an account?
-				<a href="/signup" class="text-cyan-600 hover:text-cyan-500 font-medium">Sign up</a>
+				<a href="/signup" class="text-brand hover:opacity-90 font-medium">Sign up</a>
 			</p>
 		</Card>
 	</div>

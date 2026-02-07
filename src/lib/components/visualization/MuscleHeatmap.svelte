@@ -25,7 +25,11 @@
 
 	// View mode state
 	let viewMode: 'program' | 'workout' = $state('program');
-	let selectedWorkout = $state(selectedWorkoutIndex);
+	let selectedWorkout = $state<number | null>(null);
+
+	$effect(() => {
+		selectedWorkout = selectedWorkoutIndex ?? null;
+	});
 
 	// Check if muscle data exists
 	const hasData = $derived(hasMuscleData(program.workouts));

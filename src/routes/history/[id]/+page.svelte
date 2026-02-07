@@ -123,7 +123,7 @@
 	<div class="flex items-center gap-3">
 		<button
 			onclick={() => goto('/history')}
-			class="p-2 rounded-xl hover:bg-gray-500/10 transition-colors"
+			class="p-2 rounded-xl hover:bg-border-soft transition-colors"
 			aria-label="Back to history"
 		>
 			<ArrowLeft size={24} class="text-primary" />
@@ -186,7 +186,7 @@
 						<div class="flex items-center justify-between">
 							<h4 class="font-semibold text-primary">{exercise?.name || exerciseLog.exerciseName || 'Unknown exercise'}</h4>
 							{#if exerciseLog.skipped}
-								<span class="text-xs px-2 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full">
+								<span class="text-xs px-2 py-1 bg-warning-soft text-warning rounded-full">
 									Skipped
 								</span>
 							{/if}
@@ -198,13 +198,13 @@
 									{@const isEditing = editingSet?.exerciseIndex === exerciseIndex && editingSet?.setIndex === setIndex}
 									<div
 										class="flex items-center gap-3 p-3 rounded-xl {set.completed
-											? 'bg-green-500/10 border border-green-400/30'
-											: 'bg-gray-500/10 border border-gray-400/30'}"
+											? 'bg-success-soft border border-success-soft'
+											: 'bg-border-soft border border-theme'}"
 									>
 										{#if set.completed}
-											<CheckCircle size={18} class="text-green-500 flex-shrink-0" />
+											<CheckCircle size={18} class="text-success flex-shrink-0" />
 										{:else}
-											<XCircle size={18} class="text-gray-400 flex-shrink-0" />
+											<XCircle size={18} class="text-muted flex-shrink-0" />
 										{/if}
 
 										<span class="font-medium text-primary w-14">Set {set.setNumber}</span>
@@ -237,14 +237,14 @@
 												<button
 													onclick={saveSetEdit}
 													disabled={saving}
-													class="p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+													class="p-2 rounded-lg bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black transition-colors disabled:opacity-50"
 													aria-label="Save"
 												>
 													<Save size={16} />
 												</button>
 												<button
 													onclick={cancelEditing}
-													class="p-2 rounded-lg bg-gray-500/20 hover:bg-gray-500/30 text-primary transition-colors"
+													class="p-2 rounded-lg bg-border-soft hover:bg-[rgb(var(--color-border)/0.55)] text-primary transition-colors"
 													aria-label="Cancel"
 												>
 													<XCircle size={16} />
@@ -262,7 +262,7 @@
 											{#if set.completed}
 												<button
 													onclick={() => startEditing(exerciseIndex, setIndex, set)}
-													class="p-2 rounded-lg hover:bg-gray-500/20 text-muted hover:text-primary transition-colors"
+													class="p-2 rounded-lg hover:bg-border-soft text-muted hover:text-primary transition-colors"
 													aria-label="Edit set"
 												>
 													<Pencil size={16} />

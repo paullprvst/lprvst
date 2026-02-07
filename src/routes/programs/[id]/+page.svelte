@@ -176,15 +176,16 @@
 	<div class="space-y-6">
 		<div class="flex items-center gap-4">
 			<button
-				onclick={() => goto('/')}
+				onclick={() => goto('/programs')}
 				class="text-secondary hover:text-primary touch-target"
+				aria-label="Back to programs"
 			>
 				<ArrowLeft size={24} />
 			</button>
 			<h1 class="text-2xl font-bold text-primary flex-1">{program.name}</h1>
 			<button
 				onclick={requestProgramDelete}
-				class="text-red-600 hover:text-red-700 touch-target"
+				class="text-error hover:opacity-90 touch-target"
 				aria-label="Delete program"
 			>
 				<Trash2 size={20} />
@@ -202,7 +203,7 @@
 					<h2 class="text-sm font-medium text-muted uppercase">Schedule</h2>
 					<div class="mt-2 flex flex-wrap gap-2">
 						{#each program.schedule.weeklyPattern as pattern}
-							<span class="px-3 py-1 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded-full text-sm font-medium">
+							<span class="px-3 py-1 bg-brand-soft text-brand rounded-full text-sm font-medium">
 								{DAY_NAMES[pattern.dayOfWeek]}
 							</span>
 						{/each}
@@ -215,8 +216,8 @@
 				</div>
 
 				{#if program?.isPaused}
-					<div class="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2">
-						<p class="text-sm text-amber-700 dark:text-amber-300">
+					<div class="rounded-xl bg-warning-soft border border-warning-soft px-3 py-2">
+						<p class="text-sm text-warning">
 							This program is paused and hidden from the calendar.
 						</p>
 					</div>
@@ -274,7 +275,7 @@
 		<MuscleHeatmap {program} />
 	</div>
 
-	<!-- Edit workout modal -->
+		<!-- Edit workout modal -->
 	<Modal bind:open={showEditModal} title="Edit Workout" size="lg">
 		{#if editableWorkout}
 			<div class="space-y-4">
@@ -283,7 +284,7 @@
 					ondelete={requestDeleteWorkout}
 				/>
 
-				<div class="flex gap-3 pt-2 sticky bottom-0 bg-[rgb(var(--color-surface))] pb-2">
+				<div class="flex gap-3 pt-3 sticky bottom-0 surface-elevated border-t border-theme pb-2">
 					<Button onclick={closeEditModal} variant="ghost" fullWidth={true}>
 						{#snippet children()}
 							<X size={18} />

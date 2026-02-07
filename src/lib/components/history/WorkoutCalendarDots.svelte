@@ -58,9 +58,9 @@
 				{#each month.days as day}
 					<div
 						class="w-2.5 h-2.5 rounded-full transition-colors {hasWorkout(day)
-							? 'bg-emerald-500'
+							? 'bg-[rgb(var(--color-success))]'
 							: isToday(day)
-								? 'bg-cyan-500/50 ring-1 ring-cyan-500'
+								? 'bg-[rgb(var(--color-primary)/0.5)] ring-1 ring-[rgb(var(--color-primary))]'
 								: isFuture(day)
 									? 'bg-[rgb(var(--color-border)/0.3)]'
 									: 'bg-[rgb(var(--color-border)/0.5)]'}"

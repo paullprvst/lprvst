@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	interface Props {
 		value: string | number | undefined;
 		type?: 'text' | 'email' | 'password' | 'number' | 'date';
 		id?: string;
 		name?: string;
+		ariaLabel?: string;
 		placeholder?: string;
 		disabled?: boolean;
 		multiline?: boolean;
@@ -38,6 +41,7 @@
 		type = 'text',
 		id,
 		name,
+		ariaLabel,
 		placeholder = '',
 		disabled = false,
 		multiline = false,
@@ -81,18 +85,32 @@
 	const charCount = $derived(String(value ?? '').length);
 	const isNearLimit = $derived(maxLength ? charCount >= maxLength * 0.9 : false);
 	const isAtLimit = $derived(maxLength ? charCount >= maxLength : false);
+	let inputElement = $state<HTMLInputElement | null>(null);
+	let textareaElement = $state<HTMLTextAreaElement | null>(null);
+
+	onMount(() => {
+		if (!autofocus) return;
+		if (multiline && textareaElement) {
+			textareaElement.focus();
+			return;
+		}
+		if (inputElement) {
+			inputElement.focus();
+		}
+	});
 </script>
 
 <div class="relative {containerClass}">
 	{#if multiline}
 		<textarea
+			bind:this={textareaElement}
 			{id}
 			{name}
+			aria-label={ariaLabel}
 			bind:value
 			{placeholder}
 			{disabled}
 			{rows}
-			{autofocus}
 			{required}
 			{oninput}
 			{onkeydown}
@@ -103,13 +121,14 @@
 		></textarea>
 	{:else}
 		<input
+			bind:this={inputElement}
 			{type}
 			{id}
 			{name}
+			aria-label={ariaLabel}
 			bind:value
 			{placeholder}
 			{disabled}
-			{autofocus}
 			{required}
 			{min}
 			{max}

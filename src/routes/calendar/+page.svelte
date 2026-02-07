@@ -172,8 +172,8 @@
 		{#if inProgressSession}
 			<Card padding="md">
 				<div class="flex items-center gap-3">
-					<div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-						<Play size={20} class="text-amber-500" />
+					<div class="w-10 h-10 rounded-full bg-warning-soft flex items-center justify-center flex-shrink-0">
+						<Play size={20} class="text-warning" />
 					</div>
 					<div class="flex-1 min-w-0">
 						<p class="text-sm font-medium text-primary truncate">{inProgressWorkoutName}</p>
@@ -189,7 +189,7 @@
 						</Button>
 						<button
 							onclick={() => (showDiscardConfirm = true)}
-							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-gray-500/10 transition-colors"
+							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors"
 							aria-label="Discard workout"
 						>
 							<X size={18} />

@@ -66,7 +66,7 @@
 						title="Account created"
 						message="Please check your email to confirm your account."
 					/>
-					<a href="/login" class="inline-block text-cyan-600 hover:text-cyan-500 font-medium">
+					<a href="/login" class="inline-block text-brand hover:opacity-90 font-medium">
 						Go to login
 					</a>
 				</div>
@@ -122,7 +122,7 @@
 
 				<p class="mt-6 text-center text-secondary">
 					Already have an account?
-					<a href="/login" class="text-cyan-600 hover:text-cyan-500 font-medium">Sign in</a>
+					<a href="/login" class="text-brand hover:opacity-90 font-medium">Sign in</a>
 				</p>
 			{/if}
 		</Card>

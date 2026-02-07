@@ -68,7 +68,7 @@
 </script>
 
 <div
-	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-cyan-300 dark:border-cyan-500/40 shadow-lg animate-scaleIn"
+	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-brand-soft shadow-lg animate-scaleIn"
 >
 	<!-- Dynamic color background based on timer progress -->
 	<div
@@ -77,7 +77,7 @@
 	></div>
 
 	<!-- Header -->
-	<div class="relative flex items-center justify-center gap-2 text-cyan-600 dark:text-cyan-400">
+	<div class="relative flex items-center justify-center gap-2 text-brand">
 		<Timer size={20} />
 		<span class="text-sm font-bold uppercase tracking-wide">Rest Timer</span>
 	</div>
@@ -134,10 +134,10 @@
 
 	<!-- Next exercise preview -->
 	{#if nextExercise}
-		<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-cyan-300/50 dark:border-cyan-500/30">
+		<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft">
 			<div class="flex items-center gap-2 mb-2">
-				<ChevronRight size={16} class="text-cyan-600 dark:text-cyan-400" />
-				<span class="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide">Up Next</span>
+				<ChevronRight size={16} class="text-brand" />
+				<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
 			</div>
 			<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
 			<p class="text-sm text-secondary mt-1">
@@ -146,7 +146,7 @@
 			{#if nextExercise.equipment && nextExercise.equipment.length > 0}
 				<div class="flex flex-wrap gap-1 mt-2">
 					{#each nextExercise.equipment as item}
-						<span class="px-2 py-0.5 text-xs bg-cyan-500/20 rounded text-cyan-700 dark:text-cyan-300">
+						<span class="px-2 py-0.5 text-xs bg-brand-soft rounded text-brand">
 							{item}
 						</span>
 					{/each}

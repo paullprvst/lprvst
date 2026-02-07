@@ -170,6 +170,19 @@
 		background-color: rgb(var(--color-accent-secondary));
 	}
 
+	/* Brand semantic utilities */
+	.text-brand {
+		color: rgb(var(--color-primary));
+	}
+
+	.bg-brand-soft {
+		background-color: rgb(var(--color-primary) / 0.12);
+	}
+
+	.border-brand-soft {
+		border-color: rgb(var(--color-primary) / 0.35);
+	}
+
 	/* Semantic feedback utilities */
 	.text-success {
 		color: rgb(var(--color-success));
@@ -193,6 +206,23 @@
 
 	.bg-error-soft {
 		background-color: rgb(var(--color-error) / 0.12);
+	}
+
+	.border-success-soft {
+		border-color: rgb(var(--color-success) / 0.3);
+	}
+
+	.border-warning-soft {
+		border-color: rgb(var(--color-warning) / 0.3);
+	}
+
+	.border-error-soft {
+		border-color: rgb(var(--color-error) / 0.3);
+	}
+
+	/* Neutral utility */
+	.bg-border-soft {
+		background-color: rgb(var(--color-border) / 0.35);
 	}
 
 	/* Glass morphism */

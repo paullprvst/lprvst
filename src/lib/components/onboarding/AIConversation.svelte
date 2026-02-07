@@ -55,7 +55,7 @@
 	<Card padding="none">
 		<div
 			bind:this={messagesContainer}
-			class="space-y-4 max-h-[60vh] overflow-y-auto p-4 scroll-smooth"
+			class="space-y-4 max-h-[58vh] sm:max-h-[65vh] overflow-y-auto p-4 scroll-smooth"
 		>
 			{#each messages as message, index}
 				<div
@@ -74,7 +74,7 @@
 					{/if}
 
 					<div
-						class="max-w-[80%] rounded-2xl px-4 py-3 {message.role === 'user'
+						class="max-w-[86%] sm:max-w-[78%] rounded-2xl px-4 py-3 {message.role === 'user'
 							? 'bg-[rgb(var(--color-primary))] text-white rounded-br-md'
 							: 'surface-elevated border border-theme rounded-bl-md'}"
 					>
@@ -117,7 +117,7 @@
 	</Card>
 
 	<div class="space-y-3">
-		<div class="flex gap-3 animate-slideUp">
+		<div class="flex gap-3 animate-slideUp p-3 surface-elevated border border-theme rounded-2xl">
 			<div class="flex-1">
 				<Input
 					bind:value={input}

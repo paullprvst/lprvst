@@ -108,17 +108,17 @@
 	const exerciseTypeConfig = {
 		warmup: {
 			icon: Flame,
-			iconColor: 'text-amber-500',
+			iconColor: 'text-warning',
 			label: 'Warm-up'
 		},
 		main: {
 			icon: Dumbbell,
-			iconColor: 'text-cyan-500 dark:text-cyan-400',
+			iconColor: 'text-brand',
 			label: 'Workout'
 		},
 		cooldown: {
 			icon: Snowflake,
-			iconColor: 'text-emerald-500',
+			iconColor: 'text-success',
 			label: 'Cool-down'
 		}
 	};
@@ -128,9 +128,9 @@
 	<div class="flex items-start gap-3">
 		<!-- Icon -->
 		<div
-			class="flex-shrink-0 w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center"
+			class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
 		>
-			<Dumbbell size={20} class="text-cyan-500 dark:text-cyan-400" />
+			<Dumbbell size={20} class="text-brand" />
 		</div>
 
 		<!-- Content -->
@@ -187,7 +187,7 @@
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
 								{@const lastPerf = formatLastPerformance(exercise.name)}
-								<div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded-lg hover:bg-gray-500/5">
+								<div class="flex items-center justify-between py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft">
 									<div class="flex items-center gap-1.5 min-w-0">
 										<span class="text-sm text-primary truncate">{exercise.name}</span>
 										<ExerciseInfoButton
@@ -199,7 +199,7 @@
 									</div>
 									<div class="flex items-center gap-2 flex-shrink-0 ml-2">
 										{#if lastPerf}
-											<span class="text-xs text-emerald-600 dark:text-emerald-400">
+											<span class="text-xs text-success">
 												{lastPerf}
 											</span>
 										{/if}
@@ -218,7 +218,7 @@
 			{#if onedit}
 				<button
 					onclick={(e) => { e.stopPropagation(); onedit(); }}
-					class="w-full mt-2 py-2 flex items-center justify-center gap-2 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors border border-cyan-300 dark:border-cyan-500/40"
+					class="w-full mt-2 py-2 flex items-center justify-center gap-2 text-sm font-medium text-brand hover:bg-brand-soft rounded-lg transition-colors border border-brand-soft"
 				>
 					<Edit2 size={16} />
 					Edit Workout

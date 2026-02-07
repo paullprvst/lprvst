@@ -16,11 +16,14 @@
 <div class="space-y-6">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
-		<h2 class="text-2xl font-bold text-primary">Your Programs</h2>
+		<div>
+			<h2 class="text-2xl font-bold text-primary">Your Programs</h2>
+			<p class="text-sm text-secondary mt-1">Manage active plans and start your next session.</p>
+		</div>
 		<Button onclick={() => goto('/onboarding')} size="sm">
 			{#snippet children()}
 				<Plus size={18} />
-				New
+				New Program
 			{/snippet}
 		</Button>
 	</div>

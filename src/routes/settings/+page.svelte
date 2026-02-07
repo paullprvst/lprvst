@@ -71,8 +71,8 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center">
-					<User size={20} class="text-cyan-500 dark:text-cyan-400" />
+				<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
+					<User size={20} class="text-brand" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">Account</h2>
@@ -93,8 +93,8 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
-					<Key size={20} class="text-orange-500" />
+				<div class="w-10 h-10 rounded-xl bg-warning-soft flex items-center justify-center">
+					<Key size={20} class="text-warning" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">Anthropic API Key</h2>
@@ -109,7 +109,7 @@
 						href="https://console.anthropic.com"
 						target="_blank"
 						rel="noopener"
-						class="text-cyan-600 dark:text-cyan-400 hover:underline font-medium"
+						class="text-brand hover:underline font-medium"
 					>
 						console.anthropic.com
 					</a>
@@ -119,12 +119,12 @@
 			{#if loading}
 				<div class="text-sm text-secondary">Checking API key status...</div>
 			{:else if hasApiKey && !showUpdateForm}
-				<div class="flex items-center justify-between gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+				<div class="flex items-center justify-between gap-3 p-4 rounded-xl bg-success-soft border border-success-soft">
 					<div class="flex items-center gap-3">
-						<Check size={24} class="text-emerald-500 flex-shrink-0" />
+						<Check size={24} class="text-success flex-shrink-0" />
 						<div>
-							<p class="font-medium text-emerald-600 dark:text-emerald-400">API key configured</p>
-							<p class="text-sm text-emerald-600/70 dark:text-emerald-400/70">Your key is securely stored</p>
+							<p class="font-medium text-success">API key configured</p>
+							<p class="text-sm text-success/80">Your key is securely stored</p>
 						</div>
 					</div>
 					<Button onclick={() => showUpdateForm = true} variant="secondary">
@@ -135,9 +135,9 @@
 				</div>
 			{:else}
 				{#if hasApiKey}
-					<div class="flex items-center gap-2 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-						<Check size={20} class="text-emerald-500" />
-						<span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">API key configured</span>
+					<div class="flex items-center gap-2 p-3 rounded-xl bg-success-soft border border-success-soft">
+						<Check size={20} class="text-success" />
+						<span class="text-sm font-medium text-success">API key configured</span>
 					</div>
 					<p class="text-sm text-muted">Enter a new key to replace the existing one:</p>
 				{/if}
@@ -174,8 +174,8 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center">
-					<Moon size={20} class="text-cyan-500 dark:text-cyan-400" />
+				<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
+					<Moon size={20} class="text-brand" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">Appearance</h2>
@@ -193,8 +193,8 @@
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
-				<div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-					<Info size={20} class="text-emerald-500" />
+				<div class="w-10 h-10 rounded-xl bg-success-soft flex items-center justify-center">
+					<Info size={20} class="text-success" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">About</h2>
@@ -208,13 +208,13 @@
 			</p>
 
 			<div class="flex flex-wrap gap-2">
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-brand-soft text-brand">
 					SvelteKit
 				</span>
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-warning-soft text-warning">
 					Claude AI
 				</span>
-				<span class="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+				<span class="px-3 py-1 text-xs font-medium rounded-full bg-success-soft text-success">
 					Tailwind CSS
 				</span>
 			</div>

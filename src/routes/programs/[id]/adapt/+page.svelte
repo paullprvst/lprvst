@@ -151,8 +151,8 @@
 	<div class="max-w-3xl mx-auto">
 		<Card>
 			<div class="text-center space-y-4 py-4">
-				<div class="w-16 h-16 mx-auto rounded-2xl bg-orange-500/10 flex items-center justify-center">
-					<Key size={32} class="text-orange-500" />
+				<div class="w-16 h-16 mx-auto rounded-2xl bg-warning-soft flex items-center justify-center">
+					<Key size={32} class="text-warning" />
 				</div>
 				<h2 class="text-xl font-semibold text-primary">API Key Required</h2>
 				<p class="text-secondary max-w-md mx-auto">

@@ -54,8 +54,8 @@
 <Modal bind:open title={modalTitle} size="sm">
 	<div class="space-y-5">
 		<!-- Target reminder -->
-		<div class="p-3 bg-cyan-500/10 rounded-xl border border-cyan-300 dark:border-cyan-500/30">
-			<p class="text-xs font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide mb-1">Target</p>
+		<div class="p-3 bg-brand-soft rounded-xl border border-brand-soft">
+			<p class="text-xs font-semibold text-brand uppercase tracking-wide mb-1">Target</p>
 			<p class="text-sm text-primary">{exercise.reps || `${exercise.duration}s`}</p>
 		</div>
 

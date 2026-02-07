@@ -46,9 +46,9 @@
 						{#if change}
 							{@const changeColor =
 								change.direction === 'down'
-									? 'text-[rgb(var(--color-success))]'
+									? 'text-success'
 									: change.direction === 'up'
-										? 'text-orange-500'
+										? 'text-warning'
 										: 'text-muted'}
 							<span class="flex items-center gap-0.5 text-sm {changeColor}">
 								{#if change.direction === 'down'}

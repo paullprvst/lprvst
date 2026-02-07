@@ -18,7 +18,7 @@
 
 	let { entries, timeRange = 'month' }: Props = $props();
 
-	let canvas: HTMLCanvasElement;
+	let canvas = $state<HTMLCanvasElement | null>(null);
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let chart: Chart<'line', any> | null = null;
 
@@ -66,6 +66,13 @@
 		}
 
 		const weights = data.map((d) => d.y);
+		const styles = getComputedStyle(document.documentElement);
+		const primary = styles.getPropertyValue('--color-primary').trim() || '34 211 238';
+		const border = styles.getPropertyValue('--color-border').trim() || '55 55 72';
+		const textPrimary = styles.getPropertyValue('--color-text-primary').trim() || '250 250 255';
+		const textMuted = styles.getPropertyValue('--color-text-muted').trim() || '130 130 155';
+		const surfaceElevated = styles.getPropertyValue('--color-surface-elevated').trim() || '36 36 48';
+		const primaryRgb = `rgb(${primary})`;
 
 		// Set x-axis bounds based on time range
 		const now = new Date();
@@ -79,12 +86,12 @@
 					{
 						label: 'Weight (kg)',
 						data,
-						borderColor: 'rgb(6, 182, 212)',
-						backgroundColor: 'rgba(6, 182, 212, 0.1)',
+						borderColor: primaryRgb,
+						backgroundColor: `rgba(${primary}, 0.14)`,
 						fill: true,
 						tension: 0.3,
-						pointBackgroundColor: 'rgb(6, 182, 212)',
-						pointBorderColor: 'rgb(6, 182, 212)',
+						pointBackgroundColor: primaryRgb,
+						pointBorderColor: primaryRgb,
 						pointRadius: 4,
 						pointHoverRadius: 6
 					}
@@ -102,9 +109,11 @@
 						display: false
 					},
 					tooltip: {
-						backgroundColor: 'rgba(0, 0, 0, 0.8)',
-						titleColor: 'rgb(255, 255, 255)',
-						bodyColor: 'rgb(255, 255, 255)',
+						backgroundColor: `rgba(${surfaceElevated}, 0.96)`,
+						titleColor: `rgb(${textPrimary})`,
+						bodyColor: `rgb(${textPrimary})`,
+						borderColor: `rgba(${border}, 0.45)`,
+						borderWidth: 1,
 						padding: 12,
 						cornerRadius: 8,
 						callbacks: {
@@ -128,7 +137,7 @@
 							display: false
 						},
 						ticks: {
-							color: 'rgb(156, 163, 175)',
+							color: `rgb(${textMuted})`,
 							maxRotation: 0,
 							autoSkip: true,
 							maxTicksLimit: 6
@@ -136,10 +145,10 @@
 					},
 					y: {
 						grid: {
-							color: 'rgba(156, 163, 175, 0.1)'
+							color: `rgba(${border}, 0.2)`
 						},
 						ticks: {
-							color: 'rgb(156, 163, 175)',
+							color: `rgb(${textMuted})`,
 							callback: (value) => `${value} kg`
 						},
 						suggestedMin: Math.min(...weights) - 1,

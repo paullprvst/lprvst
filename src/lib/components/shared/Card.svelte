@@ -22,7 +22,7 @@
 		ghost: 'bg-transparent'
 	};
 
-	const isInteractive = variant === 'interactive' && onclick;
+	const isInteractive = $derived(variant === 'interactive' && !!onclick);
 </script>
 
 {#if isInteractive}
