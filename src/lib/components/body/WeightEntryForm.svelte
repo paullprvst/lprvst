@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { weightEntrySchema, type WeightEntryInput } from '$lib/types/weight-entry';
 	import Button from '$lib/components/shared/Button.svelte';
+	import Input from '$lib/components/shared/Input.svelte';
+	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { Plus } from 'lucide-svelte';
 
 	interface Props {
@@ -52,27 +54,21 @@
 			<label for="weight" class="block text-sm font-medium text-secondary mb-1.5">
 				Weight (kg)
 			</label>
-			<input
+			<Input
 				id="weight"
 				type="number"
-				step="0.1"
-				min="20"
-				max="500"
 				bind:value={weight}
 				placeholder="75.0"
 				required
-				class="w-full px-4 py-3 bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-xl text-[rgb(var(--color-text-primary))] placeholder:text-[rgb(var(--color-text-muted))] input-focus-ring"
+				step="0.1"
+				min="20"
+				max="500"
+				inputMode="decimal"
 			/>
 		</div>
 		<div class="flex-1">
 			<label for="date" class="block text-sm font-medium text-secondary mb-1.5">Date</label>
-			<input
-				id="date"
-				type="date"
-				bind:value={recordedAt}
-				required
-				class="w-full px-4 py-3 bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-xl text-[rgb(var(--color-text-primary))] input-focus-ring"
-			/>
+			<Input id="date" type="date" bind:value={recordedAt} required />
 		</div>
 	</div>
 
@@ -80,22 +76,23 @@
 		<label for="notes" class="block text-sm font-medium text-secondary mb-1.5">
 			Notes (optional)
 		</label>
-		<input
+		<Input
 			id="notes"
 			type="text"
 			bind:value={notes}
 			placeholder="Morning weigh-in"
-			maxlength="500"
-			class="w-full px-4 py-3 bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-xl text-[rgb(var(--color-text-primary))] placeholder:text-[rgb(var(--color-text-muted))] input-focus-ring"
+			maxLength={500}
 		/>
 	</div>
 
 	{#if error}
-		<p class="text-sm text-[rgb(var(--color-error))]">{error}</p>
+		<AlertBanner variant="error" title="Could not save entry" message={error} />
 	{/if}
 
-	<Button variant="primary" fullWidth {loading}>
-		<Plus size={18} />
-		Add Entry
+	<Button variant="primary" type="submit" fullWidth {loading} loadingLabel="Saving entry...">
+		{#snippet children()}
+			<Plus size={18} />
+			Add Entry
+		{/snippet}
 	</Button>
 </form>

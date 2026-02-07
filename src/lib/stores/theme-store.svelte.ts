@@ -1,40 +1,14 @@
 import { browser } from '$app/environment';
 import { getAuthState, getAuthToken } from './auth-store.svelte';
 
-export type Theme = 'light' | 'dark' | 'system';
-
-function getSystemTheme(): 'light' | 'dark' {
-	if (!browser) return 'light';
-	return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
-function getStoredTheme(): Theme {
-	if (!browser) return 'system';
-	return (localStorage.getItem('theme') as Theme) || 'system';
-}
-
-function getEffectiveTheme(theme: Theme): 'light' | 'dark' {
-	if (theme === 'system') {
-		return getSystemTheme();
-	}
-	return theme;
-}
+export type Theme = 'dark';
 
 class ThemeStore {
-	theme = $state<Theme>(getStoredTheme());
-	effectiveTheme = $derived<'light' | 'dark'>(getEffectiveTheme(this.theme));
+	theme = $state<Theme>('dark');
+	effectiveTheme = $derived<'dark'>('dark');
 
 	constructor() {
 		if (browser) {
-			// Listen for system theme changes
-			const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-			mediaQuery.addEventListener('change', () => {
-				if (this.theme === 'system') {
-					this.applyTheme();
-				}
-			});
-
-			// Apply theme on initialization
 			this.applyTheme();
 		}
 	}
@@ -42,40 +16,34 @@ class ThemeStore {
 	private applyTheme() {
 		if (!browser) return;
 
-		const effective = getEffectiveTheme(this.theme);
-		document.documentElement.setAttribute('data-theme', effective);
+		document.documentElement.setAttribute('data-theme', 'dark');
+		document.documentElement.classList.add('dark');
 
-		// Update meta theme-color for mobile browsers
 		const metaThemeColor = document.querySelector('meta[name="theme-color"]');
 		if (metaThemeColor) {
-			metaThemeColor.setAttribute('content', effective === 'dark' ? '#111827' : '#ffffff');
+			metaThemeColor.setAttribute('content', '#0f0f14');
 		}
 	}
 
-	setTheme(theme: Theme) {
-		this.theme = theme;
+	setTheme(_theme: Theme = 'dark') {
+		this.theme = 'dark';
 
 		if (browser) {
-			if (theme === 'system') {
-				localStorage.removeItem('theme');
-			} else {
-				localStorage.setItem('theme', theme);
-			}
+			localStorage.setItem('theme', 'dark');
 			this.applyTheme();
-
-			// Save to server if authenticated (non-blocking)
-			this.saveToServer(theme);
+			this.saveToServer('dark');
 		}
 	}
 
 	toggle() {
-		const newTheme = this.effectiveTheme === 'light' ? 'dark' : 'light';
-		this.setTheme(newTheme);
+		this.setTheme('dark');
 	}
 
-	// Load theme from server and apply if authenticated
 	async syncFromServer() {
 		if (!browser) return;
+
+		this.theme = 'dark';
+		this.applyTheme();
 
 		const auth = getAuthState();
 		if (!auth.isAuthenticated) return;
@@ -90,30 +58,22 @@ class ThemeStore {
 				}
 			});
 
-			if (!response.ok) return;
+			if (!response.ok) {
+				this.saveToServer('dark');
+				return;
+			}
 
 			const data = await response.json();
-			const serverTheme = data.preferences?.theme as Theme | undefined;
+			const serverTheme = data.preferences?.theme;
 
-			if (serverTheme && serverTheme !== this.theme) {
-				// Server has a theme preference, apply it
-				this.theme = serverTheme;
-				if (serverTheme === 'system') {
-					localStorage.removeItem('theme');
-				} else {
-					localStorage.setItem('theme', serverTheme);
-				}
-				this.applyTheme();
-			} else if (!serverTheme && this.theme !== 'system') {
-				// Server has no preference but we have a local one, sync it up
-				this.saveToServer(this.theme);
+			if (serverTheme !== 'dark') {
+				this.saveToServer('dark');
 			}
 		} catch (err) {
 			console.error('Failed to sync theme from server:', err);
 		}
 	}
 
-	// Save theme to server (non-blocking)
 	private async saveToServer(theme: Theme) {
 		const auth = getAuthState();
 		if (!auth.isAuthenticated) return;

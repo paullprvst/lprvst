@@ -19,10 +19,12 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
+	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { X, CheckCircle, Trophy, Clock, ChevronDown, ChevronUp, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let loading = $state(true);
+	let loadError = $state('');
 	let showCompleteModal = $state(false);
 	let showLeaveModal = $state(false);
 	let showPlan = $state(false);
@@ -95,15 +97,15 @@
 	onMount(async () => {
 		const sessionId = $page.params.id;
 		if (!sessionId) {
-			alert('Invalid session ID');
-			goto('/calendar');
+			loadError = 'Invalid workout session ID.';
+			loading = false;
 			return;
 		}
 		const session = await workoutSessionRepository.get(sessionId);
 
 		if (!session) {
-			alert('Workout session not found');
-			goto('/calendar');
+			loadError = 'Workout session not found.';
+			loading = false;
 			return;
 		}
 
@@ -123,8 +125,8 @@
 			: program;
 
 		if (!effectiveProgram) {
-			alert('Program not found');
-			goto('/calendar');
+			loadError = 'Program not found for this workout session.';
+			loading = false;
 			return;
 		}
 
@@ -133,8 +135,8 @@
 			workout = buildWorkoutFromSession(session);
 		}
 		if (!workout) {
-			alert('Workout definition not found');
-			goto('/calendar');
+			loadError = 'Workout definition not found.';
+			loading = false;
 			return;
 		}
 
@@ -208,12 +210,23 @@
 		goto('/history');
 	}
 
-	</script>
+</script>
 
 {#if loading}
 	<div class="flex justify-center py-12">
 		<LoadingSpinner size="lg" />
 	</div>
+{:else if loadError}
+	<Card>
+		<div class="space-y-4 p-1">
+			<AlertBanner variant="error" title="Unable to load workout" message={loadError} />
+			<Button onclick={() => goto('/calendar')} fullWidth>
+				{#snippet children()}
+					Back to Calendar
+				{/snippet}
+			</Button>
+		</div>
+	</Card>
 {:else if workoutStore.workout && workoutStore.currentExercise && workoutStore.currentExerciseLog}
 	<div class="space-y-4">
 		<!-- Header -->

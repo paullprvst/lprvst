@@ -13,23 +13,27 @@
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
-	import { Calendar, Plus, ChevronDown, Play, X } from 'lucide-svelte';
+	import Select from '$lib/components/shared/Select.svelte';
+	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
+	import { Calendar, Plus, Play, X } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 	import { featureFlags } from '$lib/utils/feature-flags';
 
 	let programs = $state<Program[]>([]);
 	let activePrograms = $state<Program[]>([]);
-	let selectedProgram = $state<Program | null>(null);
+	let selectedProgramId = $state<string>('');
 	let completedSessions = $state<WorkoutSession[]>([]);
 	let inProgressSession = $state<WorkoutSession | null>(null);
 	let inProgressWorkoutName = $state<string | null>(null);
+	let showDiscardConfirm = $state(false);
 	let loading = $state(true);
+	const selectedProgram = $derived(activePrograms.find((program) => program.id === selectedProgramId) ?? null);
 
 	onMount(async () => {
 		programs = await programRepository.getAll();
 		activePrograms = programs.filter((program) => !program.isPaused);
 		if (activePrograms.length > 0) {
-			selectedProgram = activePrograms[0];
+			selectedProgramId = activePrograms[0].id;
 		}
 		// Load all completed sessions
 		completedSessions = await workoutSessionRepository.getCompleted();
@@ -45,6 +49,18 @@
 		loading = false;
 	});
 
+	$effect(() => {
+		if (activePrograms.length === 0) {
+			selectedProgramId = '';
+			return;
+		}
+
+		const isStillValid = activePrograms.some((program) => program.id === selectedProgramId);
+		if (!isStillValid) {
+			selectedProgramId = activePrograms[0].id;
+		}
+	});
+
 	function resumeWorkout() {
 		if (inProgressSession) {
 			goto(`/workout/${inProgressSession.id}`);
@@ -53,10 +69,10 @@
 
 	async function discardInProgressSession() {
 		if (!inProgressSession) return;
-		if (!confirm('Are you sure you want to discard this in-progress workout?')) return;
 		await workoutSessionRepository.update(inProgressSession.id, { status: 'abandoned' });
 		inProgressSession = null;
 		inProgressWorkoutName = null;
+		showDiscardConfirm = false;
 	}
 
 	async function startWorkout(workoutId: string, workoutIndex: number, date: Date) {
@@ -172,7 +188,7 @@
 							{/snippet}
 						</Button>
 						<button
-							onclick={discardInProgressSession}
+							onclick={() => (showDiscardConfirm = true)}
 							class="p-2 rounded-lg text-muted hover:text-primary hover:bg-gray-500/10 transition-colors"
 							aria-label="Discard workout"
 						>
@@ -186,24 +202,26 @@
 		<!-- Program selector (if multiple programs) -->
 		{#if activePrograms.length > 1}
 			<div class="relative">
-				<label class="block text-sm font-medium text-secondary mb-2">Select Program</label>
-				<div class="relative">
-					<select
-						bind:value={selectedProgram}
-						class="w-full px-4 py-3 pr-10 surface border border-theme rounded-xl text-primary appearance-none cursor-pointer input-focus-ring"
-					>
-						{#each activePrograms as program}
-							<option value={program}>{program.name}</option>
-						{/each}
-					</select>
-					<ChevronDown
-						size={20}
-						class="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
-					/>
-				</div>
+				<label for="active-program-select" class="block text-sm font-medium text-secondary mb-2">Select Program</label>
+				<Select
+					id="active-program-select"
+					bind:value={selectedProgramId}
+					options={activePrograms.map((program) => ({ value: program.id, label: program.name }))}
+					ariaLabel="Select active program"
+				/>
 			</div>
 		{/if}
 
 		<WeekView program={selectedProgram} {completedSessions} onworkoutclick={startWorkout} />
 	</div>
 {/if}
+
+<ConfirmDialog
+	bind:open={showDiscardConfirm}
+	title="Discard In-Progress Workout?"
+	message="This will abandon the current session and remove it from your in-progress list."
+	confirmLabel="Discard Workout"
+	cancelLabel="Keep Session"
+	danger={true}
+	onconfirm={discardInProgressSession}
+/>

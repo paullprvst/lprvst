@@ -14,6 +14,7 @@
 	import type { Program, Workout, Exercise } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
+	import Input from '$lib/components/shared/Input.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { formatDate, formatDuration } from '$lib/utils/date-helpers';
 	import { ArrowLeft, Clock, CheckCircle, XCircle, Save, Pencil } from 'lucide-svelte';
@@ -115,14 +116,6 @@
 		editValues = { reps: undefined, weight: undefined };
 	}
 
-	const inputClasses = `
-		w-20 px-3 py-2 text-center
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-lg text-sm
-		text-[rgb(var(--color-text-primary))]
-		input-focus-ring
-	`;
 </script>
 
 <div class="space-y-6 animate-slideUp">
@@ -219,21 +212,25 @@
 										{#if isEditing}
 											<!-- Edit mode -->
 											<div class="flex-1 flex items-center gap-2">
-												<input
+												<Input
 													type="number"
 													bind:value={editValues.reps}
 													min="0"
 													placeholder="Reps"
-													class={inputClasses}
+													containerClass="w-20"
+													inputClass="px-3 py-2 text-center text-sm rounded-lg"
+													inputMode="numeric"
 												/>
 												<span class="text-muted text-sm">@</span>
-												<input
+												<Input
 													type="number"
 													bind:value={editValues.weight}
 													min="0"
 													step="0.5"
 													placeholder="kg"
-													class={inputClasses}
+													containerClass="w-20"
+													inputClass="px-3 py-2 text-center text-sm rounded-lg"
+													inputMode="decimal"
 												/>
 											</div>
 											<div class="flex items-center gap-1">

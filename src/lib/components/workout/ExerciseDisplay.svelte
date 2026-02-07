@@ -3,6 +3,7 @@
 	import type { ExerciseLog, SetLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import Button from '../shared/Button.svelte';
+	import Input from '../shared/Input.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
@@ -263,26 +264,30 @@
 							{:else}
 								<!-- Active set form -->
 								<div class="flex items-center gap-3">
-									<span class="font-semibold text-primary w-14">Set {set.setNumber}</span>
+										<span class="font-semibold text-primary w-14">Set {set.setNumber}</span>
 
-									<div class="flex-1 flex items-center gap-2">
-										<input
-											type="number"
-											bind:value={setInputs[set.setNumber].reps}
-											min="0"
-											placeholder="Reps"
-											class="w-20 px-3 py-2 text-center bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-sm text-[rgb(var(--color-text-primary))] input-focus-ring"
-										/>
-										<span class="text-muted text-sm">@</span>
-										<input
-											type="number"
-											bind:value={setInputs[set.setNumber].weight}
-											min="0"
-											step="0.5"
-											placeholder="kg"
-											class="w-20 px-3 py-2 text-center bg-[rgb(var(--color-surface))] border border-[rgb(var(--color-border))] rounded-lg text-sm text-[rgb(var(--color-text-primary))] input-focus-ring"
-										/>
-									</div>
+										<div class="flex-1 flex items-center gap-2">
+											<Input
+												type="number"
+												bind:value={setInputs[set.setNumber].reps}
+												min="0"
+												placeholder="Reps"
+												containerClass="w-20"
+												inputClass="px-3 py-2 text-center text-sm rounded-lg"
+												inputMode="numeric"
+											/>
+											<span class="text-muted text-sm">@</span>
+											<Input
+												type="number"
+												bind:value={setInputs[set.setNumber].weight}
+												min="0"
+												step="0.5"
+												placeholder="kg"
+												containerClass="w-20"
+												inputClass="px-3 py-2 text-center text-sm rounded-lg"
+												inputMode="decimal"
+											/>
+										</div>
 
 									<button
 										onclick={() => completeSet(set)}

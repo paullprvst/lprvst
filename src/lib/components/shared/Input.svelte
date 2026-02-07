@@ -1,6 +1,9 @@
 <script lang="ts">
 	interface Props {
-		value: string;
+		value: string | number | undefined;
+		type?: 'text' | 'email' | 'password' | 'number' | 'date';
+		id?: string;
+		name?: string;
 		placeholder?: string;
 		disabled?: boolean;
 		multiline?: boolean;
@@ -8,13 +11,33 @@
 		autofocus?: boolean;
 		error?: string;
 		maxLength?: number;
+		minLength?: number;
+		required?: boolean;
+		min?: number | string;
+		max?: number | string;
+		step?: number | string;
+		inputMode?:
+			| 'none'
+			| 'text'
+			| 'tel'
+			| 'url'
+			| 'email'
+			| 'numeric'
+			| 'decimal'
+			| 'search';
 		showCharCount?: boolean;
+		containerClass?: string;
+		inputClass?: string;
 		oninput?: (e: Event) => void;
 		onkeydown?: (e: KeyboardEvent) => void;
+		onblur?: (e: FocusEvent) => void;
 	}
 
 	let {
 		value = $bindable(),
+		type = 'text',
+		id,
+		name,
 		placeholder = '',
 		disabled = false,
 		multiline = false,
@@ -22,9 +45,18 @@
 		autofocus = false,
 		error,
 		maxLength,
+		minLength,
+		required = false,
+		min,
+		max,
+		step,
+		inputMode,
 		showCharCount = false,
+		containerClass = '',
+		inputClass = '',
 		oninput,
-		onkeydown
+		onkeydown,
+		onblur
 	}: Props = $props();
 
 	const baseClasses = `
@@ -46,34 +78,49 @@
 		focus:shadow-[0_0_0_3px_rgb(var(--color-error)/0.1)]
 	`;
 
-	const charCount = $derived(value?.length ?? 0);
+	const charCount = $derived(String(value ?? '').length);
 	const isNearLimit = $derived(maxLength ? charCount >= maxLength * 0.9 : false);
 	const isAtLimit = $derived(maxLength ? charCount >= maxLength : false);
 </script>
 
-<div class="relative">
+<div class="relative {containerClass}">
 	{#if multiline}
 		<textarea
+			{id}
+			{name}
 			bind:value
 			{placeholder}
 			{disabled}
 			{rows}
 			{autofocus}
+			{required}
 			{oninput}
+			{onkeydown}
+			{onblur}
 			maxlength={maxLength}
-			class="{baseClasses} resize-none {error ? errorClasses : ''}"
+			minlength={minLength}
+			class="{baseClasses} resize-none {error ? errorClasses : ''} {inputClass}"
 		></textarea>
 	{:else}
 		<input
-			type="text"
+			{type}
+			{id}
+			{name}
 			bind:value
 			{placeholder}
 			{disabled}
 			{autofocus}
+			{required}
+			{min}
+			{max}
+			{step}
+			inputmode={inputMode}
 			{oninput}
 			{onkeydown}
+			{onblur}
 			maxlength={maxLength}
-			class="{baseClasses} {error ? errorClasses : ''}"
+			minlength={minLength}
+			class="{baseClasses} {error ? errorClasses : ''} {inputClass}"
 		/>
 	{/if}
 

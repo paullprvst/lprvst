@@ -2,7 +2,6 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { Dumbbell, Calendar, History, Settings, Scale } from 'lucide-svelte';
-	import { themeStore } from '$lib/stores/theme-store.svelte';
 	import type { Snippet } from 'svelte';
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -60,7 +59,11 @@
 
 <div class="min-h-screen flex flex-col">
 	<!-- Main Content -->
-	<main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 pt-4 sm:pt-6 {auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute ? 'pb-32' : 'pb-8'}">
+	<main
+		class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 {auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute
+			? 'pb-28'
+			: 'pb-8'}"
+	>
 		{@render children()}
 	</main>
 
@@ -68,17 +71,22 @@
 	{#if auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute}
 		<nav
 			class="fixed bottom-0 left-0 right-0 z-[100] glass-heavy border-t border-theme safe-area-inset-bottom"
+			aria-label="Primary navigation"
 		>
 			<div class="flex">
 				{#each navItems as item, index}
 					{@const isActive = index === activeIndex}
 					<a
 						href={item.href}
-						class="flex-1 flex items-center justify-center py-4 transition-all duration-200 {isActive
-							? 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/10'
-							: 'text-secondary active:bg-gray-500/10'}"
+						aria-label={item.label}
+						class="flex-1 flex items-center justify-center py-2.5 transition-all duration-200 border-t-2 {isActive
+							? 'text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.12)] border-[rgb(var(--color-primary))]'
+							: 'text-secondary border-transparent hover:text-primary active:bg-[rgb(var(--color-border)/0.35)]'}"
 					>
-						<item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
+						<span class="flex flex-col items-center gap-1">
+							<item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+							<span class="text-[11px] font-medium leading-none">{item.label}</span>
+						</span>
 					</a>
 				{/each}
 			</div>

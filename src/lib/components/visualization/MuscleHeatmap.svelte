@@ -64,10 +64,10 @@
 
 <Card>
 	<div class="space-y-3">
-		<h3 class="text-lg font-semibold text-foreground">Muscle Activation</h3>
+		<h3 class="text-lg font-semibold text-primary">Muscle Activation</h3>
 
 		{#if !hasData}
-			<div class="py-8 text-center text-foreground-secondary">
+			<div class="py-8 text-center text-secondary">
 				<svg
 					class="mx-auto mb-3 h-12 w-12 opacity-50"
 					fill="none"
@@ -92,8 +92,8 @@
 				<div class="flex flex-wrap gap-1.5">
 					<button
 						class="rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors {viewMode === 'program'
-							? 'bg-primary/90 text-primary-foreground'
-							: 'bg-white/5 text-foreground-secondary hover:bg-white/10'}"
+							? 'bg-[rgb(var(--color-primary)/0.2)] text-[rgb(var(--color-primary))]'
+							: 'surface-elevated text-secondary hover:bg-[rgb(var(--color-border)/0.45)]'}"
 						onclick={showProgramView}
 					>
 						All
@@ -102,8 +102,8 @@
 						<button
 							class="rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors {viewMode === 'workout' &&
 							selectedWorkout === index
-								? 'bg-primary/90 text-primary-foreground'
-								: 'bg-white/5 text-foreground-secondary hover:bg-white/10'}"
+								? 'bg-[rgb(var(--color-primary)/0.2)] text-[rgb(var(--color-primary))]'
+								: 'surface-elevated text-secondary hover:bg-[rgb(var(--color-border)/0.45)]'}"
 							onclick={() => selectWorkout(index)}
 						>
 							{workout.name}
@@ -115,17 +115,17 @@
 			<!-- Body diagrams -->
 			<div class="flex items-center justify-center gap-4">
 				<div class="w-32 sm:w-40">
-					<div class="mb-1 text-center text-xs text-foreground-tertiary">Front</div>
+					<div class="mb-1 text-center text-xs text-muted">Front</div>
 					<BodyDiagram view="front" {intensityMap} onMuscleHover={handleMuscleHover} />
 				</div>
 				<div class="w-32 sm:w-40">
-					<div class="mb-1 text-center text-xs text-foreground-tertiary">Back</div>
+					<div class="mb-1 text-center text-xs text-muted">Back</div>
 					<BodyDiagram view="back" {intensityMap} onMuscleHover={handleMuscleHover} />
 				</div>
 			</div>
 
 			<!-- Legend -->
-			<div class="flex items-center justify-center gap-3 text-xs text-foreground-secondary">
+			<div class="flex items-center justify-center gap-3 text-xs text-secondary">
 				<div class="flex items-center gap-1">
 					<div
 						class="h-2.5 w-2.5 rounded-sm"

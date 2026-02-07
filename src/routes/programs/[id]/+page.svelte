@@ -16,6 +16,7 @@
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
+	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import MuscleHeatmap from '$lib/components/visualization/MuscleHeatmap.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
 	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download, Pause, Play } from 'lucide-svelte';
@@ -31,6 +32,8 @@
 	let showEditModal = $state(false);
 	let editingWorkoutIndex = $state<number | null>(null);
 	let editableWorkout = $state<Workout | null>(null);
+	let showDeleteWorkoutConfirm = $state(false);
+	let showDeleteProgramConfirm = $state(false);
 
 	onMount(async () => {
 		const id = $page.params.id;
@@ -79,10 +82,13 @@
 		}
 	}
 
+	function requestDeleteWorkout() {
+		showDeleteWorkoutConfirm = true;
+	}
+
 	async function deleteWorkout() {
 		if (!program || editingWorkoutIndex === null) return;
 		const workoutIndexToDelete = editingWorkoutIndex;
-		if (!confirm('Delete this workout?')) return;
 		saving = true;
 		try {
 			const updatedWorkouts = program.workouts.filter((_, i) => i !== workoutIndexToDelete);
@@ -106,17 +112,21 @@
 			program.workouts = updatedWorkouts;
 			program.schedule = updatedSchedule;
 			closeEditModal();
+			showDeleteWorkoutConfirm = false;
 		} finally {
 			saving = false;
 		}
 	}
 
+	function requestProgramDelete() {
+		showDeleteProgramConfirm = true;
+	}
+
 	async function handleDelete() {
 		if (!program) return;
-		if (confirm('Are you sure you want to delete this program?')) {
-			await programRepository.delete(program.id);
-			goto('/');
-		}
+		await programRepository.delete(program.id);
+		showDeleteProgramConfirm = false;
+		goto('/');
 	}
 
 	async function togglePausedState() {
@@ -173,8 +183,9 @@
 			</button>
 			<h1 class="text-2xl font-bold text-primary flex-1">{program.name}</h1>
 			<button
-				onclick={handleDelete}
+				onclick={requestProgramDelete}
 				class="text-red-600 hover:text-red-700 touch-target"
+				aria-label="Delete program"
 			>
 				<Trash2 size={20} />
 			</button>
@@ -269,7 +280,7 @@
 			<div class="space-y-4">
 				<WorkoutEditor
 					bind:workout={editableWorkout}
-					ondelete={deleteWorkout}
+					ondelete={requestDeleteWorkout}
 				/>
 
 				<div class="flex gap-3 pt-2 sticky bottom-0 bg-[rgb(var(--color-surface))] pb-2">
@@ -289,4 +300,25 @@
 			</div>
 		{/if}
 	</Modal>
+
+	<ConfirmDialog
+		bind:open={showDeleteWorkoutConfirm}
+		title="Delete Workout?"
+		message="This removes the workout and its schedule slots from this program."
+		confirmLabel="Delete Workout"
+		cancelLabel="Keep Workout"
+		danger={true}
+		loading={saving}
+		onconfirm={deleteWorkout}
+	/>
+
+	<ConfirmDialog
+		bind:open={showDeleteProgramConfirm}
+		title="Delete Program?"
+		message="This permanently deletes the entire program and cannot be undone."
+		confirmLabel="Delete Program"
+		cancelLabel="Cancel"
+		danger={true}
+		onconfirm={handleDelete}
+	/>
 {/if}

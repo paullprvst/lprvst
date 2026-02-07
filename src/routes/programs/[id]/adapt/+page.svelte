@@ -19,6 +19,7 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Input from '$lib/components/shared/Input.svelte';
+	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { ArrowLeft, Send, Key } from 'lucide-svelte';
 
 	const auth = getAuthState();
@@ -28,6 +29,7 @@
 	let loading = $state(true);
 	let messageLoading = $state(false);
 	let initialRequest = $state('');
+	let errorMessage = $state('');
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'modify_program') return false;
@@ -67,6 +69,7 @@
 		if (!program || !initialRequest.trim()) return;
 
 		messageLoading = true;
+		errorMessage = '';
 		try {
 			conversation = await conversationManager.createConversation(
 				'reevaluation',
@@ -89,12 +92,12 @@
 			console.error('Error starting conversation:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
+				errorMessage = 'The AI service is currently overloaded. Please try again in a moment.';
 			} else if (error instanceof Error && error.message.includes('API key')) {
 				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
-				alert(`Failed to start conversation: ${message}`);
+				errorMessage = `Failed to start conversation: ${message}`;
 			}
 		} finally {
 			messageLoading = false;
@@ -105,6 +108,7 @@
 		if (!conversation) return;
 
 		messageLoading = true;
+		errorMessage = '';
 		try {
 			await conversationManager.addUserMessage(conversation.id, message);
 			const turn = await conversationManager.getAssistantResponse(conversation.id);
@@ -119,12 +123,12 @@
 			console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
+				errorMessage = 'The AI service is currently overloaded. Please try again in a moment.';
 			} else if (error instanceof Error && error.message.includes('API key')) {
 				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
-				alert(`Failed to send message: ${message}`);
+				errorMessage = `Failed to send message: ${message}`;
 			}
 		} finally {
 			messageLoading = false;
@@ -175,6 +179,10 @@
 	</Card>
 {:else}
 	<div class="max-w-3xl mx-auto space-y-4">
+		{#if errorMessage}
+			<AlertBanner variant="error" title="Request failed" message={errorMessage} />
+		{/if}
+
 		<div class="flex items-center gap-4">
 			<button
 				onclick={() => goto(`/programs/${program!.id}`)}

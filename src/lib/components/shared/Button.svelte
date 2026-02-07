@@ -4,9 +4,12 @@
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 		size?: 'sm' | 'md' | 'lg';
+		type?: 'button' | 'submit' | 'reset';
 		disabled?: boolean;
 		loading?: boolean;
+		loadingLabel?: string;
 		fullWidth?: boolean;
+		ariaLabel?: string;
 		children: import('svelte').Snippet;
 		onclick?: () => void;
 	}
@@ -14,9 +17,12 @@
 	let {
 		variant = 'primary',
 		size = 'md',
+		type = 'button',
 		disabled = false,
 		loading = false,
+		loadingLabel,
 		fullWidth = false,
+		ariaLabel,
 		children,
 		onclick
 	}: Props = $props();
@@ -49,7 +55,9 @@
 </script>
 
 <button
+	{type}
 	{onclick}
+	aria-label={ariaLabel}
 	disabled={isDisabled}
 	class="{baseClasses} {variantClasses[variant]} {sizeClasses[size]} {widthClass}"
 	class:cursor-not-allowed={isDisabled}
@@ -57,6 +65,9 @@
 >
 	{#if loading}
 		<LoadingSpinner size="sm" color={spinnerColor} />
+		{#if loadingLabel}
+			<span>{loadingLabel}</span>
+		{/if}
 	{:else}
 		{@render children()}
 	{/if}

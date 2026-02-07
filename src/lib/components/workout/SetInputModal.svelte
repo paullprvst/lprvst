@@ -3,6 +3,7 @@
 	import type { Exercise } from '$lib/types/program';
 	import Modal from '../shared/Modal.svelte';
 	import Button from '../shared/Button.svelte';
+	import Input from '../shared/Input.svelte';
 	import { Check, Save } from 'lucide-svelte';
 
 	interface Props {
@@ -48,15 +49,6 @@
 		open = false;
 	}
 
-	const inputClasses = `
-		w-full px-4 py-3
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
-		rounded-xl
-		text-[rgb(var(--color-text-primary))]
-		placeholder:text-[rgb(var(--color-text-muted))]
-		input-focus-ring
-	`;
 </script>
 
 <Modal bind:open title={modalTitle} size="sm">
@@ -69,39 +61,42 @@
 
 		<!-- Reps input -->
 		<div>
-			<label class="block text-sm font-medium text-secondary mb-2">Reps completed</label>
-			<input
+			<label for="set-reps-input" class="block text-sm font-medium text-secondary mb-2">Reps completed</label>
+			<Input
+				id="set-reps-input"
 				type="number"
 				bind:value={reps}
 				min="0"
 				placeholder="e.g., 12"
-				class={inputClasses}
+				inputMode="numeric"
 			/>
 		</div>
 
 		<!-- Weight input -->
 		<div>
-			<label class="block text-sm font-medium text-secondary mb-2">Weight (kg)</label>
-			<input
+			<label for="set-weight-input" class="block text-sm font-medium text-secondary mb-2">Weight (kg)</label>
+			<Input
+				id="set-weight-input"
 				type="number"
 				bind:value={weight}
 				min="0"
 				step="0.5"
 				placeholder="e.g., 45"
-				class={inputClasses}
+				inputMode="decimal"
 			/>
 		</div>
 
 		<!-- Duration input (for time-based) -->
 		{#if exercise.duration || (exercise.reps && /\d+\s*(seconds?|sec|s|minutes?|min|m)\b/i.test(exercise.reps))}
 			<div>
-				<label class="block text-sm font-medium text-secondary mb-2">Duration (seconds)</label>
-				<input
+				<label for="set-duration-input" class="block text-sm font-medium text-secondary mb-2">Duration (seconds)</label>
+				<Input
+					id="set-duration-input"
 					type="number"
 					bind:value={duration}
 					min="0"
 					placeholder="e.g., 60"
-					class={inputClasses}
+					inputMode="numeric"
 				/>
 			</div>
 		{/if}

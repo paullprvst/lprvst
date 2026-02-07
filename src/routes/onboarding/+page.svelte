@@ -15,6 +15,7 @@
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
+	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { Key } from 'lucide-svelte';
 	import type { AgentAction } from '$lib/types/agent';
 	import type { Conversation } from '$lib/types/conversation';
@@ -24,6 +25,7 @@
 	let conversation = $state<Conversation | null>(null);
 	let loading = $state(false);
 	let initialObjective = $state('');
+	let errorMessage = $state('');
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'create_program') return false;
@@ -51,42 +53,37 @@
 				return;
 			}
 			const hasApiKey = await checkApiKeyStatus();
-			if (!hasApiKey) {
-				step = 'api-key-required';
-			} else {
-				step = 'input';
-			}
+			step = hasApiKey ? 'input' : 'api-key-required';
 		};
 		checkWhenReady();
 	});
 
 	async function handleObjectiveSubmit(objective: string) {
 		loading = true;
-			initialObjective = objective;
-			try {
-				conversation = await conversationManager.createConversation('onboarding', objective);
+		errorMessage = '';
+		initialObjective = objective;
 
-				// Get initial AI response
-				const turn = await conversationManager.getAssistantResponse(conversation.id);
+		try {
+			conversation = await conversationManager.createConversation('onboarding', objective);
+			const turn = await conversationManager.getAssistantResponse(conversation.id);
+			const updated = await conversationRepository.get(conversation.id);
 
-				// Reload conversation to get updated messages
-				const updated = await conversationRepository.get(conversation.id);
-				if (updated) {
-					conversation = updated;
-				}
-				if (await handleAgentAction(turn.action, conversation.id)) return;
+			if (updated) {
+				conversation = updated;
+			}
 
-				step = 'conversation';
-			} catch (error) {
+			if (await handleAgentAction(turn.action, conversation.id)) return;
+			step = 'conversation';
+		} catch (error) {
 			console.error('Error starting conversation:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
+				errorMessage = 'The AI service is currently overloaded. Please try again in a moment.';
 			} else if (error instanceof Error && error.message.includes('API key')) {
 				step = 'api-key-required';
 			} else {
 				const message = error instanceof Error ? error.message : 'Unknown error';
-				alert(`Failed to start conversation: ${message}`);
+				errorMessage = `Failed to start conversation: ${message}`;
 			}
 		} finally {
 			loading = false;
@@ -96,35 +93,43 @@
 	async function handleMessageSend(message: string) {
 		if (!conversation) return;
 
-			loading = true;
-			try {
-				await conversationManager.addUserMessage(conversation.id, message);
-				const turn = await conversationManager.getAssistantResponse(conversation.id);
+		loading = true;
+		errorMessage = '';
 
-				// Reload conversation
-				const updated = await conversationRepository.get(conversation.id);
-				if (updated) {
-					conversation = updated;
-				}
-				if (await handleAgentAction(turn.action, conversation.id)) return;
-			} catch (error) {
-				console.error('Error sending message:', error);
+		try {
+			await conversationManager.addUserMessage(conversation.id, message);
+			const turn = await conversationManager.getAssistantResponse(conversation.id);
+			const updated = await conversationRepository.get(conversation.id);
+
+			if (updated) {
+				conversation = updated;
+			}
+
+			if (await handleAgentAction(turn.action, conversation.id)) return;
+		} catch (error) {
+			console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
+				errorMessage = 'The AI service is currently overloaded. Please try again in a moment.';
 			} else if (error instanceof Error && error.message.includes('API key')) {
 				step = 'api-key-required';
 			} else {
-				const message = error instanceof Error ? error.message : 'Unknown error';
-				alert(`Failed to send message: ${message}`);
+				const detailed = error instanceof Error ? error.message : 'Unknown error';
+				errorMessage = `Failed to send message: ${detailed}`;
 			}
 		} finally {
-				loading = false;
-			}
+			loading = false;
 		}
-	</script>
+	}
+</script>
 
 <div class="max-w-3xl mx-auto">
+	{#if errorMessage && step !== 'loading'}
+		<div class="mb-4">
+			<AlertBanner variant="error" title="Request failed" message={errorMessage} />
+		</div>
+	{/if}
+
 	{#if step === 'loading'}
 		<div class="flex justify-center py-12">
 			<LoadingSpinner size="lg" />
@@ -148,11 +153,7 @@
 		</Card>
 	{:else if step === 'input'}
 		<ObjectiveInput onsubmit={handleObjectiveSubmit} {loading} />
-		{:else if step === 'conversation' && conversation}
-			<AIConversation
-				messages={conversation.messages}
-				{loading}
-				onsend={handleMessageSend}
-			/>
-		{/if}
-	</div>
+	{:else if step === 'conversation' && conversation}
+		<AIConversation messages={conversation.messages} {loading} onsend={handleMessageSend} />
+	{/if}
+</div>

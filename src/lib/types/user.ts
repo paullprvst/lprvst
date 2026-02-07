@@ -1,5 +1,5 @@
 export interface UserPreferences {
-	theme?: 'light' | 'dark' | 'system';
+	theme?: 'dark';
 }
 
 export interface User {

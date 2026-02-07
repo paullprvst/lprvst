@@ -8,10 +8,9 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Input from '$lib/components/shared/Input.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
-	import { themeStore, type Theme } from '$lib/stores/theme-store.svelte';
 	import { signOut, getAuthState } from '$lib/stores/auth-store.svelte';
 	import { checkApiKeyStatus, saveApiKey } from '$lib/services/ai/api-client';
-	import { Sun, Moon, Monitor, Info, Check, LogOut, User, Key, Save } from 'lucide-svelte';
+	import { Moon, Info, Check, LogOut, User, Key, Save } from 'lucide-svelte';
 
 	const auth = getAuthState();
 	let signingOut = $state(false);
@@ -63,12 +62,6 @@
 		}
 		signingOut = false;
 	}
-
-	const themeOptions: { value: Theme; icon: typeof Sun; label: string }[] = [
-		{ value: 'light', icon: Sun, label: 'Light' },
-		{ value: 'dark', icon: Moon, label: 'Dark' },
-		{ value: 'system', icon: Monitor, label: 'System' }
-	];
 </script>
 
 <div class="space-y-6 animate-slideUp">
@@ -177,51 +170,21 @@
 		</div>
 	</Card>
 
-	<!-- Theme Selection -->
+	<!-- Appearance -->
 	<Card>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
 				<div class="w-10 h-10 rounded-xl bg-cyan-500/10 dark:bg-cyan-400/15 flex items-center justify-center">
-					{#if themeStore.effectiveTheme === 'dark'}
-						<Moon size={20} class="text-cyan-500 dark:text-cyan-400" />
-					{:else}
-						<Sun size={20} class="text-cyan-500 dark:text-cyan-400" />
-					{/if}
+					<Moon size={20} class="text-cyan-500 dark:text-cyan-400" />
 				</div>
 				<div>
 					<h2 class="text-lg font-semibold text-primary">Appearance</h2>
-					<p class="text-sm text-secondary">Choose your preferred theme</p>
+					<p class="text-sm text-secondary">Dark mode is always enabled</p>
 				</div>
 			</div>
-
-			<div class="grid grid-cols-3 gap-3">
-				{#each themeOptions as option}
-					{@const isActive = themeStore.theme === option.value}
-					<button
-						onclick={() => themeStore.setTheme(option.value)}
-						class="relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 touch-target {isActive
-							? 'border-cyan-500 dark:border-cyan-400 bg-cyan-500/5 dark:bg-cyan-400/10'
-							: 'border-theme surface hover:border-gray-300 dark:hover:border-slate-500'}"
-					>
-						{#if isActive}
-							<option.icon size={24} class="text-cyan-600 dark:text-cyan-400" />
-						{:else}
-							<option.icon size={24} class="text-secondary" />
-						{/if}
-						<span
-							class="text-sm font-medium {isActive ? 'text-cyan-600 dark:text-cyan-400' : 'text-secondary'}"
-						>
-							{option.label}
-						</span>
-						{#if isActive}
-							<div
-								class="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-500 dark:bg-cyan-400 flex items-center justify-center"
-							>
-								<Check size={12} class="text-white" strokeWidth={3} />
-							</div>
-						{/if}
-					</button>
-				{/each}
+			<div class="flex items-center justify-between rounded-xl border border-theme surface-elevated px-4 py-3">
+				<span class="text-sm text-secondary">Theme</span>
+				<span class="text-sm font-semibold text-primary">Dark (locked)</span>
 			</div>
 		</div>
 	</Card>

@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.png" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-		<meta name="theme-color" content="#111827" />
+		<meta name="theme-color" content="#0f0f14" />
 		<meta name="description" content="AI-powered fitness coach and workout planner" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -24,13 +24,10 @@
 		<!-- Theme initialization script to prevent FOUC -->
 		<script>
 			(function() {
-				const stored = localStorage.getItem('theme');
-				const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-				const theme = stored || (prefersDark ? 'dark' : 'light');
-				document.documentElement.setAttribute('data-theme', theme);
-				// Update theme-color meta for Android navigation bar
+				document.documentElement.setAttribute('data-theme', 'dark');
+				document.documentElement.classList.add('dark');
 				const meta = document.querySelector('meta[name="theme-color"]');
-				if (meta) meta.setAttribute('content', theme === 'dark' ? '#111827' : '#ffffff');
+				if (meta) meta.setAttribute('content', '#0f0f14');
 			})();
 		</script>
 	</body>
