@@ -3,7 +3,7 @@
 	import type { Program } from '$lib/types/program';
 	import Card from '../shared/Card.svelte';
 	import { DAY_NAMES_SHORT } from '$lib/utils/date-helpers';
-	import { Dumbbell, ChevronRight } from 'lucide-svelte';
+	import { Dumbbell } from 'lucide-svelte';
 
 	interface Props {
 		program: Program;
@@ -54,7 +54,5 @@
 			</div>
 		</div>
 
-		<!-- Arrow indicator -->
-		<ChevronRight size={20} class="text-muted flex-shrink-0 hidden sm:block" />
-	</div>
-</Card>
+		</div>
+	</Card>

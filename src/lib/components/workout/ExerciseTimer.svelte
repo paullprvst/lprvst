@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Timer, SkipForward, Play } from 'lucide-svelte';
+	import { Timer, Play } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
 
 	interface Props {
@@ -205,11 +205,10 @@
 				{/snippet}
 			</Button>
 		{/if}
-		<Button onclick={skip} variant="ghost" fullWidth={true}>
-			{#snippet children()}
-				<SkipForward size={18} />
-				Skip Set
-			{/snippet}
-		</Button>
+			<Button onclick={skip} variant="ghost" fullWidth={true}>
+				{#snippet children()}
+					Skip Set
+				{/snippet}
+			</Button>
 	</div>
 </div>

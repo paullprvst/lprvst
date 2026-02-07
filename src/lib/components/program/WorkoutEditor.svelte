@@ -4,7 +4,7 @@
 	import Input from '../shared/Input.svelte';
 	import Select from '../shared/Select.svelte';
 	import ExerciseEditor from './ExerciseEditor.svelte';
-	import { Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { Plus, Trash2 } from 'lucide-svelte';
 
 	interface Props {
 		workout: Workout;
@@ -54,17 +54,13 @@
 	<!-- Workout header -->
 	<div class="p-4 bg-brand-soft border-b border-brand-soft">
 		<div class="flex items-center gap-3">
-			<button
-				onclick={() => expanded = !expanded}
-				class="p-1 text-brand hover:bg-brand-soft rounded-lg transition-colors"
-				aria-label={expanded ? 'Collapse workout' : 'Expand workout'}
-			>
-				{#if expanded}
-					<ChevronUp size={20} />
-				{:else}
-					<ChevronDown size={20} />
-				{/if}
-			</button>
+				<button
+					onclick={() => expanded = !expanded}
+					class="p-1 text-brand hover:bg-brand-soft rounded-lg transition-colors"
+					aria-label={expanded ? 'Collapse workout' : 'Expand workout'}
+				>
+					<span class="text-xs font-semibold">{expanded ? 'Hide' : 'Show'}</span>
+				</button>
 			<Input
 				type="text"
 				bind:value={workout.name}

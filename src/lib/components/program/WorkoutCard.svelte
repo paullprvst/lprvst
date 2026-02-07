@@ -4,7 +4,7 @@
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatWorkoutDuration } from '$lib/utils/formatters';
-	import { Clock, ChevronRight, Dumbbell, Flame, Snowflake, Edit2 } from 'lucide-svelte';
+	import { Clock, Dumbbell, Flame, Snowflake, Edit2 } from 'lucide-svelte';
 
 	interface Props {
 		workout: Workout;
@@ -81,6 +81,8 @@
 
 	let expanded = $state(false);
 	const isCardClickable = $derived(!!onclick);
+	const cardVariant = $derived(mobileCompact ? 'ghost' : isCardClickable ? 'interactive' : 'default');
+	const cardPadding = $derived(mobileCompact ? 'none' : 'md');
 
 	const mainExercises = $derived(workout.exercises.filter((e) => e.type === 'main'));
 	const warmupExercises = $derived(workout.exercises.filter((e) => e.type === 'warmup'));
@@ -136,7 +138,11 @@
 	};
 </script>
 
-<Card variant={isCardClickable ? 'interactive' : 'default'} onclick={isCardClickable ? handleCardClick : undefined}>
+<Card
+	variant={cardVariant}
+	padding={cardPadding}
+	onclick={mobileCompact ? undefined : isCardClickable ? handleCardClick : undefined}
+>
 	{#if expandable && !onclick}
 		<button
 			type="button"
@@ -146,20 +152,14 @@
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${workout.name}`}
 		>
 			<div class="flex-1 min-w-0">
-				<div class="flex items-start justify-between gap-2">
-					<div class="min-w-0">
-						<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
-						{#if workout.notes && !expanded}
-							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
-						{/if}
+					<div class="flex items-start justify-between gap-2">
+						<div class="min-w-0">
+							<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
+							{#if workout.notes && !expanded}
+								<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
+							{/if}
+						</div>
 					</div>
-					<ChevronRight
-						size={18}
-						class="flex-shrink-0 text-muted transition-transform duration-200 {expanded
-							? 'rotate-90'
-							: ''}"
-					/>
-				</div>
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
 					<span class="flex items-center gap-1">
@@ -177,6 +177,85 @@
 				{/if}
 			</div>
 		</button>
+	{:else if mobileCompact}
+		{#if onclick}
+			<button
+				type="button"
+				onclick={handleCardClick}
+				class="w-full text-left rounded-2xl touch-target"
+				aria-label={`Open ${workout.name}`}
+			>
+				<div
+					class="relative min-w-0 rounded-2xl border border-[rgb(var(--color-primary)/0.28)] bg-[linear-gradient(135deg,rgb(var(--color-primary)/0.14)_0%,rgb(var(--color-surface-elevated)/0.78)_42%,rgb(var(--color-surface)/0.74)_100%)] px-3.5 py-3.5 sm:px-4 sm:py-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]"
+				>
+					<div
+						class="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_100%_0%,rgb(var(--color-primary)/0.18),transparent_46%)]"
+					></div>
+
+						<div class="relative flex items-start gap-2">
+							<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
+								{workout.name}
+							</h3>
+						</div>
+
+					<div class="relative flex flex-wrap items-center gap-2 mt-3">
+						<span
+							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+						>
+							<Clock size={12} class="text-brand" />
+							{formatWorkoutDuration(workout.estimatedDuration)}
+						</span>
+						<span
+							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+						>
+							<Dumbbell size={12} class="text-brand" />
+							{mainExercises.length} exercises
+						</span>
+					</div>
+
+					{#if showExercisePreview && exercisePreview()}
+						<p class="relative text-sm text-secondary mt-2.5 line-clamp-1">
+							{exercisePreview()}
+						</p>
+					{/if}
+				</div>
+			</button>
+		{:else}
+			<div
+				class="relative min-w-0 rounded-2xl border border-[rgb(var(--color-primary)/0.28)] bg-[linear-gradient(135deg,rgb(var(--color-primary)/0.14)_0%,rgb(var(--color-surface-elevated)/0.78)_42%,rgb(var(--color-surface)/0.74)_100%)] px-3.5 py-3.5 sm:px-4 sm:py-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]"
+			>
+				<div
+					class="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_100%_0%,rgb(var(--color-primary)/0.18),transparent_46%)]"
+				></div>
+
+					<div class="relative flex items-start gap-2">
+						<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
+							{workout.name}
+						</h3>
+					</div>
+
+				<div class="relative flex flex-wrap items-center gap-2 mt-3">
+					<span
+						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+					>
+						<Clock size={12} class="text-brand" />
+						{formatWorkoutDuration(workout.estimatedDuration)}
+					</span>
+					<span
+						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+					>
+						<Dumbbell size={12} class="text-brand" />
+						{mainExercises.length} exercises
+					</span>
+				</div>
+
+				{#if showExercisePreview && exercisePreview()}
+					<p class="relative text-sm text-secondary mt-2.5 line-clamp-1">
+						{exercisePreview()}
+					</p>
+				{/if}
+			</div>
+		{/if}
 	{:else}
 		<div class="flex items-start">
 			<div class="flex-1 min-w-0">
@@ -188,15 +267,7 @@
 						{/if}
 					</div>
 
-					{#if onclick || expandable}
-						<ChevronRight
-							size={18}
-							class="flex-shrink-0 text-muted transition-transform duration-200 {expanded
-								? 'rotate-90'
-								: ''}"
-						/>
-					{/if}
-				</div>
+					</div>
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
 					<span class="flex items-center gap-1">

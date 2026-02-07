@@ -15,7 +15,7 @@
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import WorkoutCalendarDots from '$lib/components/history/WorkoutCalendarDots.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
-	import { CheckCircle, Clock, History, Dumbbell, ChevronRight } from 'lucide-svelte';
+	import { CheckCircle, Clock, History, Dumbbell } from 'lucide-svelte';
 
 	interface SessionWithDetails {
 		session: WorkoutSession;
@@ -85,15 +85,6 @@
 </script>
 
 <div class="space-y-6 animate-slideUp">
-	<div class="flex items-center gap-3">
-		<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
-			<History size={20} class="text-[rgb(var(--color-primary))]" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-primary">Workout History</h1>
-			<p class="text-sm text-secondary">Review completed sessions and progression over time.</p>
-		</div>
-	</div>
 
 	<!-- 3-Month Calendar Dots -->
 	{#if !loading && allSessions.length > 0}
@@ -166,15 +157,14 @@
 								</p>
 							</div>
 
-							<!-- Date and chevron -->
-							<div class="hidden sm:flex items-center gap-2 flex-shrink-0">
-								<div class="text-xs text-muted text-right">
-									{formatDate(session.completedAt || session.startedAt, 'MMM d')}
-									<br />
-									{formatDate(session.completedAt || session.startedAt, 'h:mm a')}
+								<!-- Date -->
+								<div class="hidden sm:flex items-center gap-2 flex-shrink-0">
+									<div class="text-xs text-muted text-right">
+										{formatDate(session.completedAt || session.startedAt, 'MMM d')}
+										<br />
+										{formatDate(session.completedAt || session.startedAt, 'h:mm a')}
+									</div>
 								</div>
-								<ChevronRight size={20} class="text-muted" />
-							</div>
 						</div>
 					</Card>
 				</div>

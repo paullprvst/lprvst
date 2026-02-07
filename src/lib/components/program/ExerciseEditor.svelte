@@ -3,7 +3,7 @@
 	import Card from '../shared/Card.svelte';
 	import Input from '../shared/Input.svelte';
 	import Select from '../shared/Select.svelte';
-	import { Trash2, ChevronDown, ChevronUp } from 'lucide-svelte';
+	import { Trash2 } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -37,18 +37,18 @@
 	<div class="space-y-4">
 		<!-- Header with drag handle and delete -->
 		<div class="flex items-center gap-2">
-			<div class="flex flex-col gap-0.5">
-				{#if onmoveup && canMoveUp}
-					<button onclick={onmoveup} class="p-1 text-muted hover:text-primary touch-target">
-						<ChevronUp size={16} />
-					</button>
-				{/if}
-				{#if onmovedown && canMoveDown}
-					<button onclick={onmovedown} class="p-1 text-muted hover:text-primary touch-target">
-						<ChevronDown size={16} />
-					</button>
-				{/if}
-			</div>
+				<div class="flex flex-col gap-0.5">
+					{#if onmoveup && canMoveUp}
+						<button onclick={onmoveup} class="p-1 text-muted hover:text-primary touch-target">
+							<span class="text-[11px] font-semibold">Up</span>
+						</button>
+					{/if}
+					{#if onmovedown && canMoveDown}
+						<button onclick={onmovedown} class="p-1 text-muted hover:text-primary touch-target">
+							<span class="text-[11px] font-semibold">Down</span>
+						</button>
+					{/if}
+				</div>
 			<Input
 				type="text"
 				bind:value={exercise.name}

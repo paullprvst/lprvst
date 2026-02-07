@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Timer, SkipForward, ChevronRight } from 'lucide-svelte';
+	import { Timer } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
 	import type { Exercise } from '$lib/types/program';
 
@@ -123,22 +123,20 @@
 	</div>
 
 	<!-- Skip button -->
-	<div class="relative z-10">
-		<Button onclick={skip} variant="ghost" fullWidth={true}>
-			{#snippet children()}
-				<SkipForward size={18} />
-				Skip Rest
-			{/snippet}
-		</Button>
-	</div>
+		<div class="relative z-10">
+			<Button onclick={skip} variant="ghost" fullWidth={true}>
+				{#snippet children()}
+					Skip Rest
+				{/snippet}
+			</Button>
+		</div>
 
 	<!-- Next exercise preview -->
-	{#if nextExercise}
-		<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft">
-			<div class="flex items-center gap-2 mb-2">
-				<ChevronRight size={16} class="text-brand" />
-				<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
-			</div>
+		{#if nextExercise}
+			<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft">
+				<div class="flex items-center gap-2 mb-2">
+					<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
+				</div>
 			<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
 			<p class="text-sm text-secondary mt-1">
 				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}

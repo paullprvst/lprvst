@@ -65,10 +65,6 @@
 </script>
 
 <div class="space-y-6 animate-slideUp">
-	<div>
-		<h1 class="text-2xl font-bold text-primary">Settings</h1>
-		<p class="text-sm text-secondary mt-1">Manage account, API access, and app preferences.</p>
-	</div>
 
 	<!-- Account -->
 	<Card>

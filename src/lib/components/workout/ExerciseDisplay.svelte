@@ -7,7 +7,7 @@
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
-	import { Check, ArrowRight, Flame, Snowflake, Dumbbell, Trophy } from 'lucide-svelte';
+	import { Check, Flame, Snowflake, Dumbbell, Trophy } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -341,12 +341,11 @@
 					{#if isLastExercise}
 						<Trophy size={20} />
 						Finish Workout
-					{:else}
-						Next Exercise
-						<ArrowRight size={20} />
-					{/if}
-				{/snippet}
-			</Button>
+						{:else}
+							Next Exercise
+						{/if}
+					{/snippet}
+				</Button>
 		</div>
 	{/if}
 </div>

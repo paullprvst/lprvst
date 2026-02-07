@@ -20,7 +20,7 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
-	import { X, CheckCircle, Trophy, Clock, ChevronDown, ChevronUp, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
+	import { X, CheckCircle, Trophy, Clock, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 
 	let loading = $state(true);
@@ -270,16 +270,12 @@
 				aria-controls="session-plan-panel"
 				aria-label={showPlan ? 'Collapse session plan' : 'Expand session plan'}
 			>
-				<div class="flex items-center gap-2 text-sm font-medium text-secondary">
-					<Dumbbell size={16} />
-					<span>Session Plan</span>
-				</div>
-				{#if showPlan}
-					<ChevronUp size={18} class="text-muted" />
-				{:else}
-					<ChevronDown size={18} class="text-muted" />
-				{/if}
-			</button>
+					<div class="flex items-center gap-2 text-sm font-medium text-secondary">
+						<Dumbbell size={16} />
+						<span>Session Plan</span>
+					</div>
+					<span class="text-xs font-semibold text-muted">{showPlan ? 'Hide' : 'Show'}</span>
+				</button>
 
 			{#if showPlan}
 				<div id="session-plan-panel" class="border-t border-[rgb(var(--color-border))] px-3 pb-3">

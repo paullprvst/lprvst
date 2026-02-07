@@ -54,16 +54,6 @@
 </script>
 
 <div class="space-y-6 animate-slideUp">
-	<!-- Header -->
-	<div class="flex items-center gap-3">
-		<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
-			<Scale size={20} class="text-[rgb(var(--color-primary))]" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-bold text-primary">Body</h1>
-			<p class="text-sm text-secondary">Track trends and keep your weight log up to date.</p>
-		</div>
-	</div>
 
 	{#if loading}
 		<!-- Loading Skeletons -->
@@ -76,7 +66,6 @@
 		<Skeleton variant="card" height="150px" />
 	{:else}
 		<section class="space-y-3">
-			<h2 class="text-base font-semibold text-primary">Current Snapshot</h2>
 			<div class="grid grid-cols-3 gap-3">
 				<Card padding="sm" variant="info">
 					<div class="text-center">
@@ -141,7 +130,6 @@
 		</section>
 
 		<section class="space-y-3">
-			<h2 class="text-base font-semibold text-primary">Trend</h2>
 			<Card variant="info">
 				<div class="space-y-4">
 					<div class="flex items-center justify-end">
@@ -170,7 +158,6 @@
 		</section>
 
 		<section class="space-y-3">
-			<h2 class="text-base font-semibold text-primary">Log Weight</h2>
 			<Card>
 				<WeightEntryForm onsubmit={handleSubmit} />
 			</Card>
@@ -178,7 +165,6 @@
 
 		{#if entries.length > 0}
 			<section class="space-y-3">
-				<h2 class="text-base font-semibold text-primary">Recent Entries</h2>
 				<WeightEntryList {entries} ondelete={handleDelete} />
 			</section>
 		{/if}

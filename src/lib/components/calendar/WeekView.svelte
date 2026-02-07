@@ -3,7 +3,8 @@
 		addWeeks,
 		subWeeks,
 		startOfWeek,
-		isThisWeek
+		isThisWeek,
+		isSameDay
 	} from 'date-fns';
 	import {
 		getWeekSchedule,
@@ -17,7 +18,7 @@
 	import CalendarDay from './CalendarDay.svelte';
 	import Card from '../shared/Card.svelte';
 	import WorkoutCard from '../program/WorkoutCard.svelte';
-	import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-svelte';
+	import { CalendarDays } from 'lucide-svelte';
 
 	interface Props {
 		program: Program;
@@ -58,13 +59,13 @@
 		<div class="space-y-3">
 			<!-- Week Navigation -->
 			<div class="flex items-center justify-between gap-2">
-				<button
-					onclick={previousWeek}
-					class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
-					aria-label="Previous week"
-				>
-					<ChevronLeft size={20} class="text-secondary" />
-				</button>
+					<button
+						onclick={previousWeek}
+						class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
+						aria-label="Previous week"
+					>
+						<span class="text-xs font-semibold text-secondary">Prev</span>
+					</button>
 
 				<div class="flex-1 min-w-0 flex flex-col items-center">
 					<h2 class="text-sm sm:text-lg font-semibold text-primary text-center leading-tight">
@@ -83,13 +84,13 @@
 					{/if}
 				</div>
 
-				<button
-					onclick={nextWeek}
-					class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
-					aria-label="Next week"
-				>
-					<ChevronRight size={20} class="text-secondary" />
-				</button>
+					<button
+						onclick={nextWeek}
+						class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
+						aria-label="Next week"
+					>
+						<span class="text-xs font-semibold text-secondary">Next</span>
+					</button>
 			</div>
 
 			<!-- Day headers -->
@@ -119,24 +120,21 @@
 
 	<!-- Upcoming Workouts Section -->
 	<div class="space-y-3">
-		<div class="flex items-center gap-2">
-			<CalendarDays size={20} class="hidden sm:block text-muted" />
-			<h3 class="text-base sm:text-lg font-semibold text-primary">Upcoming Workouts</h3>
-		</div>
 
-		<div class="space-y-3">
-			{#each upcomingWorkouts as day, index}
-				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
-					<div class="text-sm text-secondary mb-2 font-medium break-words">
-						<span class="sm:hidden">{formatDate(day.date, 'EEE, MMM d')}</span>
-						<span class="hidden sm:inline">{formatDate(day.date, 'EEEE, MMM d')}</span>
+			<div class="space-y-3">
+				{#each upcomingWorkouts as day, index}
+					{@const isTodayWorkout = isSameDay(day.date, new Date())}
+					<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
+						<div class="text-sm text-secondary mb-2 font-medium break-words">
+							<span class="sm:hidden">{formatDate(day.date, 'EEE, MMM d')}</span>
+							<span class="hidden sm:inline">{formatDate(day.date, 'EEEE, MMM d')}</span>
+						</div>
+						<WorkoutCard
+							workout={day.workout}
+							onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
+							mobileCompact={isTodayWorkout}
+						/>
 					</div>
-					<WorkoutCard
-						workout={day.workout}
-						onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
-						mobileCompact={true}
-					/>
-				</div>
 			{:else}
 				<Card variant="info">
 					<div class="text-center py-8 space-y-2">
