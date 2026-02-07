@@ -15,20 +15,22 @@
 
 <div class="space-y-6 animate-slideUp">
 	<!-- Header -->
-	<div class="flex items-center justify-between">
-		<div>
-			<p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-muted">Training</p>
-			<h1 class="text-3xl font-bold text-primary">Your Programs</h1>
+	<div class="space-y-3 sm:space-y-0 sm:flex sm:items-start sm:justify-between sm:gap-6">
+		<div class="min-w-0">
+			<p class="hidden sm:block text-[11px] font-semibold tracking-[0.1em] uppercase text-muted">Training</p>
+			<h1 class="text-3xl sm:text-4xl font-bold text-primary">Your Programs</h1>
 			<p class="text-sm text-secondary mt-1">
-				Manage active plans and launch your next session.
+				Manage active plans.
 			</p>
 		</div>
-		<Button onclick={() => goto('/onboarding')} size="sm">
-			{#snippet children()}
-				<Plus size={18} />
-				New Program
-			{/snippet}
-		</Button>
+		<div class="sm:pt-1">
+			<Button onclick={() => goto('/onboarding')} size="sm">
+				{#snippet children()}
+					<Plus size={16} class="hidden sm:block" />
+					<span class="whitespace-nowrap">New Program</span>
+				{/snippet}
+			</Button>
+		</div>
 	</div>
 
 	{#if programs.length === 0}

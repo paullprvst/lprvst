@@ -12,9 +12,19 @@
 		expandable?: boolean;
 		onedit?: () => void;
 		lastPerformances?: Map<string, ExerciseLog>;
+		mobileCompact?: boolean;
+		showExercisePreview?: boolean;
 	}
 
-	let { workout, onclick, expandable = true, onedit, lastPerformances }: Props = $props();
+	let {
+		workout,
+		onclick,
+		expandable = true,
+		onedit,
+		lastPerformances,
+		mobileCompact = false,
+		showExercisePreview = true
+	}: Props = $props();
 
 	function formatLastPerformance(exerciseName: string): string | null {
 		if (!lastPerformances) return null;
@@ -130,21 +140,15 @@
 	{#if expandable && !onclick}
 		<button
 			type="button"
-			class="w-full flex items-start gap-3 text-left touch-target"
+			class="w-full flex items-start text-left touch-target"
 			onclick={toggleExpanded}
 			aria-expanded={expanded}
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${workout.name}`}
 		>
-			<div
-				class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary)/0.24)] to-[rgb(var(--color-accent-secondary)/0.2)] border border-brand-soft flex items-center justify-center"
-			>
-				<Dumbbell size={20} class="text-brand" />
-			</div>
-
 			<div class="flex-1 min-w-0">
 				<div class="flex items-start justify-between gap-2">
 					<div class="min-w-0">
-						<h3 class="font-semibold text-primary leading-tight">{workout.name}</h3>
+						<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
 						{#if workout.notes && !expanded}
 							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
 						{/if}
@@ -159,30 +163,26 @@
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
 					<span class="flex items-center gap-1">
-						<Clock size={12} />
+						<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
 						{formatWorkoutDuration(workout.estimatedDuration)}
 					</span>
 					<span>·</span>
 					<span>{mainExercises.length} exercises</span>
 				</div>
 
-				{#if !expanded}
-					<p class="text-xs text-muted mt-1.5 line-clamp-1">{exercisePreview()}</p>
+				{#if !expanded && showExercisePreview}
+					<p class="text-xs text-muted mt-1.5 line-clamp-1 {mobileCompact ? 'hidden sm:block' : ''}">
+						{exercisePreview()}
+					</p>
 				{/if}
 			</div>
 		</button>
 	{:else}
-		<div class="flex items-start gap-3">
-			<div
-				class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary)/0.24)] to-[rgb(var(--color-accent-secondary)/0.2)] border border-brand-soft flex items-center justify-center"
-			>
-				<Dumbbell size={20} class="text-brand" />
-			</div>
-
+		<div class="flex items-start">
 			<div class="flex-1 min-w-0">
 				<div class="flex items-start justify-between gap-2">
 					<div class="min-w-0">
-						<h3 class="font-semibold text-primary leading-tight">{workout.name}</h3>
+						<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
 						{#if workout.notes && !expanded}
 							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
 						{/if}
@@ -200,15 +200,17 @@
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
 					<span class="flex items-center gap-1">
-						<Clock size={12} />
+						<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
 						{formatWorkoutDuration(workout.estimatedDuration)}
 					</span>
 					<span>·</span>
 					<span>{mainExercises.length} exercises</span>
 				</div>
 
-				{#if !expanded && expandable}
-					<p class="text-xs text-muted mt-1.5 line-clamp-1">{exercisePreview()}</p>
+				{#if !expanded && expandable && showExercisePreview}
+					<p class="text-xs text-muted mt-1.5 line-clamp-1 {mobileCompact ? 'hidden sm:block' : ''}">
+						{exercisePreview()}
+					</p>
 				{/if}
 			</div>
 		</div>
@@ -230,23 +232,22 @@
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
 								{@const lastPerf = formatLastPerformance(exercise.name)}
-								<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft">
-									<div class="flex items-center gap-1.5 min-w-0">
-										<span class="text-sm text-primary truncate">{exercise.name}</span>
-										<ExerciseInfoButton
-											exerciseName={exercise.name}
-											equipment={exercise.equipment}
-											notes={exercise.notes}
-											size={12}
-										/>
-									</div>
-									<div class="flex items-center gap-2 flex-shrink-0 sm:ml-2">
+								<div class="flex items-center gap-1.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft min-w-0">
+									<span class="text-sm text-primary truncate flex-1 min-w-0">{exercise.name}</span>
+									<ExerciseInfoButton
+										exerciseName={exercise.name}
+										equipment={exercise.equipment}
+										notes={exercise.notes}
+										size={12}
+									/>
+									<div class="flex items-center gap-1.5 flex-shrink-0 text-xs whitespace-nowrap">
 										{#if lastPerf}
-											<span class="text-xs text-success">
+											<span class="text-success">
 												{lastPerf}
 											</span>
+											<span class="text-[rgb(var(--color-border))]">·</span>
 										{/if}
-										<span class="text-xs text-muted">
+										<span class="text-muted">
 											{formatExerciseDetails(exercise)}
 										</span>
 									</div>

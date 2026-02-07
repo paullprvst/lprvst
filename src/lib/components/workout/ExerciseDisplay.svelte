@@ -107,6 +107,24 @@
 
 	const config = $derived(typeConfig[exercise.type] || typeConfig.main);
 
+	function normalizeLabel(value: string): string {
+		return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+	}
+
+	const shouldShowExerciseNotes = $derived(() => {
+		const notes = exercise.notes?.trim();
+		if (!notes) return false;
+
+		const normalized = normalizeLabel(notes);
+		if (!normalized) return false;
+
+		if (exercise.type === 'warmup' && normalized.startsWith('warmup')) return false;
+		if (exercise.type === 'cooldown' && normalized.startsWith('cooldown')) return false;
+		if (exercise.type === 'main' && (normalized === 'main' || normalized === 'workout')) return false;
+
+		return true;
+	});
+
 	function formatLastPerformance(exerciseLog: ExerciseLog): string {
 		const sets = exerciseLog.sets.filter(s => s.completed);
 		if (sets.length === 0) return '';
@@ -149,67 +167,65 @@
 
 <div class="space-y-4 animate-slideUp">
 	<!-- Exercise Info Card -->
-	<div class="rounded-2xl border border-brand-soft overflow-hidden">
-		<Card padding="lg">
-			<div class="space-y-5">
-				<!-- Type badge and title -->
-				<div>
-					{#if exercise.type !== 'main'}
-						<div
-							class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
-						>
-							<config.icon size={12} />
-							{config.label}
-						</div>
-					{/if}
-					<div class="flex items-center gap-2">
-						<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
-						<ExerciseInfoButton
-							exerciseName={exercise.name}
-							equipment={exercise.equipment}
-							notes={exercise.notes}
-							size={22}
-						/>
-					</div>
-					{#if exercise.notes}
-						<p class="text-secondary mt-2">{exercise.notes}</p>
-					{/if}
-				</div>
-
-				<!-- Equipment -->
-				{#if exercise.equipment && exercise.equipment.length > 0}
-					<div class="flex flex-wrap gap-2">
-						{#each exercise.equipment as item}
-							<span
-								class="px-3 py-1.5 text-sm bg-brand-soft rounded-lg text-brand font-medium"
-							>
-								{item}
-							</span>
-						{/each}
+	<div class="rounded-xl border border-brand-soft surface p-5 sm:p-6">
+		<div class="space-y-5">
+			<!-- Type badge and title -->
+			<div>
+				{#if exercise.type !== 'main'}
+					<div
+						class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
+					>
+						<config.icon size={12} />
+						{config.label}
 					</div>
 				{/if}
-
-				<!-- Target info -->
-				<div class="p-4 bg-brand-soft rounded-xl border border-brand-soft">
-					<p class="text-xs font-bold text-brand uppercase tracking-wide mb-1">Target</p>
-					<p class="text-2xl font-bold text-primary">
-						{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
-					</p>
-					<p class="text-sm text-secondary mt-2">
-						{formatRestTime(exercise.restBetweenSets)} between sets
-					</p>
+				<div class="flex items-center gap-2">
+					<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
+					<ExerciseInfoButton
+						exerciseName={exercise.name}
+						equipment={exercise.equipment}
+						notes={exercise.notes}
+						size={22}
+					/>
 				</div>
-
-				<!-- Last performance -->
-				{#if lastPerformance}
-					<div class="p-3 bg-border-soft rounded-xl border border-theme">
-						<p class="text-xs font-medium text-secondary">
-							Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
-						</p>
-					</div>
+				{#if shouldShowExerciseNotes()}
+					<p class="text-secondary mt-2">{exercise.notes}</p>
 				{/if}
 			</div>
-		</Card>
+
+			<!-- Equipment -->
+			{#if exercise.equipment && exercise.equipment.length > 0}
+				<div class="flex flex-wrap gap-2">
+					{#each exercise.equipment as item}
+						<span
+							class="px-3 py-1.5 text-sm bg-brand-soft rounded-lg text-brand font-medium"
+						>
+							{item}
+						</span>
+					{/each}
+				</div>
+			{/if}
+
+			<!-- Target info -->
+			<div class="p-4 bg-brand-soft rounded-xl border border-brand-soft">
+				<p class="text-xs font-bold text-brand uppercase tracking-wide mb-1">Target</p>
+				<p class="text-2xl font-bold text-primary">
+					{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
+				</p>
+				<p class="text-sm text-secondary mt-2">
+					{formatRestTime(exercise.restBetweenSets)} between sets
+				</p>
+			</div>
+
+			<!-- Last performance -->
+			{#if lastPerformance}
+				<div class="p-3 bg-border-soft rounded-xl border border-theme">
+					<p class="text-xs font-medium text-secondary">
+						Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
+					</p>
+				</div>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Sets Card / Timer -->
@@ -228,8 +244,8 @@
 		{/key}
 	{:else if !allSetsCompleted}
 		<!-- Rep-based exercise: show set forms -->
-		<Card>
-			<div class="space-y-4">
+		<Card padding="sm">
+			<div class="space-y-3">
 				<div class="flex items-center justify-between">
 					<h3 class="font-semibold text-primary">Sets</h3>
 					<span class="text-sm font-bold px-3 py-1 rounded-full bg-brand-soft text-brand">
@@ -237,23 +253,23 @@
 					</span>
 				</div>
 
-				<div class="space-y-3">
+				<div class="space-y-2.5">
 					{#each log.sets as set, index}
 						<div
-							class="p-3 rounded-xl border-2 transition-all duration-200 animate-scaleIn {set.completed
+							class="p-2.5 sm:p-3 rounded-xl border transition-all duration-200 animate-scaleIn {set.completed
 								? 'border-success-soft bg-success-soft'
 								: 'border-brand-soft surface'}"
 							style="animation-delay: {index * 50}ms"
 						>
 							{#if set.completed}
 								<!-- Completed set display -->
-								<div class="flex items-center gap-3">
-									<div class="w-8 h-8 rounded-full bg-[rgb(var(--color-success))] flex items-center justify-center shadow-sm">
-										<Check size={16} class="text-white" strokeWidth={3} />
+								<div class="flex items-center gap-2.5">
+									<div class="w-7 h-7 rounded-full bg-[rgb(var(--color-success))] flex items-center justify-center shadow-sm">
+										<Check size={14} class="text-white" strokeWidth={3} />
 									</div>
 									<div class="flex-1">
-										<span class="font-semibold text-success">Set {set.setNumber}</span>
-										<span class="text-sm text-secondary ml-2">
+										<span class="font-semibold text-sm text-success">Set {set.setNumber}</span>
+										<span class="text-xs sm:text-sm text-secondary ml-2">
 											{#if set.reps}{set.reps} reps{/if}
 											{#if set.reps && set.weight} @ {/if}
 											{#if set.weight}{set.weight} kg{/if}
@@ -263,37 +279,39 @@
 								</div>
 							{:else}
 								<!-- Active set form -->
-								<div class="flex flex-col sm:flex-row sm:items-center gap-3">
-										<span class="font-semibold text-primary sm:w-14">Set {set.setNumber}</span>
+								<div class="grid grid-cols-[auto_1fr_auto] items-center gap-2 sm:gap-2.5">
+									<span class="font-semibold text-primary text-sm whitespace-nowrap">
+										Set {set.setNumber}
+									</span>
 
-										<div class="flex-1 grid grid-cols-2 gap-2 min-w-0 w-full">
-											<Input
-												type="number"
-												bind:value={setInputs[set.setNumber].reps}
-												min="0"
-												placeholder="Reps"
-												containerClass="w-full sm:w-20"
-												inputClass="px-3 py-2 text-center text-sm rounded-lg"
-												inputMode="numeric"
-											/>
-											<Input
-												type="number"
-												bind:value={setInputs[set.setNumber].weight}
-												min="0"
-												step="0.5"
-												placeholder="kg"
-												containerClass="w-full sm:w-20"
-												inputClass="px-3 py-2 text-center text-sm rounded-lg"
-												inputMode="decimal"
-											/>
-										</div>
+									<div class="grid grid-cols-2 gap-2 min-w-0">
+										<Input
+											type="number"
+											bind:value={setInputs[set.setNumber].reps}
+											min="0"
+											placeholder="Reps"
+											containerClass="w-full"
+											inputClass="px-2.5 py-1.5 min-h-[42px] text-center text-sm rounded-lg"
+											inputMode="numeric"
+										/>
+										<Input
+											type="number"
+											bind:value={setInputs[set.setNumber].weight}
+											min="0"
+											step="0.5"
+											placeholder="kg"
+											containerClass="w-full"
+											inputClass="px-2.5 py-1.5 min-h-[42px] text-center text-sm rounded-lg"
+											inputMode="decimal"
+										/>
+									</div>
 
 									<button
 										type="button"
 										onclick={() => completeSet(set)}
-										class="w-full sm:w-auto px-4 py-2 bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black font-semibold rounded-lg transition-colors active:scale-95 touch-target"
+										class="min-h-[42px] min-w-[72px] px-3 py-2 bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black text-xs sm:text-sm font-semibold rounded-lg transition-colors active:scale-95"
 									>
-										DONE
+										Done
 									</button>
 								</div>
 							{/if}

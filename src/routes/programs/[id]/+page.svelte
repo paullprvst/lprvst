@@ -194,6 +194,46 @@
 			</button>
 		</div>
 
+		<Card padding="md">
+			<div class="space-y-3">
+				<p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-muted">Quick Actions</p>
+				<div class="grid grid-cols-2 gap-2.5">
+					<Button onclick={() => goto('/calendar')} fullWidth={true} size="md">
+						{#snippet children()}
+							<Calendar size={18} class="hidden sm:block" />
+							View Calendar
+						{/snippet}
+					</Button>
+
+					<Button onclick={() => goto(`/programs/${program!.id}/adapt`)} fullWidth={true} size="md" variant="secondary">
+						{#snippet children()}
+							<Sparkles size={18} class="hidden sm:block" />
+							Chat with AI
+						{/snippet}
+					</Button>
+
+					<Button onclick={togglePausedState} fullWidth={true} size="md" variant="outline" disabled={togglingPause}>
+						{#snippet children()}
+							{#if program?.isPaused}
+								<Play size={18} class="hidden sm:block" />
+								{togglingPause ? 'Resuming...' : 'Resume'}
+							{:else}
+								<Pause size={18} class="hidden sm:block" />
+								{togglingPause ? 'Pausing...' : 'Pause'}
+							{/if}
+						{/snippet}
+					</Button>
+
+					<Button onclick={() => exportProgramToPdf(program!)} fullWidth={true} size="md" variant="ghost">
+						{#snippet children()}
+							<Download size={18} class="hidden sm:block" />
+							Export PDF
+						{/snippet}
+					</Button>
+				</div>
+			</div>
+		</Card>
+
 		<Card variant="info">
 			<div class="space-y-4">
 				<div>
@@ -237,41 +277,6 @@
 					</div>
 				{/each}
 			</div>
-		</div>
-
-		<div class="space-y-3">
-			<Button onclick={togglePausedState} fullWidth={true} size="lg" variant="outline" disabled={togglingPause}>
-				{#snippet children()}
-					{#if program?.isPaused}
-						<Play size={20} />
-						{togglingPause ? 'Resuming...' : 'Resume Program'}
-					{:else}
-						<Pause size={20} />
-						{togglingPause ? 'Pausing...' : 'Pause Program'}
-					{/if}
-				{/snippet}
-			</Button>
-
-			<Button onclick={() => goto('/calendar')} fullWidth={true} size="lg">
-				{#snippet children()}
-					<Calendar size={20} />
-					View Calendar
-				{/snippet}
-			</Button>
-
-			<Button onclick={() => goto(`/programs/${program!.id}/adapt`)} fullWidth={true} size="lg" variant="secondary">
-				{#snippet children()}
-					<Sparkles size={20} />
-					Chat with AI
-				{/snippet}
-			</Button>
-
-			<Button onclick={() => exportProgramToPdf(program!)} fullWidth={true} size="lg" variant="ghost">
-				{#snippet children()}
-					<Download size={20} />
-					Export as PDF
-				{/snippet}
-			</Button>
 		</div>
 
 		<MuscleHeatmap {program} />

@@ -138,10 +138,10 @@
 			{#each sessions as { session, workout, program }, index}
 				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
 					<Card variant="interactive" onclick={() => goto(`/history/${session.id}`)}>
-						<div class="flex items-start sm:items-center gap-4">
+						<div class="flex items-start sm:items-center gap-3 sm:gap-4">
 							<!-- Success Icon -->
 							<div
-								class="flex-shrink-0 w-12 h-12 rounded-xl bg-[rgb(var(--color-success)/0.1)] flex items-center justify-center"
+								class="hidden sm:flex flex-shrink-0 w-12 h-12 rounded-xl bg-[rgb(var(--color-success)/0.1)] items-center justify-center"
 							>
 								<CheckCircle size={24} class="text-[rgb(var(--color-success))]" />
 							</div>
@@ -154,7 +154,7 @@
 								<!-- Meta info -->
 								<div class="flex items-center gap-3 mt-2 text-xs text-muted">
 									<div class="flex items-center gap-1">
-										<Clock size={12} />
+										<Clock size={12} class="hidden sm:block" />
 										<span>{formatDuration(session)}</span>
 									</div>
 									<span class="text-[rgb(var(--color-border))]">|</span>

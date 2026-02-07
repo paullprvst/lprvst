@@ -4,7 +4,6 @@
 	import { Chart, registerables } from 'chart.js';
 	import 'chartjs-adapter-date-fns';
 	import type { WeightEntry } from '$lib/types/weight-entry';
-	import Card from '$lib/components/shared/Card.svelte';
 	import { TrendingUp } from 'lucide-svelte';
 
 	Chart.register(...registerables);
@@ -177,23 +176,19 @@
 </script>
 
 {#if getChartData().length < 2}
-	<Card padding="lg">
-		<div class="text-center py-4 space-y-3">
-			<div
-				class="w-12 h-12 mx-auto rounded-xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
-			>
-				<TrendingUp size={24} class="text-muted" />
-			</div>
-			<div class="space-y-1">
-				<p class="text-secondary font-medium">Not enough data</p>
-				<p class="text-sm text-muted">Add at least 2 entries to see your weight trend</p>
-			</div>
+	<div class="text-center py-7 space-y-3">
+		<div
+			class="w-11 h-11 mx-auto rounded-xl bg-[rgb(var(--color-border)/0.36)] flex items-center justify-center"
+		>
+			<TrendingUp size={22} class="text-muted" />
 		</div>
-	</Card>
+		<div class="space-y-1">
+			<p class="text-secondary font-medium">Not enough data</p>
+			<p class="text-sm text-muted">Add at least 2 entries to see your trend line.</p>
+		</div>
+	</div>
 {:else}
-	<Card padding="md">
-		<div class="h-48">
-			<canvas bind:this={canvas}></canvas>
-		</div>
-	</Card>
+	<div class="h-52 sm:h-56">
+		<canvas bind:this={canvas}></canvas>
+	</div>
 {/if}

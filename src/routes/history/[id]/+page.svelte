@@ -17,7 +17,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { formatDate, formatDuration } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Clock, CheckCircle, XCircle, Save, Pencil } from 'lucide-svelte';
+	import { ArrowLeft, Clock, Check, CheckCircle, X, XCircle, Pencil } from 'lucide-svelte';
 
 	let session = $state<WorkoutSession | null>(null);
 	let workout = $state<Workout | null>(null);
@@ -198,28 +198,28 @@
 								{#each exerciseLog.sets as set, setIndex}
 									{@const isEditing = editingSet?.exerciseIndex === exerciseIndex && editingSet?.setIndex === setIndex}
 									<div
-										class="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl {set.completed
+										class="flex items-center gap-2 p-2 rounded-xl min-h-[52px] {set.completed
 											? 'bg-success-soft border border-success-soft'
 											: 'bg-border-soft border border-theme'}"
 									>
 										{#if set.completed}
-											<CheckCircle size={18} class="text-success flex-shrink-0" />
+											<CheckCircle size={16} class="text-success flex-shrink-0 hidden sm:block" />
 										{:else}
-											<XCircle size={18} class="text-muted flex-shrink-0" />
+											<XCircle size={16} class="text-muted flex-shrink-0 hidden sm:block" />
 										{/if}
 
-										<span class="font-medium text-primary sm:w-14">Set {set.setNumber}</span>
+										<span class="font-medium text-primary text-sm w-10">#{set.setNumber}</span>
 
 										{#if isEditing}
 											<!-- Edit mode -->
-											<div class="flex-1 grid grid-cols-2 gap-2 min-w-0 w-full">
+											<div class="flex-1 grid grid-cols-2 gap-1.5 min-w-0">
 												<Input
 													type="number"
 													bind:value={editValues.reps}
 													min="0"
 													placeholder="Reps"
-													containerClass="w-full sm:w-20"
-													inputClass="px-3 py-2 text-center text-sm rounded-lg"
+													containerClass="w-full"
+													inputClass="h-9 px-2 py-0 text-center text-sm rounded-lg"
 													inputMode="numeric"
 												/>
 												<Input
@@ -228,33 +228,33 @@
 													min="0"
 													step="0.5"
 													placeholder="kg"
-													containerClass="w-full sm:w-20"
-													inputClass="px-3 py-2 text-center text-sm rounded-lg"
+													containerClass="w-full"
+													inputClass="h-9 px-2 py-0 text-center text-sm rounded-lg"
 													inputMode="decimal"
 												/>
 											</div>
-											<div class="flex items-center gap-1 self-end sm:self-auto">
+											<div class="flex items-center gap-1">
 												<button
 													type="button"
 													onclick={saveSetEdit}
 													disabled={saving}
-													class="p-2 rounded-lg bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black transition-colors disabled:opacity-50 touch-target"
+													class="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-[rgb(var(--color-success))] hover:bg-[rgb(var(--color-success)/0.85)] text-black transition-colors disabled:opacity-50"
 													aria-label="Save"
 												>
-													<Save size={16} />
+													<Check size={16} />
 												</button>
 												<button
 													type="button"
 													onclick={cancelEditing}
-													class="p-2 rounded-lg bg-border-soft hover:bg-[rgb(var(--color-border)/0.55)] text-primary transition-colors touch-target"
+													class="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-border-soft hover:bg-[rgb(var(--color-border)/0.55)] text-primary transition-colors"
 													aria-label="Cancel"
 												>
-													<XCircle size={16} />
+													<X size={16} />
 												</button>
 											</div>
 										{:else}
 											<!-- View mode -->
-											<div class="flex-1 text-sm text-secondary">
+											<div class="flex-1 text-sm text-secondary truncate">
 												{#if set.reps}{set.reps} reps{/if}
 												{#if set.reps && set.weight} @ {/if}
 												{#if set.weight}{set.weight} kg{/if}
@@ -265,10 +265,10 @@
 												<button
 													type="button"
 													onclick={() => startEditing(exerciseIndex, setIndex, set)}
-													class="p-2 rounded-lg hover:bg-border-soft text-muted hover:text-primary transition-colors touch-target"
+													class="inline-flex items-center justify-center h-9 w-9 rounded-lg hover:bg-border-soft text-muted hover:text-primary transition-colors"
 													aria-label="Edit set"
 												>
-													<Pencil size={16} />
+													<Pencil size={15} class="block" />
 												</button>
 											{/if}
 										{/if}

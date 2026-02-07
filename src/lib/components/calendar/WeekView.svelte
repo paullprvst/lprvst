@@ -17,7 +17,6 @@
 	import CalendarDay from './CalendarDay.svelte';
 	import Card from '../shared/Card.svelte';
 	import WorkoutCard from '../program/WorkoutCard.svelte';
-	import Button from '../shared/Button.svelte';
 	import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-svelte';
 
 	interface Props {
@@ -32,7 +31,6 @@
 
 	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
 	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
-	const selectedDay = $state<{ date: Date; workout: any; workoutIndex: number } | null>(null);
 	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 1 }));
 
 	function previousWeek() {
@@ -122,19 +120,21 @@
 	<!-- Upcoming Workouts Section -->
 	<div class="space-y-3">
 		<div class="flex items-center gap-2">
-			<CalendarDays size={20} class="text-muted" />
-			<h3 class="text-lg font-semibold text-primary">Upcoming Workouts</h3>
+			<CalendarDays size={20} class="hidden sm:block text-muted" />
+			<h3 class="text-base sm:text-lg font-semibold text-primary">Upcoming Workouts</h3>
 		</div>
 
 		<div class="space-y-3">
 			{#each upcomingWorkouts as day, index}
 				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
 					<div class="text-sm text-secondary mb-2 font-medium break-words">
-						{formatDate(day.date, 'EEEE, MMM d')}
+						<span class="sm:hidden">{formatDate(day.date, 'EEE, MMM d')}</span>
+						<span class="hidden sm:inline">{formatDate(day.date, 'EEEE, MMM d')}</span>
 					</div>
 					<WorkoutCard
 						workout={day.workout}
 						onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
+						mobileCompact={true}
 					/>
 				</div>
 			{:else}

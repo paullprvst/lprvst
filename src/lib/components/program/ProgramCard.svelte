@@ -2,8 +2,8 @@
 	import { goto } from '$app/navigation';
 	import type { Program } from '$lib/types/program';
 	import Card from '../shared/Card.svelte';
-	import { formatDate, DAY_NAMES_SHORT } from '$lib/utils/date-helpers';
-	import { Dumbbell, Calendar, ChevronRight } from 'lucide-svelte';
+	import { DAY_NAMES_SHORT } from '$lib/utils/date-helpers';
+	import { Dumbbell, ChevronRight } from 'lucide-svelte';
 
 	interface Props {
 		program: Program;
@@ -14,13 +14,20 @@
 	const workoutDays = $derived(
 		program.schedule.weeklyPattern.map((p) => DAY_NAMES_SHORT[p.dayOfWeek]).join(', ')
 	);
+
+	const scheduleLabel = $derived(() => {
+		const workoutDaysCount = program.schedule.weeklyPattern.length;
+		if (workoutDaysCount === 7) return 'Daily';
+		if (workoutDaysCount >= 5) return `${workoutDaysCount} days/week`;
+		return workoutDays;
+	});
 </script>
 
 <Card variant="interactive" onclick={() => goto(`/programs/${program.id}`)}>
-	<div class="flex items-center gap-4">
+	<div class="flex items-center gap-3 sm:gap-4">
 		<!-- Icon -->
 		<div
-			class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary))] via-[rgb(var(--color-primary-hover))] to-[rgb(var(--color-accent-secondary))] flex items-center justify-center shadow-[0_16px_24px_-18px_rgb(var(--color-primary)/0.9)]"
+			class="hidden sm:flex flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary))] via-[rgb(var(--color-primary-hover))] to-[rgb(var(--color-accent-secondary))] items-center justify-center shadow-[0_16px_24px_-18px_rgb(var(--color-primary)/0.9)]"
 		>
 			<Dumbbell class="text-[rgb(3_12_20)]" size={24} />
 		</div>
@@ -37,20 +44,17 @@
 					</span>
 				{/if}
 			</div>
-			<p class="text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
+			<p class="hidden sm:block text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
 
 			<!-- Meta info -->
-			<div class="flex items-center gap-3 mt-2 text-xs text-muted">
-				<div class="flex items-center gap-1">
-					<Calendar size={12} />
-					<span>{workoutDays}</span>
-				</div>
+			<div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs text-muted">
+				<span>{scheduleLabel()}</span>
 				<span class="text-[rgb(var(--color-border))]">|</span>
 				<span>{program.workouts.length} workouts</span>
 			</div>
 		</div>
 
 		<!-- Arrow indicator -->
-		<ChevronRight size={20} class="text-muted flex-shrink-0" />
+		<ChevronRight size={20} class="text-muted flex-shrink-0 hidden sm:block" />
 	</div>
 </Card>

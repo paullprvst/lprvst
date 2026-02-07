@@ -172,7 +172,7 @@
 		{#if inProgressSession}
 			<Card padding="md" variant="warning">
 				<div class="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-					<div class="w-10 h-10 rounded-full bg-warning-soft flex items-center justify-center flex-shrink-0">
+					<div class="hidden sm:flex w-10 h-10 rounded-full bg-warning-soft items-center justify-center flex-shrink-0">
 						<Play size={20} class="text-warning" />
 					</div>
 					<div class="flex-1 min-w-0">

@@ -87,6 +87,7 @@
 	const charCount = $derived(String(value ?? '').length);
 	const isNearLimit = $derived(maxLength ? charCount >= maxLength * 0.9 : false);
 	const isAtLimit = $derived(maxLength ? charCount >= maxLength : false);
+	const dateInputClass = $derived(type === 'date' ? 'date-input' : '');
 	let inputElement = $state<HTMLInputElement | null>(null);
 	let textareaElement = $state<HTMLTextAreaElement | null>(null);
 
@@ -141,7 +142,7 @@
 			{onblur}
 			maxlength={maxLength}
 			minlength={minLength}
-			class="{baseClasses} {error ? errorClasses : ''} {inputClass}"
+			class="{baseClasses} {dateInputClass} {error ? errorClasses : ''} {inputClass}"
 		/>
 	{/if}
 
