@@ -27,7 +27,16 @@
 
 		<!-- Content -->
 		<div class="flex-1 min-w-0">
-			<h3 class="font-semibold text-primary truncate">{program.name}</h3>
+			<div class="flex items-center gap-2">
+				<h3 class="font-semibold text-primary truncate">{program.name}</h3>
+				{#if program.isPaused}
+					<span
+						class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-amber-500/15 text-amber-600 dark:text-amber-400 flex-shrink-0"
+					>
+						Paused
+					</span>
+				{/if}
+			</div>
 			<p class="text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
 
 			<!-- Meta info -->

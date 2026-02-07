@@ -18,6 +18,7 @@
 	import { featureFlags } from '$lib/utils/feature-flags';
 
 	let programs = $state<Program[]>([]);
+	let activePrograms = $state<Program[]>([]);
 	let selectedProgram = $state<Program | null>(null);
 	let completedSessions = $state<WorkoutSession[]>([]);
 	let inProgressSession = $state<WorkoutSession | null>(null);
@@ -26,8 +27,9 @@
 
 	onMount(async () => {
 		programs = await programRepository.getAll();
-		if (programs.length > 0) {
-			selectedProgram = programs[0];
+		activePrograms = programs.filter((program) => !program.isPaused);
+		if (activePrograms.length > 0) {
+			selectedProgram = activePrograms[0];
 		}
 		// Load all completed sessions
 		completedSessions = await workoutSessionRepository.getCompleted();
@@ -112,7 +114,7 @@
 			{/each}
 		</div>
 	</div>
-{:else if programs.length === 0}
+{:else if activePrograms.length === 0}
 	<Card padding="lg">
 		<div class="text-center py-8 space-y-4">
 			<div
@@ -121,11 +123,25 @@
 				<Calendar size={40} class="text-muted" />
 			</div>
 			<div class="space-y-2">
-				<h3 class="text-lg font-semibold text-primary">No programs yet</h3>
-				<p class="text-secondary text-sm max-w-xs mx-auto">
-					Create a program to see your workout calendar and schedule.
-				</p>
+				{#if programs.length === 0}
+					<h3 class="text-lg font-semibold text-primary">No programs yet</h3>
+					<p class="text-secondary text-sm max-w-xs mx-auto">
+						Create a program to see your workout calendar and schedule.
+					</p>
+				{:else}
+					<h3 class="text-lg font-semibold text-primary">All programs are paused</h3>
+					<p class="text-secondary text-sm max-w-xs mx-auto">
+						Resume a program to show it in your calendar, or create a new one.
+					</p>
+				{/if}
 			</div>
+			{#if programs.length > 0}
+				<Button onclick={() => goto('/programs')} variant="secondary">
+					{#snippet children()}
+						Manage Programs
+					{/snippet}
+				</Button>
+			{/if}
 			<Button onclick={() => goto('/onboarding')}>
 				{#snippet children()}
 					<Plus size={20} />
@@ -168,7 +184,7 @@
 		{/if}
 
 		<!-- Program selector (if multiple programs) -->
-		{#if programs.length > 1}
+		{#if activePrograms.length > 1}
 			<div class="relative">
 				<label class="block text-sm font-medium text-secondary mb-2">Select Program</label>
 				<div class="relative">
@@ -176,7 +192,7 @@
 						bind:value={selectedProgram}
 						class="w-full px-4 py-3 pr-10 surface border border-theme rounded-xl text-primary appearance-none cursor-pointer input-focus-ring"
 					>
-						{#each programs as program}
+						{#each activePrograms as program}
 							<option value={program}>{program.name}</option>
 						{/each}
 					</select>

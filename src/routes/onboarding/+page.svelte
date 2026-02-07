@@ -26,6 +26,18 @@
 	let readyToGenerate = $state(false);
 	let initialObjective = $state('');
 
+	function getErrorMessage(error: unknown): string {
+		if (error instanceof Error) return error.message;
+		if (typeof error === 'object' && error !== null) {
+			const candidate = error as Record<string, unknown>;
+			const code = typeof candidate.code === 'string' ? candidate.code : '';
+			const message = typeof candidate.message === 'string' ? candidate.message : '';
+			if (code && message) return `${code}: ${message}`;
+			if (message) return message;
+		}
+		return 'Unknown error';
+	}
+
 	onMount(() => {
 		const checkWhenReady = async () => {
 			if (!auth.initialized) {
@@ -114,27 +126,44 @@
 		if (!conversation) return;
 
 		step = 'generating';
+		console.info('[workout:create] Starting program generation from onboarding', {
+			conversationId: conversation.id
+		});
 		try {
 			// Update user profile with objectives to mark onboarding complete
 			const currentUser = await userRepository.getCurrentUser();
 			if (currentUser) {
+				console.info('[workout:create] Updating user objectives before generation', {
+					userId: currentUser.id
+				});
 				await userRepository.update(currentUser.id, {
 					objectives: initialObjective
 				});
 			}
 
 			const program = await programGenerator.generateFromConversation(conversation.id);
+			console.info('[workout:create] Program generation succeeded', {
+				conversationId: conversation.id,
+				programId: program.id
+			});
 			await conversationManager.completeConversation(conversation.id);
 			goto(`/programs/${program.id}`);
 		} catch (error) {
-			console.error('Error generating program:', error);
+			const details =
+				typeof error === 'object' && error !== null
+					? (error as Record<string, unknown>)
+					: { message: String(error) };
+			console.error('[workout:create] Program generation failed in onboarding', {
+				conversationId: conversation.id,
+				...details
+			});
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
 			} else if (error instanceof Error && error.message.includes('API key')) {
 				step = 'api-key-required';
 			} else {
-				const message = error instanceof Error ? error.message : 'Unknown error';
+				const message = getErrorMessage(error);
 				alert(`Failed to generate program: ${message}`);
 			}
 			step = 'conversation';

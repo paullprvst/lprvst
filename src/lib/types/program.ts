@@ -38,6 +38,7 @@ export interface Program {
 	id: string;
 	userId?: string;
 	currentVersionId?: string;
+	isPaused?: boolean;
 	name: string;
 	description: string;
 	startDate: Date;
@@ -146,6 +147,7 @@ export const ProgramScheduleSchema = z.object({
 export const ProgramSchema = z.object({
 	id: z.string(),
 	currentVersionId: z.string().optional(),
+	isPaused: z.boolean().optional().default(false),
 	name: z.string(),
 	description: z.string(),
 	startDate: z.string().or(z.date()),

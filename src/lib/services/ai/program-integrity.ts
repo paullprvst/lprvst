@@ -97,6 +97,7 @@ export function preserveProgramIdentity(existingProgram: Program, modifiedProgra
 	return {
 		...modifiedProgram,
 		id: existingProgram.id,
+		isPaused: existingProgram.isPaused ?? false,
 		createdAt: existingProgram.createdAt,
 		updatedAt: new Date(),
 		workouts

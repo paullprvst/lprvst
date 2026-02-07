@@ -18,12 +18,13 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import MuscleHeatmap from '$lib/components/visualization/MuscleHeatmap.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download } from 'lucide-svelte';
+	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download, Pause, Play } from 'lucide-svelte';
 	import { exportProgramToPdf } from '$lib/utils/pdf-export';
 
 	let program = $state<Program | null>(null);
 	let loading = $state(true);
 	let saving = $state(false);
+	let togglingPause = $state(false);
 	let lastPerformances = $state<Map<string, ExerciseLog>>(new Map());
 
 	// Single workout edit modal
@@ -118,6 +119,18 @@
 		}
 	}
 
+	async function togglePausedState() {
+		if (!program) return;
+		togglingPause = true;
+		try {
+			const nextPausedState = !program.isPaused;
+			await programRepository.update(program.id, { isPaused: nextPausedState });
+			program.isPaused = nextPausedState;
+		} finally {
+			togglingPause = false;
+		}
+	}
+
 	// Workouts sorted by day of week
 	const sortedSchedule = $derived.by(() => {
 		const currentProgram = program;
@@ -189,6 +202,14 @@
 					<h2 class="text-sm font-medium text-muted uppercase">Started</h2>
 					<p class="mt-1 text-primary">{formatDate(program.startDate)}</p>
 				</div>
+
+				{#if program?.isPaused}
+					<div class="rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+						<p class="text-sm text-amber-700 dark:text-amber-300">
+							This program is paused and hidden from the calendar.
+						</p>
+					</div>
+				{/if}
 			</div>
 		</Card>
 
@@ -205,6 +226,18 @@
 		</div>
 
 		<div class="space-y-3">
+			<Button onclick={togglePausedState} fullWidth={true} size="lg" variant="outline" disabled={togglingPause}>
+				{#snippet children()}
+					{#if program?.isPaused}
+						<Play size={20} />
+						{togglingPause ? 'Resuming...' : 'Resume Program'}
+					{:else}
+						<Pause size={20} />
+						{togglingPause ? 'Pausing...' : 'Pause Program'}
+					{/if}
+				{/snippet}
+			</Button>
+
 			<Button onclick={() => goto('/calendar')} fullWidth={true} size="lg">
 				{#snippet children()}
 					<Calendar size={20} />

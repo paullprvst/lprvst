@@ -26,7 +26,7 @@ export const POST: RequestHandler = async (event) => {
 	const messagesWithContext = [
 		{
 			role: 'user' as const,
-			content: `Current program:\n${JSON.stringify(currentProgram, null, 2)}${exerciseDetails ? `\n\nExercise Details (for reference when making modifications):\n${exerciseDetails}` : ''}`
+			content: `Current program:\n${JSON.stringify(currentProgram)}${exerciseDetails ? `\n\nExercise Details (for reference when making modifications):\n${exerciseDetails}` : ''}`
 		},
 		...messages,
 		{

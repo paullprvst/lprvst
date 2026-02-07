@@ -55,8 +55,6 @@
 					rows={4}
 					autofocus={true}
 					onkeydown={handleKeydown}
-					maxLength={500}
-					showCharCount={true}
 					disabled={loading}
 				/>
 

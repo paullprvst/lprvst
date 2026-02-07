@@ -18,6 +18,7 @@ CREATE TABLE programs (
     start_date DATE NOT NULL,
     schedule JSONB NOT NULL,
     workouts JSONB NOT NULL,
+    is_paused BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );

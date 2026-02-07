@@ -8,13 +8,22 @@ export class ProgramRepository {
 	async create(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
 		const userId = await getAppUserId();
 		if (!userId) {
+			console.error('[workout:create] Program create blocked: no authenticated user');
 			throw new Error('User must be authenticated to create a program');
 		}
+		console.info('[workout:create] Inserting program into database', {
+			userId,
+			programName: program.name,
+			workoutCount: program.workouts.length,
+			scheduleDays: program.schedule.weeklyPattern.length,
+			isPaused: program.isPaused ?? false
+		});
 
 		const { data, error } = await supabase
 			.from('programs')
 			.insert({
 				user_id: userId,
+				is_paused: program.isPaused ?? false,
 				name: program.name,
 				description: program.description,
 				start_date: program.startDate,
@@ -24,7 +33,20 @@ export class ProgramRepository {
 			.select()
 			.single();
 
-		if (error) throw error;
+		if (error) {
+			console.error('[workout:create] Program insert failed', {
+				userId,
+				code: error.code,
+				message: error.message,
+				details: error.details,
+				hint: error.hint
+			});
+			throw error;
+		}
+		console.info('[workout:create] Program insert succeeded', {
+			userId,
+			programId: data.id as string
+		});
 		return this.hydrateFromCurrentVersion(this.mapFromDb(data));
 	}
 
@@ -57,6 +79,7 @@ export class ProgramRepository {
 		if (updates.schedule !== undefined) dbUpdates.schedule = updates.schedule;
 		if (updates.workouts !== undefined) dbUpdates.workouts = updates.workouts;
 		if (updates.currentVersionId !== undefined) dbUpdates.current_version_id = updates.currentVersionId;
+		if (updates.isPaused !== undefined) dbUpdates.is_paused = updates.isPaused;
 
 		const { error } = await supabase.from('programs').update(dbUpdates).eq('id', id);
 
@@ -73,6 +96,7 @@ export class ProgramRepository {
 			id: data.id as string,
 			userId: data.user_id as string | undefined,
 			currentVersionId: data.current_version_id as string | undefined,
+			isPaused: Boolean(data.is_paused ?? false),
 			name: data.name as string,
 			description: data.description as string,
 			startDate: new Date(data.start_date as string),

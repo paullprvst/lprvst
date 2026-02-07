@@ -40,11 +40,6 @@ export const load: LayoutLoad = async ({ url }) => {
 		if (!onboardingComplete && !isOnboarding && !isPublicRoute) {
 			throw redirect(303, '/onboarding');
 		}
-
-		// Redirect users who completed onboarding away from onboarding page
-		if (onboardingComplete && isOnboarding) {
-			throw redirect(303, '/calendar');
-		}
 	}
 
 	return { session, onboardingComplete };
