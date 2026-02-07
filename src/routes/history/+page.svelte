@@ -7,6 +7,8 @@
 	import { goto } from '$app/navigation';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import { programVersionRepository } from '$lib/services/storage/program-version-repository';
+	import { featureFlags } from '$lib/utils/feature-flags';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import type { Program, Workout } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
@@ -28,12 +30,35 @@
 	onMount(async () => {
 		const completedSessions = await workoutSessionRepository.getCompleted();
 		const programs = await programRepository.getAll();
+		const versionsById = new Map<string, NonNullable<Awaited<ReturnType<typeof programVersionRepository.getById>>>>();
+		if (featureFlags.programVersioningReads) {
+			const versionIds = [...new Set(completedSessions.map((session) => session.programVersionId).filter(Boolean))];
+			for (const versionId of versionIds) {
+				const version = await programVersionRepository.getById(versionId as string);
+				if (version) {
+					versionsById.set(version.id, version);
+				}
+			}
+		}
 
 		allSessions = completedSessions;
 		sessions = completedSessions.map((session) => {
 			const program = programs.find((p) => p.id === session.programId) || null;
-			const workout = program?.workouts.find((w) => w.id === session.workoutId) || null;
-			return { session, workout, program };
+			const version = featureFlags.programVersioningReads && session.programVersionId
+				? versionsById.get(session.programVersionId) || null
+				: null;
+			const effectiveProgram: Program | null = version
+				? {
+						id: session.programId,
+						userId: program?.userId,
+						currentVersionId: version.id,
+						createdAt: program?.createdAt ?? version.createdAt,
+						updatedAt: program?.updatedAt ?? version.createdAt,
+						...programVersionRepository.toProjection(version)
+					}
+				: program;
+			const workout = effectiveProgram?.workouts.find((w) => w.id === session.workoutId) || null;
+			return { session, workout, program: effectiveProgram };
 		});
 
 		loading = false;

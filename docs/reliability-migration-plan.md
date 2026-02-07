@@ -23,6 +23,15 @@ Move from mutable program JSON blobs to a stable, versioned model without losing
 - Add `program_version_id` and `workout_version_id` references to `workout_sessions`.
 - Keep existing JSON columns during transition.
 
+Status:
+- Implemented in migration `20260207113000_add_program_versioning.sql`.
+- Includes backfill from existing JSON programs/sessions.
+- Includes automatic trigger-based version creation on `programs` insert/update.
+- Includes automatic pointer sync for `workout_sessions` version links.
+- Legacy repair patch added in `20260207133000_repair_workout_version_links.sql` for unresolved historical `workout_version_id` links.
+- Follow-up repair in `20260207140000_fix_legacy_workout_mapping.sql` selects best unambiguous slug match for legacy workout IDs.
+- Deterministic repair in `20260207143000_resolve_workout_links_by_exercises.sql` matches unresolved sessions by exercise-name overlap, with schedule fallback.
+
 ## Phase 3
 - Backfill existing programs into version `v1`.
 - Backfill sessions to matching version/workout/exercise rows.

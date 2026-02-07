@@ -17,6 +17,8 @@ export class WorkoutSessionRepository {
 				workout_id: session.workoutId,
 				workout_name_snapshot: session.workoutNameSnapshot ?? null,
 				program_id: session.programId,
+				program_version_id: session.programVersionId ?? null,
+				workout_version_id: session.workoutVersionId ?? null,
 				status: session.status,
 				exercises: session.exercises
 			})
@@ -92,6 +94,8 @@ export class WorkoutSessionRepository {
 		if (updates.workoutNameSnapshot !== undefined)
 			dbUpdates.workout_name_snapshot = updates.workoutNameSnapshot;
 		if (updates.programId !== undefined) dbUpdates.program_id = updates.programId;
+		if (updates.programVersionId !== undefined) dbUpdates.program_version_id = updates.programVersionId;
+		if (updates.workoutVersionId !== undefined) dbUpdates.workout_version_id = updates.workoutVersionId;
 		if (updates.status !== undefined) dbUpdates.status = updates.status;
 		if (updates.exercises !== undefined) dbUpdates.exercises = updates.exercises;
 		if (updates.completedAt !== undefined) dbUpdates.completed_at = updates.completedAt;
@@ -256,6 +260,8 @@ export class WorkoutSessionRepository {
 			workoutId: data.workout_id as string,
 			workoutNameSnapshot: (data.workout_name_snapshot as string) || undefined,
 			programId: data.program_id as string,
+			programVersionId: (data.program_version_id as string) || undefined,
+			workoutVersionId: (data.workout_version_id as string) || undefined,
 			startedAt: new Date(data.started_at as string),
 			completedAt: data.completed_at ? new Date(data.completed_at as string) : undefined,
 			status: data.status as WorkoutSession['status'],

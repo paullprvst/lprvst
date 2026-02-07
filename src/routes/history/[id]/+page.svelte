@@ -8,6 +8,8 @@
 	import { goto } from '$app/navigation';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import { programVersionRepository } from '$lib/services/storage/program-version-repository';
+	import { featureFlags } from '$lib/utils/feature-flags';
 	import type { WorkoutSession, SetLog } from '$lib/types/workout-session';
 	import type { Program, Workout, Exercise } from '$lib/types/program';
 	import Card from '$lib/components/shared/Card.svelte';
@@ -38,10 +40,24 @@
 		}
 
 		const loadedProgram = await programRepository.get(loadedSession.programId);
-		const loadedWorkout = loadedProgram?.workouts.find((w) => w.id === loadedSession.workoutId);
+		const version = featureFlags.programVersioningReads && loadedSession.programVersionId
+			? await programVersionRepository.getById(loadedSession.programVersionId)
+			: null;
+		const effectiveProgram = version
+			? {
+					id: loadedSession.programId,
+					userId: loadedProgram?.userId,
+					currentVersionId: version.id,
+					createdAt: loadedProgram?.createdAt ?? version.createdAt,
+					updatedAt: loadedProgram?.updatedAt ?? version.createdAt,
+					...programVersionRepository.toProjection(version)
+				}
+			: loadedProgram;
+
+		const loadedWorkout = effectiveProgram?.workouts.find((w) => w.id === loadedSession.workoutId);
 
 		session = loadedSession;
-		program = loadedProgram || null;
+		program = effectiveProgram || null;
 		workout = loadedWorkout || null;
 		loading = false;
 	});

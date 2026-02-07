@@ -9,8 +9,10 @@
 	import { workoutStore } from '$lib/stores/workout-store.svelte';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import { programVersionRepository } from '$lib/services/storage/program-version-repository';
 	import type { Workout } from '$lib/types/program';
 	import type { WorkoutSession } from '$lib/types/workout-session';
+	import { featureFlags } from '$lib/utils/feature-flags';
 	import ExerciseDisplay from '$lib/components/workout/ExerciseDisplay.svelte';
 	import RestTimer from '$lib/components/workout/RestTimer.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -106,13 +108,27 @@
 		}
 
 		const program = await programRepository.get(session.programId);
-		if (!program) {
+		const version = featureFlags.programVersioningReads && session.programVersionId
+			? await programVersionRepository.getById(session.programVersionId)
+			: null;
+		const effectiveProgram = version
+			? {
+					id: session.programId,
+					userId: program?.userId,
+					currentVersionId: version.id,
+					createdAt: program?.createdAt ?? version.createdAt,
+					updatedAt: program?.updatedAt ?? version.createdAt,
+					...programVersionRepository.toProjection(version)
+				}
+			: program;
+
+		if (!effectiveProgram) {
 			alert('Program not found');
 			goto('/calendar');
 			return;
 		}
 
-		let workout = program.workouts.find((w) => w.id === session.workoutId);
+		let workout = effectiveProgram.workouts.find((w) => w.id === session.workoutId);
 		if (!workout) {
 			workout = buildWorkoutFromSession(session);
 		}

@@ -37,6 +37,7 @@ export interface MuscleTarget {
 export interface Program {
 	id: string;
 	userId?: string;
+	currentVersionId?: string;
 	name: string;
 	description: string;
 	startDate: Date;
@@ -144,6 +145,7 @@ export const ProgramScheduleSchema = z.object({
 
 export const ProgramSchema = z.object({
 	id: z.string(),
+	currentVersionId: z.string().optional(),
 	name: z.string(),
 	description: z.string(),
 	startDate: z.string().or(z.date()),

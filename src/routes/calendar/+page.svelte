@@ -15,6 +15,7 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import { Calendar, Plus, ChevronDown, Play, X } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
+	import { featureFlags } from '$lib/utils/feature-flags';
 
 	let programs = $state<Program[]>([]);
 	let selectedProgram = $state<Program | null>(null);
@@ -63,6 +64,9 @@
 			workoutId,
 			workoutNameSnapshot: selectedProgram.workouts[workoutIndex].name,
 			programId: selectedProgram.id,
+			programVersionId: featureFlags.programVersioningWrites
+				? selectedProgram.currentVersionId
+				: undefined,
 			status: 'in-progress',
 			exercises: selectedProgram.workouts[workoutIndex].exercises.map((e) => ({
 				exerciseId: e.id,

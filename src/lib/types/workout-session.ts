@@ -4,6 +4,8 @@ export interface WorkoutSession {
 	workoutId: string;
 	workoutNameSnapshot?: string;
 	programId: string;
+	programVersionId?: string;
+	workoutVersionId?: string;
 	startedAt: Date;
 	completedAt?: Date;
 	status: 'in-progress' | 'completed' | 'abandoned';
