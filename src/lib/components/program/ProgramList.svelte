@@ -13,11 +13,11 @@
 	let { programs }: Props = $props();
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6 animate-slideUp">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h2 class="text-2xl font-bold text-primary">Your Programs</h2>
+			<h1 class="text-2xl font-bold text-primary">Your Programs</h1>
 			<p class="text-sm text-secondary mt-1">Manage active plans and start your next session.</p>
 		</div>
 		<Button onclick={() => goto('/onboarding')} size="sm">
@@ -30,10 +30,10 @@
 
 	{#if programs.length === 0}
 		<!-- Empty state -->
-		<Card padding="lg">
+		<Card padding="lg" variant="info">
 			<div class="text-center py-8 space-y-4">
 				<div
-					class="w-20 h-20 mx-auto rounded-2xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
+					class="w-20 h-20 mx-auto rounded-2xl bg-border-soft flex items-center justify-center"
 				>
 					<Dumbbell size={40} class="text-muted" />
 				</div>

@@ -22,9 +22,16 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 4. Mobile behavior pass
 5. QA, accessibility, and visual regression
 
+## Current Status (Updated: 2026-02-07)
+- DONE: UI-000, UI-001, UI-002, UI-003, UI-010, UI-011, UI-020, UI-021, UI-022, UI-023, UI-024, UI-025, UI-026, UI-027
+- IN PROGRESS: UI-031
+- PENDING: UI-030, UI-032
+- Build blocker: `npm run build` still fails in PWA service worker generation (Workbox/Terser `renderChunk` early exit). UI refactor compiles and `npm run check` is clean.
+
 ## Phase 0: Foundation
 
 ### UI-000 (P0) Dark-only theme enforcement
+- Status: DONE
 - Scope: Remove multi-theme behavior from app runtime and settings
 - Files:
   - `src/lib/stores/theme-store.svelte.ts`
@@ -44,6 +51,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - No light/system code paths remain in client theme handling.
 
 ### UI-001 (P0) Token and semantic color unification
+- Status: DONE
 - Scope: Global styling system
 - Files:
   - `src/app.css`
@@ -59,6 +67,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Core visual states are consistent across the single dark theme.
 
 ### UI-002 (P0) Layout shell and navigation consistency
+- Status: DONE
 - Scope: App frame, safe areas, responsive spacing
 - Files:
   - `src/routes/+layout.svelte`
@@ -72,6 +81,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Stable spacing across all route transitions.
 
 ### UI-003 (P0) Replace native modal/browser prompts
+- Status: DONE
 - Scope: Confirmation and error UX
 - Files:
   - `src/routes/calendar/+page.svelte`
@@ -89,6 +99,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 ## Phase 1: Shared Primitives
 
 ### UI-010 (P0) Shared form control system
+- Status: DONE
 - Scope: Inputs, selects, textareas, button states
 - Files:
   - `src/lib/components/shared/Input.svelte`
@@ -108,6 +119,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Inputs/buttons behave consistently across all pages.
 
 ### UI-011 (P1) Card and section composition standards
+- Status: DONE (2026-02-07)
 - Scope: Card hierarchy, spacing, empty states
 - Files:
   - `src/lib/components/shared/Card.svelte`
@@ -124,6 +136,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 ## Phase 2: Screen Polish Passes
 
 ### UI-020 (P0) Auth screens polish
+- Status: DONE
 - Scope: Login and signup
 - Files:
   - `src/routes/login/+page.svelte`
@@ -136,6 +149,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Auth flows look and behave identically to system standards on mobile/desktop.
 
 ### UI-021 (P0) Program list and program detail polish
+- Status: DONE
 - Scope: Program browsing and detail management
 - Files:
   - `src/lib/components/program/ProgramList.svelte`
@@ -150,6 +164,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Program browsing/editing reads cleanly and scales cleanly across breakpoints.
 
 ### UI-022 (P0) Calendar experience polish
+- Status: DONE
 - Scope: Week view, day cards, in-progress workout banner
 - Files:
   - `src/routes/calendar/+page.svelte`
@@ -163,6 +178,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Calendar is readable and tappable at 320px and desktop widths.
 
 ### UI-023 (P0) Workout execution screen polish
+- Status: DONE
 - Scope: Active workout flow
 - Files:
   - `src/routes/workout/[id]/+page.svelte`
@@ -178,6 +194,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - In-workout flow is one-handed usable on mobile and visually stable on desktop.
 
 ### UI-024 (P1) History and details polish
+- Status: DONE
 - Scope: History list and session detail editing
 - Files:
   - `src/routes/history/+page.svelte`
@@ -190,6 +207,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - History scanning and detail edits feel clean and low-friction.
 
 ### UI-025 (P1) Body tracking polish
+- Status: DONE
 - Scope: Weight logging, chart, entries
 - Files:
   - `src/routes/body/+page.svelte`
@@ -204,6 +222,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Body page appears cohesive with the rest of the product in both themes.
 
 ### UI-026 (P1) Onboarding and AI chat polish
+- Status: DONE
 - Scope: Goal input and conversational UX
 - Files:
   - `src/routes/onboarding/+page.svelte`
@@ -217,6 +236,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Chat feels consistent with the product shell and remains usable on small screens.
 
 ### UI-027 (P1) Settings page polish
+- Status: DONE
 - Scope: Account, API key, theme blocks
 - Files:
   - `src/routes/settings/+page.svelte`
@@ -229,6 +249,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
 ## Phase 3: Responsive and QA
 
 ### UI-030 (P0) Breakpoint-specific QA checklist
+- Status: PENDING
 - Scope: All core routes
 - Files:
   - `src/routes/+layout.svelte`
@@ -243,6 +264,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Zero layout breakpoints with overlap or clipping.
 
 ### UI-031 (P0) Accessibility compliance pass
+- Status: IN PROGRESS (automated warnings fixed; manual end-to-end keyboard and screen-reader checks still pending)
 - Scope: Keyboard, focus, semantics, labels
 - Files:
   - `src/routes/**/*.svelte`
@@ -255,6 +277,7 @@ Ship a spotless, production-grade UI with zero visual regressions across desktop
   - Keyboard-only journey works for auth, onboarding, workout, and settings.
 
 ### UI-032 (P1) Visual regression harness
+- Status: PENDING
 - Scope: Pixel stability for critical flows
 - Files:
   - `package.json`

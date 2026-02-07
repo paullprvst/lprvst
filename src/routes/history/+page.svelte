@@ -86,17 +86,18 @@
 
 <div class="space-y-6 animate-slideUp">
 	<div class="flex items-center gap-3">
-		<div
-			class="w-10 h-10 rounded-xl bg-[rgb(var(--color-primary)/0.1)] flex items-center justify-center"
-		>
+		<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
 			<History size={20} class="text-[rgb(var(--color-primary))]" />
 		</div>
-		<h1 class="text-2xl font-bold text-primary">Workout History</h1>
+		<div>
+			<h1 class="text-2xl font-bold text-primary">Workout History</h1>
+			<p class="text-sm text-secondary">Review completed sessions and progression over time.</p>
+		</div>
 	</div>
 
 	<!-- 3-Month Calendar Dots -->
 	{#if !loading && allSessions.length > 0}
-		<Card padding="md">
+		<Card padding="md" variant="info">
 			<WorkoutCalendarDots sessions={allSessions} />
 		</Card>
 	{/if}
@@ -117,10 +118,10 @@
 			{/each}
 		</div>
 	{:else if sessions.length === 0}
-		<Card padding="lg">
+		<Card padding="lg" variant="info">
 			<div class="text-center py-8 space-y-4">
 				<div
-					class="w-20 h-20 mx-auto rounded-2xl bg-[rgb(var(--color-border)/0.5)] flex items-center justify-center"
+					class="w-20 h-20 mx-auto rounded-2xl bg-border-soft flex items-center justify-center"
 				>
 					<Dumbbell size={40} class="text-muted" />
 				</div>
@@ -135,12 +136,8 @@
 	{:else}
 		<div class="space-y-3">
 			{#each sessions as { session, workout, program }, index}
-				<button
-					class="w-full text-left animate-slideUp group"
-					style="animation-delay: {index * 50}ms"
-					onclick={() => goto(`/history/${session.id}`)}
-				>
-					<Card>
+				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
+					<Card variant="interactive" onclick={() => goto(`/history/${session.id}`)}>
 						<div class="flex items-start sm:items-center gap-4">
 							<!-- Success Icon -->
 							<div
@@ -180,7 +177,7 @@
 							</div>
 						</div>
 					</Card>
-				</button>
+				</div>
 			{/each}
 		</div>
 	{/if}

@@ -587,6 +587,21 @@
 	box-shadow: var(--shadow-md);
 }
 
+.card-info {
+	background-color: rgb(var(--color-primary) / 0.08);
+	border-color: rgb(var(--color-primary) / 0.35);
+}
+
+.card-success {
+	background-color: rgb(var(--color-success) / 0.08);
+	border-color: rgb(var(--color-success) / 0.32);
+}
+
+.card-warning {
+	background-color: rgb(var(--color-warning) / 0.08);
+	border-color: rgb(var(--color-warning) / 0.32);
+}
+
 .card-interactive:hover {
 	box-shadow: var(--shadow-md);
 	transform: translateY(-2px);

@@ -1,7 +1,7 @@
 <script lang="ts">
 	interface Props {
 		padding?: 'none' | 'sm' | 'md' | 'lg';
-		variant?: 'default' | 'elevated' | 'interactive' | 'ghost';
+		variant?: 'default' | 'elevated' | 'interactive' | 'info' | 'success' | 'warning' | 'ghost';
 		children: import('svelte').Snippet;
 		onclick?: () => void;
 	}
@@ -18,7 +18,10 @@
 	const variantClasses = {
 		default: 'card',
 		elevated: 'card card-elevated',
-		interactive: 'card card-interactive cursor-pointer',
+		interactive: 'card card-interactive',
+		info: 'card card-info',
+		success: 'card card-success',
+		warning: 'card card-warning',
 		ghost: 'bg-transparent'
 	};
 
@@ -27,8 +30,9 @@
 
 {#if isInteractive}
 	<button
+		type="button"
 		{onclick}
-		class="{variantClasses[variant]} {paddingClasses[padding]} w-full text-left"
+		class="{variantClasses[variant]} {paddingClasses[padding]} w-full text-left cursor-pointer"
 	>
 		{@render children()}
 	</button>

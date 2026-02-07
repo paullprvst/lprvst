@@ -65,7 +65,10 @@
 </script>
 
 <div class="space-y-6 animate-slideUp">
-	<h1 class="text-2xl font-bold text-primary">Settings</h1>
+	<div>
+		<h1 class="text-2xl font-bold text-primary">Settings</h1>
+		<p class="text-sm text-secondary mt-1">Manage account, API access, and app preferences.</p>
+	</div>
 
 	<!-- Account -->
 	<Card>
@@ -75,7 +78,7 @@
 					<User size={20} class="text-brand" />
 				</div>
 				<div>
-					<h2 class="text-lg font-semibold text-primary">Account</h2>
+					<h2 class="text-base font-semibold text-primary">Account</h2>
 					<p class="text-sm text-secondary">{auth.user?.email || 'Not signed in'}</p>
 				</div>
 			</div>
@@ -90,14 +93,14 @@
 	</Card>
 
 	<!-- API Key -->
-	<Card>
+	<Card variant={hasApiKey && !showUpdateForm ? 'success' : 'warning'}>
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
 				<div class="w-10 h-10 rounded-xl bg-warning-soft flex items-center justify-center">
 					<Key size={20} class="text-warning" />
 				</div>
 				<div>
-					<h2 class="text-lg font-semibold text-primary">Anthropic API Key</h2>
+					<h2 class="text-base font-semibold text-primary">Anthropic API Key</h2>
 					<p class="text-sm text-secondary">Required for AI program generation</p>
 				</div>
 			</div>
@@ -171,14 +174,14 @@
 	</Card>
 
 	<!-- Appearance -->
-	<Card>
+	<Card variant="info">
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
 				<div class="w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center">
 					<Moon size={20} class="text-brand" />
 				</div>
 				<div>
-					<h2 class="text-lg font-semibold text-primary">Appearance</h2>
+					<h2 class="text-base font-semibold text-primary">Appearance</h2>
 					<p class="text-sm text-secondary">Dark mode is always enabled</p>
 				</div>
 			</div>
@@ -190,14 +193,14 @@
 	</Card>
 
 	<!-- About -->
-	<Card>
+	<Card variant="info">
 		<div class="space-y-4">
 			<div class="flex items-center gap-3">
 				<div class="w-10 h-10 rounded-xl bg-success-soft flex items-center justify-center">
 					<Info size={20} class="text-success" />
 				</div>
 				<div>
-					<h2 class="text-lg font-semibold text-primary">About</h2>
+					<h2 class="text-base font-semibold text-primary">About</h2>
 					<p class="text-sm text-secondary">AI Fitness Coach v1.0</p>
 				</div>
 			</div>
