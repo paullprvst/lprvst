@@ -34,7 +34,7 @@
 		if (completed) {
 			return `${base} border-success-soft bg-success-soft`;
 		}
-		return `${base} border-theme surface ${isClickable ? 'hover:border-theme hover:shadow-sm active:scale-95' : 'cursor-default'}`;
+		return `${base} border-theme surface ${isClickable ? 'hover:border-[rgb(var(--color-primary)/0.45)] hover:shadow-[0_12px_24px_-18px_rgb(2_7_14/0.9)] active:scale-95' : 'cursor-default'}`;
 	});
 </script>
 
@@ -69,7 +69,7 @@
 			{:else if workout}
 				<div class="relative flex items-center justify-center">
 					<div
-						class="w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] transition-transform duration-200 group-hover:scale-110 shadow-sm"
+						class="w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] transition-transform duration-200 group-hover:scale-110 shadow-[0_0_10px_rgb(var(--color-primary)/0.7)]"
 					></div>
 					{#if isCurrentDay}
 						<div

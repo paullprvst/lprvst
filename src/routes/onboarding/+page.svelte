@@ -16,7 +16,7 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
-	import { Key } from 'lucide-svelte';
+	import { Key, Sparkles } from 'lucide-svelte';
 	import type { AgentAction } from '$lib/types/agent';
 	import type { Conversation } from '$lib/types/conversation';
 
@@ -123,7 +123,18 @@
 	}
 </script>
 
-<div class="max-w-3xl mx-auto">
+<div class="max-w-3xl mx-auto space-y-4 animate-slideUp">
+	{#if step !== 'loading'}
+		<div class="flex items-center justify-center">
+			<div
+				class="inline-flex items-center gap-2 rounded-full border border-brand-soft bg-brand-soft px-4 py-1.5 text-xs font-semibold tracking-[0.08em] text-brand uppercase"
+			>
+				<Sparkles size={13} />
+				Program Generator
+			</div>
+		</div>
+	{/if}
+
 	{#if errorMessage && step !== 'loading'}
 		<div class="mb-4">
 			<AlertBanner variant="error" title="Request failed" message={errorMessage} />

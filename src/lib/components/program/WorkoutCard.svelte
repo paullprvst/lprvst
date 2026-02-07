@@ -136,7 +136,7 @@
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${workout.name}`}
 		>
 			<div
-				class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
+				class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary)/0.24)] to-[rgb(var(--color-accent-secondary)/0.2)] border border-brand-soft flex items-center justify-center"
 			>
 				<Dumbbell size={20} class="text-brand" />
 			</div>
@@ -174,7 +174,7 @@
 	{:else}
 		<div class="flex items-start gap-3">
 			<div
-				class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-soft flex items-center justify-center"
+				class="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary)/0.24)] to-[rgb(var(--color-accent-secondary)/0.2)] border border-brand-soft flex items-center justify-center"
 			>
 				<Dumbbell size={20} class="text-brand" />
 			</div>

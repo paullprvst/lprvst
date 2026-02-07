@@ -62,7 +62,7 @@
 			<div class="flex items-center justify-between gap-2">
 				<button
 					onclick={previousWeek}
-					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
+					class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
 					aria-label="Previous week"
 				>
 					<ChevronLeft size={20} class="text-secondary" />
@@ -78,7 +78,7 @@
 					{#if !isCurrentWeek}
 						<button
 							onclick={goToToday}
-							class="mt-1 px-2.5 py-1 text-xs font-medium text-brand bg-brand-soft rounded-full hover:opacity-90 transition-colors duration-200 touch-target"
+							class="mt-1 px-2.5 py-1 text-xs font-semibold text-brand bg-brand-soft border border-brand-soft rounded-full hover:opacity-90 transition-colors duration-200 touch-target"
 						>
 							Today
 						</button>
@@ -87,7 +87,7 @@
 
 				<button
 					onclick={nextWeek}
-					class="p-2.5 hover:bg-[rgb(var(--color-border)/0.5)] rounded-xl touch-target transition-all duration-200 active:scale-95"
+					class="p-2.5 hover:bg-[rgb(var(--color-primary)/0.12)] hover:border-brand-soft border border-transparent rounded-xl touch-target transition-all duration-200 active:scale-95"
 					aria-label="Next week"
 				>
 					<ChevronRight size={20} class="text-secondary" />

@@ -9,6 +9,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
+	import { Sparkles, ShieldCheck } from 'lucide-svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -54,77 +55,96 @@
 	}
 </script>
 
-<div class="min-h-[80vh] flex items-center justify-center">
-	<div class="w-full max-w-md">
+<div class="min-h-[80vh] flex items-center justify-center animate-slideUp">
+	<div class="w-full max-w-md space-y-4">
+		<div class="flex items-center justify-center">
+			<div class="inline-flex items-center gap-2 rounded-full border border-brand-soft bg-brand-soft px-4 py-1.5 text-xs font-semibold tracking-[0.08em] text-brand uppercase">
+				<Sparkles size={13} />
+				AI Fitness Coach
+			</div>
+		</div>
+
 		<Card padding="lg">
-			<h1 class="text-2xl font-bold text-center mb-6">Create Account</h1>
-
-			{#if success}
-				<div class="text-center space-y-4">
-					<AlertBanner
-						variant="success"
-						title="Account created"
-						message="Please check your email to confirm your account."
-					/>
-					<a href="/login" class="inline-block text-brand hover:opacity-90 font-medium">
-						Go to login
-					</a>
+			<div class="space-y-5">
+				<div class="space-y-2 text-center">
+					<h1 class="text-3xl font-bold text-primary">Create Account</h1>
+					<p class="text-sm text-secondary">
+						Set up your training profile and start building your first AI-guided program.
+					</p>
 				</div>
-			{:else}
-				<form onsubmit={handleSubmit} class="space-y-4">
-					<div>
-						<label for="email" class="block text-sm font-medium text-secondary mb-1">Email</label>
-						<Input type="email" id="email" bind:value={email} required placeholder="you@example.com" />
-					</div>
 
-					<div>
-						<label for="password" class="block text-sm font-medium text-secondary mb-1">Password</label>
-						<Input
-							type="password"
-							id="password"
-							bind:value={password}
-							required
-							minLength={6}
-							placeholder="At least 6 characters"
+				{#if success}
+					<div class="text-center space-y-4">
+						<AlertBanner
+							variant="success"
+							title="Account created"
+							message="Please check your email to confirm your account."
 						/>
+						<a href="/login" class="inline-block text-brand hover:opacity-90 font-semibold">
+							Go to login
+						</a>
 					</div>
+				{:else}
+					<form onsubmit={handleSubmit} class="space-y-4">
+						<div>
+							<label for="email" class="block text-sm font-semibold text-secondary mb-1.5">Email</label>
+							<Input type="email" id="email" bind:value={email} required placeholder="you@example.com" />
+						</div>
 
-					<div>
-						<label for="confirmPassword" class="block text-sm font-medium text-secondary mb-1"
-							>Confirm Password</label
+						<div>
+							<label for="password" class="block text-sm font-semibold text-secondary mb-1.5">Password</label>
+							<Input
+								type="password"
+								id="password"
+								bind:value={password}
+								required
+								minLength={6}
+								placeholder="At least 6 characters"
+							/>
+						</div>
+
+						<div>
+							<label for="confirmPassword" class="block text-sm font-semibold text-secondary mb-1.5"
+								>Confirm Password</label
+							>
+							<Input
+								type="password"
+								id="confirmPassword"
+								bind:value={confirmPassword}
+								required
+								minLength={6}
+								placeholder="Confirm your password"
+							/>
+						</div>
+
+						{#if error}
+							<AlertBanner variant="error" title="Sign up failed" message={error} />
+						{/if}
+
+						<Button
+							type="submit"
+							disabled={loading || !email || !password || !confirmPassword}
+							fullWidth
+							loading={loading}
+							loadingLabel="Creating account..."
 						>
-						<Input
-							type="password"
-							id="confirmPassword"
-							bind:value={confirmPassword}
-							required
-							minLength={6}
-							placeholder="Confirm your password"
-						/>
-					</div>
+							{#snippet children()}
+								Create Account
+							{/snippet}
+						</Button>
+					</form>
+				{/if}
 
-					{#if error}
-						<AlertBanner variant="error" title="Sign up failed" message={error} />
-					{/if}
+				<div class="flex items-center justify-center gap-2 text-xs text-muted">
+					<ShieldCheck size={14} class="text-success" />
+					Email confirmation keeps your account secure
+				</div>
 
-					<Button
-						type="submit"
-						disabled={loading || !email || !password || !confirmPassword}
-						fullWidth
-						loading={loading}
-						loadingLabel="Creating account..."
-					>
-						{#snippet children()}
-							Create Account
-						{/snippet}
-					</Button>
-				</form>
-
-				<p class="mt-6 text-center text-secondary">
+				<p class="text-center text-secondary">
 					Already have an account?
-					<a href="/login" class="text-brand hover:opacity-90 font-medium">Sign in</a>
+					<a href="/login" class="text-brand hover:opacity-90 font-semibold"> Sign in</a>
 				</p>
-			{/if}
+			</div>
 		</Card>
 	</div>
 </div>

@@ -65,12 +65,14 @@
 
 	const baseClasses = `
 		w-full px-4 py-3
-		bg-[rgb(var(--color-surface))]
-		border border-[rgb(var(--color-border))]
+		bg-[rgb(var(--color-surface-elevated)/0.76)]
+		border border-[rgb(var(--color-border)/0.72)]
 		rounded-xl
 		text-[rgb(var(--color-text-primary))]
 		placeholder:text-[rgb(var(--color-text-muted))]
+		placeholder:tracking-[0.01em]
 		input-focus-ring
+		shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]
 		disabled:bg-[rgb(var(--color-border)/0.3)]
 		disabled:cursor-not-allowed
 		disabled:text-[rgb(var(--color-text-muted))]

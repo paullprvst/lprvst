@@ -17,8 +17,11 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-2xl font-bold text-primary">Your Programs</h1>
-			<p class="text-sm text-secondary mt-1">Manage active plans and start your next session.</p>
+			<p class="text-[11px] font-semibold tracking-[0.1em] uppercase text-muted">Training</p>
+			<h1 class="text-3xl font-bold text-primary">Your Programs</h1>
+			<p class="text-sm text-secondary mt-1">
+				Manage active plans and launch your next session.
+			</p>
 		</div>
 		<Button onclick={() => goto('/onboarding')} size="sm">
 			{#snippet children()}

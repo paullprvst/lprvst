@@ -53,9 +53,14 @@
 
 <div class="space-y-4">
 	<Card padding="none">
+		<div class="border-b border-theme px-4 py-3 bg-[rgb(var(--color-surface-elevated)/0.45)]">
+			<p class="text-xs font-semibold tracking-[0.08em] uppercase text-secondary">
+				Program Design Session
+			</p>
+		</div>
 		<div
 			bind:this={messagesContainer}
-			class="space-y-4 max-h-[58vh] sm:max-h-[65vh] overflow-y-auto p-4 scroll-smooth"
+			class="space-y-4 max-h-[56vh] sm:max-h-[62vh] overflow-y-auto p-4 sm:p-5 scroll-smooth"
 		>
 			{#each messages as message, index}
 				<div
@@ -75,8 +80,8 @@
 
 					<div
 						class="max-w-[86%] sm:max-w-[78%] rounded-2xl px-4 py-3 {message.role === 'user'
-							? 'bg-[rgb(var(--color-primary))] text-white rounded-br-md'
-							: 'surface-elevated border border-theme rounded-bl-md'}"
+							? 'bg-gradient-to-br from-[rgb(var(--color-primary))] to-[rgb(var(--color-primary-hover))] text-[rgb(4_15_24)] rounded-br-md shadow-[0_16px_26px_-20px_rgb(var(--color-primary)/0.85)]'
+							: 'surface-elevated border border-theme rounded-bl-md shadow-[0_14px_24px_-22px_rgb(0_0_0/0.9)]'}"
 					>
 						<p class="whitespace-pre-wrap text-sm leading-relaxed">
 							{cleanMessageContent(message.displayContent ?? message.content)}
@@ -117,11 +122,13 @@
 	</Card>
 
 	<div class="space-y-3">
-		<div class="flex gap-3 animate-slideUp p-3 surface-elevated border border-theme rounded-2xl">
+		<div
+			class="flex gap-3 animate-slideUp p-3 surface-elevated border border-theme rounded-2xl shadow-[0_20px_32px_-28px_rgb(2_7_14/0.9)]"
+		>
 			<div class="flex-1">
 				<Input
 					bind:value={input}
-					placeholder="Type your response..."
+					placeholder="Add details about goals, equipment, injuries, or schedule..."
 					disabled={loading}
 					onkeydown={handleKeydown}
 				/>

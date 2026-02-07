@@ -20,9 +20,9 @@
 	<div class="flex items-center gap-4">
 		<!-- Icon -->
 		<div
-			class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary))] to-[rgb(var(--color-primary-hover))] flex items-center justify-center shadow-sm"
+			class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[rgb(var(--color-primary))] via-[rgb(var(--color-primary-hover))] to-[rgb(var(--color-accent-secondary))] flex items-center justify-center shadow-[0_16px_24px_-18px_rgb(var(--color-primary)/0.9)]"
 		>
-			<Dumbbell class="text-white" size={24} />
+			<Dumbbell class="text-[rgb(3_12_20)]" size={24} />
 		</div>
 
 		<!-- Content -->
@@ -31,7 +31,7 @@
 				<h3 class="font-semibold text-primary truncate">{program.name}</h3>
 				{#if program.isPaused}
 					<span
-						class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-warning-soft text-warning flex-shrink-0"
+						class="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-warning-soft text-warning border border-warning-soft flex-shrink-0"
 					>
 						Paused
 					</span>

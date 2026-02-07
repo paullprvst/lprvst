@@ -10,8 +10,8 @@
 
 	const paddingClasses = {
 		none: '',
-		sm: 'p-3',
-		md: 'p-4',
+		sm: 'p-3.5',
+		md: 'p-[1.125rem]',
 		lg: 'p-6'
 	};
 
@@ -32,7 +32,7 @@
 	<button
 		type="button"
 		{onclick}
-		class="{variantClasses[variant]} {paddingClasses[padding]} w-full text-left cursor-pointer"
+		class="{variantClasses[variant]} {paddingClasses[padding]} w-full text-left cursor-pointer transition-all duration-200"
 	>
 		{@render children()}
 	</button>

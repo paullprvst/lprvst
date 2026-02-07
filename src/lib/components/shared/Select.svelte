@@ -34,7 +34,7 @@
 		{disabled}
 		aria-label={ariaLabel}
 		{onchange}
-		class="w-full px-4 py-3 pr-10 surface border border-theme rounded-xl text-primary appearance-none cursor-pointer input-focus-ring disabled:cursor-not-allowed disabled:opacity-60"
+		class="w-full px-4 py-3 pr-10 rounded-xl text-primary appearance-none cursor-pointer input-focus-ring disabled:cursor-not-allowed disabled:opacity-60 bg-[rgb(var(--color-surface-elevated)/0.76)] border border-[rgb(var(--color-border)/0.72)] shadow-[inset_0_1px_0_rgb(255_255_255/0.05)]"
 	>
 		{#each options as option}
 			<option value={option.value} disabled={option.disabled}>
