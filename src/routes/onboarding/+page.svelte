@@ -7,7 +7,6 @@
 	import { goto } from '$app/navigation';
 	import { conversationManager } from '$lib/services/ai/conversation-manager';
 	import { conversationRepository } from '$lib/services/storage/conversation-repository';
-	import { programGenerator } from '$lib/services/ai/program-generator';
 	import { userRepository } from '$lib/services/storage/user-repository';
 	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
 	import { getAuthState } from '$lib/stores/auth-store.svelte';
@@ -17,25 +16,28 @@
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import { Key } from 'lucide-svelte';
+	import type { AgentAction } from '$lib/types/agent';
 	import type { Conversation } from '$lib/types/conversation';
 
 	const auth = getAuthState();
-	let step = $state<'api-key-required' | 'loading' | 'input' | 'conversation' | 'generating'>('loading');
+	let step = $state<'api-key-required' | 'loading' | 'input' | 'conversation'>('loading');
 	let conversation = $state<Conversation | null>(null);
 	let loading = $state(false);
-	let readyToGenerate = $state(false);
 	let initialObjective = $state('');
 
-	function getErrorMessage(error: unknown): string {
-		if (error instanceof Error) return error.message;
-		if (typeof error === 'object' && error !== null) {
-			const candidate = error as Record<string, unknown>;
-			const code = typeof candidate.code === 'string' ? candidate.code : '';
-			const message = typeof candidate.message === 'string' ? candidate.message : '';
-			if (code && message) return `${code}: ${message}`;
-			if (message) return message;
+	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
+		if (!action || action.type !== 'create_program') return false;
+
+		const currentUser = await userRepository.getCurrentUser();
+		if (currentUser && initialObjective) {
+			await userRepository.update(currentUser.id, {
+				objectives: initialObjective
+			});
 		}
-		return 'Unknown error';
+
+		await conversationManager.completeConversation(conversationId);
+		goto(`/programs/${action.programId}`);
+		return true;
 	}
 
 	onMount(() => {
@@ -60,21 +62,22 @@
 
 	async function handleObjectiveSubmit(objective: string) {
 		loading = true;
-		initialObjective = objective;
-		try {
-			conversation = await conversationManager.createConversation('onboarding', objective);
+			initialObjective = objective;
+			try {
+				conversation = await conversationManager.createConversation('onboarding', objective);
 
-			// Get initial AI response
-			await conversationManager.getAssistantResponse(conversation.id);
+				// Get initial AI response
+				const turn = await conversationManager.getAssistantResponse(conversation.id);
 
-			// Reload conversation to get updated messages
-			const updated = await conversationRepository.get(conversation.id);
-			if (updated) {
-				conversation = updated;
-			}
+				// Reload conversation to get updated messages
+				const updated = await conversationRepository.get(conversation.id);
+				if (updated) {
+					conversation = updated;
+				}
+				if (await handleAgentAction(turn.action, conversation.id)) return;
 
-			step = 'conversation';
-		} catch (error) {
+				step = 'conversation';
+			} catch (error) {
 			console.error('Error starting conversation:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
@@ -93,21 +96,19 @@
 	async function handleMessageSend(message: string) {
 		if (!conversation) return;
 
-		loading = true;
-		try {
-			await conversationManager.addUserMessage(conversation.id, message);
-			await conversationManager.getAssistantResponse(conversation.id);
+			loading = true;
+			try {
+				await conversationManager.addUserMessage(conversation.id, message);
+				const turn = await conversationManager.getAssistantResponse(conversation.id);
 
-			// Reload conversation
-			const updated = await conversationRepository.get(conversation.id);
-			if (updated) {
-				conversation = updated;
-			}
-
-			// Check if ready to generate
-			readyToGenerate = await conversationManager.isReadyToGenerate(conversation.id);
-		} catch (error) {
-			console.error('Error sending message:', error);
+				// Reload conversation
+				const updated = await conversationRepository.get(conversation.id);
+				if (updated) {
+					conversation = updated;
+				}
+				if (await handleAgentAction(turn.action, conversation.id)) return;
+			} catch (error) {
+				console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
 				alert('The AI service is currently overloaded. Please try again in a moment.');
@@ -118,58 +119,10 @@
 				alert(`Failed to send message: ${message}`);
 			}
 		} finally {
-			loading = false;
-		}
-	}
-
-	async function handleGenerate() {
-		if (!conversation) return;
-
-		step = 'generating';
-		console.info('[workout:create] Starting program generation from onboarding', {
-			conversationId: conversation.id
-		});
-		try {
-			// Update user profile with objectives to mark onboarding complete
-			const currentUser = await userRepository.getCurrentUser();
-			if (currentUser) {
-				console.info('[workout:create] Updating user objectives before generation', {
-					userId: currentUser.id
-				});
-				await userRepository.update(currentUser.id, {
-					objectives: initialObjective
-				});
+				loading = false;
 			}
-
-			const program = await programGenerator.generateFromConversation(conversation.id);
-			console.info('[workout:create] Program generation succeeded', {
-				conversationId: conversation.id,
-				programId: program.id
-			});
-			await conversationManager.completeConversation(conversation.id);
-			goto(`/programs/${program.id}`);
-		} catch (error) {
-			const details =
-				typeof error === 'object' && error !== null
-					? (error as Record<string, unknown>)
-					: { message: String(error) };
-			console.error('[workout:create] Program generation failed in onboarding', {
-				conversationId: conversation.id,
-				...details
-			});
-			const err = error as { status?: number; error?: { type?: string } };
-			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
-			} else if (error instanceof Error && error.message.includes('API key')) {
-				step = 'api-key-required';
-			} else {
-				const message = getErrorMessage(error);
-				alert(`Failed to generate program: ${message}`);
-			}
-			step = 'conversation';
 		}
-	}
-</script>
+	</script>
 
 <div class="max-w-3xl mx-auto">
 	{#if step === 'loading'}
@@ -195,19 +148,11 @@
 		</Card>
 	{:else if step === 'input'}
 		<ObjectiveInput onsubmit={handleObjectiveSubmit} {loading} />
-	{:else if step === 'conversation' && conversation}
-		<AIConversation
-			messages={conversation.messages}
-			{loading}
-			{readyToGenerate}
-			onsend={handleMessageSend}
-			ongenerate={handleGenerate}
-		/>
-	{:else if step === 'generating'}
-		<div class="text-center py-12">
-			<LoadingSpinner size="lg" />
-			<p class="mt-4 text-lg text-secondary">Generating your personalized workout program...</p>
-			<p class="mt-2 text-sm text-muted">This may take a moment</p>
-		</div>
-	{/if}
-</div>
+		{:else if step === 'conversation' && conversation}
+			<AIConversation
+				messages={conversation.messages}
+				{loading}
+				onsend={handleMessageSend}
+			/>
+		{/if}
+	</div>

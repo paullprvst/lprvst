@@ -9,10 +9,10 @@
 	import { conversationManager } from '$lib/services/ai/conversation-manager';
 	import { conversationRepository } from '$lib/services/storage/conversation-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
-	import { programGenerator } from '$lib/services/ai/program-generator';
 	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
 	import { getAuthState } from '$lib/stores/auth-store.svelte';
 	import type { Program } from '$lib/types/program';
+	import type { AgentAction } from '$lib/types/agent';
 	import type { Conversation } from '$lib/types/conversation';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -20,16 +20,21 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import Input from '$lib/components/shared/Input.svelte';
 	import { ArrowLeft, Send, Key } from 'lucide-svelte';
-	import { DAY_NAMES } from '$lib/utils/date-helpers';
 
 	const auth = getAuthState();
 	let program = $state<Program | null>(null);
 	let conversation = $state<Conversation | null>(null);
-	let step = $state<'api-key-required' | 'input' | 'conversation' | 'generating'>('input');
+	let step = $state<'api-key-required' | 'input' | 'conversation'>('input');
 	let loading = $state(true);
 	let messageLoading = $state(false);
-	let readyToModify = $state(false);
 	let initialRequest = $state('');
+
+	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
+		if (!action || action.type !== 'modify_program') return false;
+		await conversationManager.completeConversation(conversationId);
+		goto(`/programs/${action.programId}`);
+		return true;
+	}
 
 	onMount(() => {
 		const checkWhenReady = async () => {
@@ -60,58 +65,24 @@
 
 	async function handleRequestSubmit() {
 		if (!program || !initialRequest.trim()) return;
-		const currentProgram = program;
 
 		messageLoading = true;
 		try {
-			// Include program context in the initial message
-			// Build schedule mapping: which workout is on which day
-			const scheduleDetails = currentProgram.schedule.weeklyPattern
-				.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
-				.map(p => {
-					const workout = currentProgram.workouts[p.workoutIndex];
-					return `  - ${DAY_NAMES[p.dayOfWeek]}: ${workout?.name ?? 'Unknown'}`;
-				})
-				.join('\n');
-
-			const workoutDetails = currentProgram.workouts.map(w => {
-				const exerciseList = w.exercises.map(e => {
-					let details = `    - ${e.name}`;
-					if (e.sets) details += `: ${e.sets} sets`;
-					if (e.reps) details += ` x ${e.reps} reps`;
-					if (e.duration) details += `, ${e.duration}s`;
-					if (e.restBetweenSets) details += ` (${e.restBetweenSets}s rest)`;
-					return details;
-				}).join('\n');
-				return `${w.name} (${w.type}, ~${w.estimatedDuration}min):\n${exerciseList}`;
-			}).join('\n\n');
-
-			const contextMessage = `I have a workout program called "${currentProgram.name}" that I'd like to modify.
-
-Current program details:
-- Description: ${currentProgram.description}
-- Weekly schedule (0=Monday convention):
-${scheduleDetails}
-
-Workouts:
-${workoutDetails}
-
-My request: ${initialRequest}`;
-
-			// Pass displayContent as just the user's request (not the full program context)
-			conversation = await conversationManager.createConversation('reevaluation', contextMessage, currentProgram.id, initialRequest);
+			conversation = await conversationManager.createConversation(
+				'reevaluation',
+				initialRequest,
+				program.id
+			);
 
 			// Get initial AI response
-			await conversationManager.getAssistantResponse(conversation.id);
+			const turn = await conversationManager.getAssistantResponse(conversation.id);
 
 			// Reload conversation to get updated messages
 			const updated = await conversationRepository.get(conversation.id);
 			if (updated) {
 				conversation = updated;
 			}
-
-			// Check if already ready to modify
-			readyToModify = await conversationManager.isReadyToModify(conversation.id);
+			if (await handleAgentAction(turn.action, conversation.id)) return;
 
 			step = 'conversation';
 		} catch (error) {
@@ -136,16 +107,14 @@ My request: ${initialRequest}`;
 		messageLoading = true;
 		try {
 			await conversationManager.addUserMessage(conversation.id, message);
-			await conversationManager.getAssistantResponse(conversation.id);
+			const turn = await conversationManager.getAssistantResponse(conversation.id);
 
 			// Reload conversation
 			const updated = await conversationRepository.get(conversation.id);
 			if (updated) {
 				conversation = updated;
 			}
-
-			// Check if ready to modify
-			readyToModify = await conversationManager.isReadyToModify(conversation.id);
+			if (await handleAgentAction(turn.action, conversation.id)) return;
 		} catch (error) {
 			console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
@@ -159,29 +128,6 @@ My request: ${initialRequest}`;
 			}
 		} finally {
 			messageLoading = false;
-		}
-	}
-
-	async function handleModify() {
-		if (!conversation || !program) return;
-
-		step = 'generating';
-		try {
-			await programGenerator.modifyProgram(program.id, conversation.id);
-			await conversationManager.completeConversation(conversation.id);
-			goto(`/programs/${program.id}`);
-		} catch (error) {
-			console.error('Error modifying program:', error);
-			const err = error as { status?: number; error?: { type?: string } };
-			if (err.status === 529 || err.error?.type === 'overloaded_error') {
-				alert('The AI service is currently overloaded. Please try again in a moment.');
-			} else if (error instanceof Error && error.message.includes('API key')) {
-				step = 'api-key-required';
-			} else {
-				const message = error instanceof Error ? error.message : 'Unknown error';
-				alert(`Failed to modify program: ${message}`);
-			}
-			step = 'conversation';
 		}
 	}
 
@@ -274,17 +220,8 @@ My request: ${initialRequest}`;
 			<AIConversation
 				messages={conversation.messages}
 				loading={messageLoading}
-				readyToGenerate={readyToModify}
 				onsend={handleMessageSend}
-				ongenerate={handleModify}
-				generateButtonText="Update My Program"
 			/>
-		{:else if step === 'generating'}
-			<div class="text-center py-12">
-				<LoadingSpinner size="lg" />
-				<p class="mt-4 text-lg text-secondary">Updating your workout program...</p>
-				<p class="mt-2 text-sm text-muted">This may take a moment</p>
-			</div>
 		{/if}
 	</div>
 {/if}

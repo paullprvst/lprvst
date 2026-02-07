@@ -8,5 +8,6 @@ function parseBoolean(value: string | undefined, defaultValue: boolean): boolean
 
 export const featureFlags = {
 	programVersioningReads: parseBoolean(import.meta.env.PUBLIC_PROGRAM_VERSIONING_READS, true),
-	programVersioningWrites: parseBoolean(import.meta.env.PUBLIC_PROGRAM_VERSIONING_WRITES, true)
+	programVersioningWrites: parseBoolean(import.meta.env.PUBLIC_PROGRAM_VERSIONING_WRITES, true),
+	agentToolCalling: parseBoolean(import.meta.env.PUBLIC_AGENT_TOOL_CALLING, true)
 };

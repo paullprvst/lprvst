@@ -8,19 +8,13 @@
 	interface Props {
 		messages: Message[];
 		loading: boolean;
-		readyToGenerate: boolean;
 		onsend: (message: string) => void;
-		ongenerate: () => void;
-		generateButtonText?: string;
 	}
 
 	let {
 		messages,
 		loading,
-		readyToGenerate,
-		onsend,
-		ongenerate,
-		generateButtonText = 'Generate My Program'
+		onsend
 	}: Props = $props();
 
 	let input = $state('');
@@ -53,8 +47,7 @@
 	});
 
 	function cleanMessageContent(content: string): string {
-		// Remove system tags from displayed messages
-		return content.replace(/READY_TO_GENERATE/g, '').replace(/READY_TO_MODIFY/g, '').trim();
+		return content.trim();
 	}
 </script>
 
@@ -124,17 +117,6 @@
 	</Card>
 
 	<div class="space-y-3">
-		{#if readyToGenerate}
-			<div class="animate-slideUp">
-				<Button onclick={ongenerate} fullWidth={true} size="lg">
-					{#snippet children()}
-						<Sparkles size={20} />
-						{generateButtonText}
-					{/snippet}
-				</Button>
-			</div>
-		{/if}
-
 		<div class="flex gap-3 animate-slideUp">
 			<div class="flex-1">
 				<Input
