@@ -23,6 +23,154 @@ function normalizeExerciseName(name: string): string {
 	return name.toLowerCase().trim().replace(/\s+/g, '_');
 }
 
+const DAY_INDEX_BY_NAME: Record<string, number> = {
+	monday: 0,
+	mon: 0,
+	tuesday: 1,
+	tue: 1,
+	tues: 1,
+	wednesday: 2,
+	wed: 2,
+	thursday: 3,
+	thu: 3,
+	thurs: 3,
+	friday: 4,
+	fri: 4,
+	saturday: 5,
+	sat: 5,
+	sunday: 6,
+	sun: 6
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+	return value as Record<string, unknown>;
+}
+
+function parseInteger(value: unknown): number | undefined {
+	if (typeof value === 'number' && Number.isInteger(value)) return value;
+	if (typeof value !== 'string') return undefined;
+	const trimmed = value.trim();
+	if (!/^-?\d+$/.test(trimmed)) return undefined;
+	return Number.parseInt(trimmed, 10);
+}
+
+function parseDayOfWeek(value: unknown): number | undefined {
+	const numeric = parseInteger(value);
+	if (numeric !== undefined && numeric >= 0 && numeric <= 6) {
+		return numeric;
+	}
+
+	if (typeof value !== 'string') return undefined;
+	const normalized = value.trim().toLowerCase().replace(/[^a-z]/g, '');
+	if (!normalized) return undefined;
+	return DAY_INDEX_BY_NAME[normalized];
+}
+
+function normalizeWorkoutName(name: string): string {
+	return name.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function resolveWorkoutIndex(
+	entry: Record<string, unknown>,
+	workoutIndexById: Map<string, number>,
+	workoutIndexByName: Map<string, number>
+): number | undefined {
+	const directIndex = parseInteger(entry.workoutIndex ?? entry.workout_index);
+	if (directIndex !== undefined) return directIndex;
+
+	const workoutId = entry.workoutId ?? entry.workout_id;
+	if (typeof workoutId === 'string') {
+		const byId = workoutIndexById.get(workoutId.trim());
+		if (byId !== undefined) return byId;
+	}
+
+	const rawWorkoutName = entry.workoutName ?? entry.workout_name ?? entry.workout;
+	if (typeof rawWorkoutName === 'string') {
+		const byName = workoutIndexByName.get(normalizeWorkoutName(rawWorkoutName));
+		if (byName !== undefined) return byName;
+	}
+
+	const nestedWorkout = asRecord(entry.workout);
+	if (nestedWorkout) {
+		const nestedId = nestedWorkout.id;
+		if (typeof nestedId === 'string') {
+			const byId = workoutIndexById.get(nestedId.trim());
+			if (byId !== undefined) return byId;
+		}
+		const nestedName = nestedWorkout.name;
+		if (typeof nestedName === 'string') {
+			const byName = workoutIndexByName.get(normalizeWorkoutName(nestedName));
+			if (byName !== undefined) return byName;
+		}
+	}
+
+	return undefined;
+}
+
+function normalizeScheduleAliases(input: unknown): unknown {
+	const root = asRecord(input);
+	if (!root) return input;
+
+	const workouts = Array.isArray(root.workouts) ? root.workouts : [];
+	const workoutIndexById = new Map<string, number>();
+	const workoutIndexByName = new Map<string, number>();
+	for (let index = 0; index < workouts.length; index++) {
+		const workout = asRecord(workouts[index]);
+		if (!workout) continue;
+
+		const workoutId = workout.id;
+		if (typeof workoutId === 'string' && workoutId.trim()) {
+			workoutIndexById.set(workoutId.trim(), index);
+		}
+
+		const workoutName = workout.name;
+		if (typeof workoutName === 'string') {
+			const normalizedName = normalizeWorkoutName(workoutName);
+			if (normalizedName && !workoutIndexByName.has(normalizedName)) {
+				workoutIndexByName.set(normalizedName, index);
+			}
+		}
+	}
+
+	const schedule = asRecord(root.schedule);
+	if (!schedule || !Array.isArray(schedule.weeklyPattern)) return input;
+
+	const normalizedPattern = schedule.weeklyPattern.map((item) => {
+		const entry = asRecord(item);
+		if (!entry) return item;
+
+		const dayCandidate =
+			entry.dayName ??
+			entry.day_name ??
+			entry.day ??
+			entry.weekday ??
+			entry.weekdayName ??
+			entry.dayOfWeek ??
+			entry.day_of_week;
+		const normalizedDayOfWeek = parseDayOfWeek(dayCandidate);
+		const normalizedWorkoutIndex = resolveWorkoutIndex(
+			entry,
+			workoutIndexById,
+			workoutIndexByName
+		);
+
+		return {
+			...entry,
+			...(normalizedDayOfWeek !== undefined ? { dayOfWeek: normalizedDayOfWeek } : {}),
+			...(normalizedWorkoutIndex !== undefined ? { workoutIndex: normalizedWorkoutIndex } : {})
+		};
+	});
+
+	return {
+		...root,
+		schedule: {
+			...schedule,
+			weeklyPattern: normalizedPattern
+		}
+	};
+}
+
 function mapProgramRow(data: Record<string, unknown>): Program {
 	return {
 		id: data.id as string,
@@ -40,7 +188,7 @@ function mapProgramRow(data: Record<string, unknown>): Program {
 }
 
 function normalizeProgramInput(input: unknown, overrideId?: string): Program {
-	const parsed = ProgramSchema.parse(input);
+	const parsed = ProgramSchema.parse(normalizeScheduleAliases(input));
 	const normalized: Program = {
 		...parsed,
 		id: overrideId ?? parsed.id,
@@ -196,7 +344,7 @@ export function getWorkoutAgentTools(params: {
 				program: {
 					type: 'object',
 					description:
-						'Complete Program JSON with id, name, description, startDate, schedule, and workouts.'
+						'Complete Program JSON with id, name, description, startDate, schedule, and workouts. dayOfWeek is Monday-based: 0=Mon..6=Sun. You may also include dayName/workoutId/workoutName and they will be normalized.'
 				},
 				reason: {
 					type: 'string',
@@ -251,7 +399,7 @@ export function getWorkoutAgentTools(params: {
 				updatedProgram: {
 					type: 'object',
 					description:
-						'Full updated Program JSON preserving IDs for unchanged workouts/exercises whenever possible.'
+						'Full updated Program JSON preserving IDs for unchanged workouts/exercises whenever possible. dayOfWeek is Monday-based: 0=Mon..6=Sun. You may include dayName/workoutId/workoutName aliases and they will be normalized.'
 				},
 				reason: {
 					type: 'string',

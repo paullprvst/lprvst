@@ -132,6 +132,9 @@ export function validateProgramInvariants(program: Program): string[] {
 
 	const dayOfWeekSet = new Set<number>();
 	for (const pattern of program.schedule.weeklyPattern) {
+		if (!Number.isInteger(pattern.dayOfWeek) || pattern.dayOfWeek < 0 || pattern.dayOfWeek > 6) {
+			errors.push(`Invalid schedule dayOfWeek "${pattern.dayOfWeek}". Expected 0-6.`);
+		}
 		if (dayOfWeekSet.has(pattern.dayOfWeek)) {
 			errors.push(`Duplicate schedule dayOfWeek "${pattern.dayOfWeek}".`);
 		}

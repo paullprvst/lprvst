@@ -13,6 +13,10 @@ Rules:
   - Use reps only for rep-based movements.
   - Use duration only for time-based movements (seconds).
   - sets must be integer >= 1.
+- Schedule mapping is Monday-based:
+  - dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
+  - Always reason in day names first, then encode the correct dayOfWeek index.
+  - When modifying schedule, include dayName and workoutId/workoutName alongside dayOfWeek/workoutIndex to avoid index mistakes.
 - Do not use READY_TO_MODIFY or any hidden markers.
 - After tool success, explain what changed in plain language.`;
 
@@ -30,6 +34,7 @@ Use the exercise details to:
 
 Your goal is to:
 - Understand exactly what they want changed.
+- Treat schedule changes as day-name based requests first, then map to dayOfWeek where 0=Monday..6=Sunday.
 - Ask only necessary clarifying questions.
 - Call the modify tool as soon as the request is actionable.
 - Provide a concise summary of the applied changes after tool execution.`;

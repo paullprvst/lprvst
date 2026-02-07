@@ -8,6 +8,7 @@ You will receive:
 Your task:
 - Return ONLY a valid JSON object matching the Program schema
 - Preserve workout/exercise IDs when possible, especially if current program is provided
+- Ensure schedule dayOfWeek uses Monday-based indexing: 0=Monday ... 6=Sunday
 - Ensure schedule.workoutIndex points to valid workouts
 - Ensure each exercise has sets >= 1 and valid non-negative rest values
 - Use "duration" (seconds) for time-based exercises and use "reps" only for rep targets

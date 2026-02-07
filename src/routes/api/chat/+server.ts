@@ -12,6 +12,7 @@ import {
 	loadReevaluationContext
 } from '$lib/server/workout-agent-tools';
 import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
+import type { Program } from '$lib/types/program';
 
 const chatRequestSchema = z.object({
 	messages: z.array(
@@ -24,6 +25,24 @@ const chatRequestSchema = z.object({
 	programId: z.string().optional(),
 	stream: z.boolean().optional()
 });
+
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+function buildScheduleReference(program: Program): string {
+	if (!program.schedule.weeklyPattern.length) return '- No scheduled workouts';
+
+	return [...program.schedule.weeklyPattern]
+		.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+		.map((item) => {
+			const workout = program.workouts[item.workoutIndex];
+			const dayName = DAY_NAMES[item.dayOfWeek] ?? `Day ${item.dayOfWeek}`;
+			if (!workout) {
+				return `- ${dayName} (dayOfWeek=${item.dayOfWeek}) -> workoutIndex=${item.workoutIndex}`;
+			}
+			return `- ${dayName} (dayOfWeek=${item.dayOfWeek}) -> workoutIndex=${item.workoutIndex}, workoutId=${workout.id}, workoutName="${workout.name}"`;
+		})
+		.join('\n');
+}
 
 function defaultCompletionText(action?: AgentAction): string {
 	if (!action) return 'Thanks. I updated the conversation context.';
@@ -62,6 +81,9 @@ export const POST: RequestHandler = async (event) => {
 
 		const { program, exerciseDetails } = await loadReevaluationContext(user.id, programId);
 		systemPrompt += `\n\nCurrent Program JSON (authoritative context):\n${JSON.stringify(program, null, 2)}`;
+		systemPrompt +=
+			'\n\nDay Index Mapping (authoritative): 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday';
+		systemPrompt += `\n\nCurrent Weekly Schedule (resolved):\n${buildScheduleReference(program)}`;
 		if (exerciseDetails) {
 			systemPrompt += `\n\nExercise Details:\n${exerciseDetails}`;
 		}

@@ -21,6 +21,8 @@ Rules:
 - Ensure program structure is valid:
   - Include warmup and main work.
   - Use only available equipment.
+  - Encode schedule with Monday-based dayOfWeek indexes: 0=Monday ... 6=Sunday.
+  - Think in day names first, then encode dayOfWeek.
   - Use reps for rep-based movements and duration (seconds) for timed movements.
   - sets must be integer >= 1.
   - Use realistic restBetweenSets and restBetweenExercises values.

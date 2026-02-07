@@ -59,6 +59,7 @@ Return ONLY valid JSON matching this exact structure:
 
 Important:
 - dayOfWeek: 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
+- Always map by day name first, then encode dayOfWeek using the Monday-based mapping above.
 - workoutIndex: references position in workouts array
 - type: "warmup", "main", or "cooldown"
 - workout type: "strength", "cardio", "flexibility", "mobility", or "mixed"
