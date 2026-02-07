@@ -9,6 +9,8 @@
 	import { workoutStore } from '$lib/stores/workout-store.svelte';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import type { Workout } from '$lib/types/program';
+	import type { WorkoutSession } from '$lib/types/workout-session';
 	import ExerciseDisplay from '$lib/components/workout/ExerciseDisplay.svelte';
 	import RestTimer from '$lib/components/workout/RestTimer.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
@@ -71,6 +73,23 @@
 		return `${exercise.sets} × ${exercise.reps || '?'} reps`;
 	}
 
+	function buildWorkoutFromSession(session: WorkoutSession): Workout {
+		return {
+			id: session.workoutId,
+			name: session.workoutNameSnapshot || 'Workout',
+			type: 'mixed',
+			estimatedDuration: 45,
+			exercises: session.exercises.map((exerciseLog) => ({
+				id: exerciseLog.exerciseId,
+				name: exerciseLog.exerciseName || 'Exercise',
+				sets: exerciseLog.sets.length || 1,
+				restBetweenSets: 0,
+				restBetweenExercises: 0,
+				type: 'main'
+			}))
+		};
+	}
+
 	onMount(async () => {
 		const sessionId = $page.params.id;
 		if (!sessionId) {
@@ -93,9 +112,12 @@
 			return;
 		}
 
-		const workout = program.workouts.find((w) => w.id === session.workoutId);
+		let workout = program.workouts.find((w) => w.id === session.workoutId);
 		if (!workout) {
-			alert('Workout not found');
+			workout = buildWorkoutFromSession(session);
+		}
+		if (!workout) {
+			alert('Workout definition not found');
 			goto('/calendar');
 			return;
 		}

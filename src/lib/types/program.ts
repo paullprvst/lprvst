@@ -111,12 +111,12 @@ export const MuscleTargetSchema = z.object({
 
 export const ExerciseSchema = z.object({
 	id: z.string(),
-	name: z.string(),
-	sets: z.number(),
+	name: z.string().min(1),
+	sets: z.number().int().min(1),
 	reps: z.string().optional(),
-	duration: z.number().optional(),
-	restBetweenSets: z.number(),
-	restBetweenExercises: z.number(),
+	duration: z.number().int().min(1).optional(),
+	restBetweenSets: z.number().int().min(0),
+	restBetweenExercises: z.number().int().min(0),
 	equipment: z.array(z.string()).optional(),
 	notes: z.string().optional(),
 	type: z.enum(['warmup', 'main', 'cooldown']),
@@ -125,16 +125,16 @@ export const ExerciseSchema = z.object({
 
 export const WorkoutSchema = z.object({
 	id: z.string(),
-	name: z.string(),
+	name: z.string().min(1),
 	type: z.enum(['strength', 'cardio', 'flexibility', 'mobility', 'mixed']),
-	estimatedDuration: z.number(),
+	estimatedDuration: z.number().int().min(1),
 	exercises: z.array(ExerciseSchema),
 	notes: z.string().optional()
 });
 
 export const WeeklyPatternSchema = z.object({
 	dayOfWeek: z.number().min(0).max(6),
-	workoutIndex: z.number()
+	workoutIndex: z.number().int().min(0)
 });
 
 export const ProgramScheduleSchema = z.object({

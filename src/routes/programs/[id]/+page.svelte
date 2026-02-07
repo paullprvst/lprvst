@@ -80,12 +80,30 @@
 
 	async function deleteWorkout() {
 		if (!program || editingWorkoutIndex === null) return;
+		const workoutIndexToDelete = editingWorkoutIndex;
 		if (!confirm('Delete this workout?')) return;
 		saving = true;
 		try {
-			const updatedWorkouts = program.workouts.filter((_, i) => i !== editingWorkoutIndex);
-			await programRepository.update(program.id, { workouts: updatedWorkouts });
+			const updatedWorkouts = program.workouts.filter((_, i) => i !== workoutIndexToDelete);
+			const updatedSchedule = {
+				...program.schedule,
+				weeklyPattern: program.schedule.weeklyPattern
+					.filter((pattern) => pattern.workoutIndex !== workoutIndexToDelete)
+					.map((pattern) => ({
+						...pattern,
+						workoutIndex:
+							pattern.workoutIndex > workoutIndexToDelete
+								? pattern.workoutIndex - 1
+								: pattern.workoutIndex
+					}))
+			};
+
+			await programRepository.update(program.id, {
+				workouts: updatedWorkouts,
+				schedule: updatedSchedule
+			});
 			program.workouts = updatedWorkouts;
+			program.schedule = updatedSchedule;
 			closeEditModal();
 		} finally {
 			saving = false;
@@ -101,18 +119,19 @@
 	}
 
 	// Workouts sorted by day of week
-	const sortedSchedule = $derived(
-		program
-			? [...program.schedule.weeklyPattern]
-					.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
-					.map((pattern) => ({
-						dayName: DAY_NAMES[pattern.dayOfWeek],
-						workout: program.workouts[pattern.workoutIndex],
-						workoutIndex: pattern.workoutIndex
-					}))
-					.filter((item) => item.workout)
-			: []
-	);
+	const sortedSchedule = $derived.by(() => {
+		const currentProgram = program;
+		if (!currentProgram) return [];
+
+		return [...currentProgram.schedule.weeklyPattern]
+			.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
+			.map((pattern) => ({
+				dayName: DAY_NAMES[pattern.dayOfWeek],
+				workout: currentProgram.workouts[pattern.workoutIndex],
+				workoutIndex: pattern.workoutIndex
+			}))
+			.filter((item) => item.workout);
+	});
 </script>
 
 {#if loading}

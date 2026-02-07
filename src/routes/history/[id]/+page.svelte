@@ -137,7 +137,7 @@
 						<CheckCircle size={24} class="text-[rgb(var(--color-success))]" />
 					</div>
 					<div class="flex-1 min-w-0">
-						<h2 class="text-lg font-bold text-primary">{workout?.name || 'Deleted workout'}</h2>
+						<h2 class="text-lg font-bold text-primary">{workout?.name || session.workoutNameSnapshot || 'Deleted workout'}</h2>
 						<p class="text-sm text-secondary">{program?.name || 'Deleted program'}</p>
 					</div>
 				</div>
@@ -175,7 +175,7 @@
 				<Card>
 					<div class="space-y-3">
 						<div class="flex items-center justify-between">
-							<h4 class="font-semibold text-primary">{exercise?.name || 'Unknown exercise'}</h4>
+							<h4 class="font-semibold text-primary">{exercise?.name || exerciseLog.exerciseName || 'Unknown exercise'}</h4>
 							{#if exerciseLog.skipped}
 								<span class="text-xs px-2 py-1 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full">
 									Skipped

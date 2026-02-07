@@ -2,6 +2,7 @@ export interface WorkoutSession {
 	id: string;
 	userId?: string;
 	workoutId: string;
+	workoutNameSnapshot?: string;
 	programId: string;
 	startedAt: Date;
 	completedAt?: Date;

@@ -4,6 +4,7 @@ import { programRepository } from '../storage/program-repository';
 import { exerciseDescriptionRepository } from '../storage/exercise-description-repository';
 import { ProgramSchema } from '$lib/types/program';
 import type { Program } from '$lib/types/program';
+import { assertProgramInvariants, preserveProgramIdentity } from './program-integrity';
 
 export class ProgramGenerator {
 	private extractJSON(text: string): string {
@@ -27,12 +28,14 @@ export class ProgramGenerator {
 		const validated = ProgramSchema.parse(parsed);
 
 		// Convert date strings to Date objects
-		return {
+		const program = {
 			...validated,
 			startDate: new Date(validated.startDate),
 			createdAt: new Date(),
 			updatedAt: new Date()
 		};
+		assertProgramInvariants(program);
+		return program;
 	}
 
 	async generateFromConversation(conversationId: string): Promise<Program> {
@@ -105,11 +108,13 @@ export class ProgramGenerator {
 
 		const jsonString = this.extractJSON(response.text);
 		const modifiedProgram = this.parseAndValidate(jsonString);
+		const mergedProgram = preserveProgramIdentity(program, modifiedProgram);
+		assertProgramInvariants(mergedProgram);
 
 		// Update existing program
-		await programRepository.update(programId, modifiedProgram);
+		await programRepository.update(programId, mergedProgram);
 
-		return { ...modifiedProgram, id: programId };
+		return { ...mergedProgram, id: programId };
 	}
 }
 

@@ -23,6 +23,13 @@ Maintain program structure and quality:
 - Ensure balanced programming
 - Match their equipment availability
 - Respect any limitations
+- Preserve existing IDs for unchanged entities:
+  - If a workout remains the same concept, keep its existing "id"
+  - If an exercise remains the same movement, keep its existing "id"
+- reps is ONLY for rep-based targets (examples: "8-12", "10", "AMRAP")
+- duration is ONLY for time-based targets in seconds
+- Never put time targets in reps text (no "30 seconds" in reps)
+- sets must be an integer >= 1
 
 Return ONLY valid JSON matching the same Program structure as the original.
 

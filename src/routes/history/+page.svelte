@@ -126,7 +126,7 @@
 
 							<!-- Content -->
 							<div class="flex-1 min-w-0">
-								<h3 class="font-semibold text-primary truncate">{workout?.name || 'Deleted workout'}</h3>
+								<h3 class="font-semibold text-primary truncate">{workout?.name || session.workoutNameSnapshot || 'Deleted workout'}</h3>
 								<p class="text-sm text-secondary">{program?.name || 'Deleted program'}</p>
 
 								<!-- Meta info -->

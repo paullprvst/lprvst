@@ -60,20 +60,21 @@
 
 	async function handleRequestSubmit() {
 		if (!program || !initialRequest.trim()) return;
+		const currentProgram = program;
 
 		messageLoading = true;
 		try {
 			// Include program context in the initial message
 			// Build schedule mapping: which workout is on which day
-			const scheduleDetails = program.schedule.weeklyPattern
+			const scheduleDetails = currentProgram.schedule.weeklyPattern
 				.sort((a, b) => a.dayOfWeek - b.dayOfWeek)
 				.map(p => {
-					const workout = program.workouts[p.workoutIndex];
+					const workout = currentProgram.workouts[p.workoutIndex];
 					return `  - ${DAY_NAMES[p.dayOfWeek]}: ${workout?.name ?? 'Unknown'}`;
 				})
 				.join('\n');
 
-			const workoutDetails = program.workouts.map(w => {
+			const workoutDetails = currentProgram.workouts.map(w => {
 				const exerciseList = w.exercises.map(e => {
 					let details = `    - ${e.name}`;
 					if (e.sets) details += `: ${e.sets} sets`;
@@ -85,10 +86,10 @@
 				return `${w.name} (${w.type}, ~${w.estimatedDuration}min):\n${exerciseList}`;
 			}).join('\n\n');
 
-			const contextMessage = `I have a workout program called "${program.name}" that I'd like to modify.
+			const contextMessage = `I have a workout program called "${currentProgram.name}" that I'd like to modify.
 
 Current program details:
-- Description: ${program.description}
+- Description: ${currentProgram.description}
 - Weekly schedule (0=Monday convention):
 ${scheduleDetails}
 
@@ -98,7 +99,7 @@ ${workoutDetails}
 My request: ${initialRequest}`;
 
 			// Pass displayContent as just the user's request (not the full program context)
-			conversation = await conversationManager.createConversation('reevaluation', contextMessage, program.id, initialRequest);
+			conversation = await conversationManager.createConversation('reevaluation', contextMessage, currentProgram.id, initialRequest);
 
 			// Get initial AI response
 			await conversationManager.getAssistantResponse(conversation.id);

@@ -37,7 +37,7 @@
 			// Find the workout name
 			const program = programs.find(p => p.id === inProgressSession!.programId);
 			const workout = program?.workouts.find(w => w.id === inProgressSession!.workoutId);
-			inProgressWorkoutName = workout?.name || 'Workout';
+			inProgressWorkoutName = workout?.name || inProgressSession.workoutNameSnapshot || 'Workout';
 		}
 		loading = false;
 	});
@@ -61,6 +61,7 @@
 
 		const session = await workoutSessionRepository.create({
 			workoutId,
+			workoutNameSnapshot: selectedProgram.workouts[workoutIndex].name,
 			programId: selectedProgram.id,
 			status: 'in-progress',
 			exercises: selectedProgram.workouts[workoutIndex].exercises.map((e) => ({

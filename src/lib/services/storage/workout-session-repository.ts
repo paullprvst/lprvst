@@ -15,6 +15,7 @@ export class WorkoutSessionRepository {
 			.insert({
 				user_id: userId,
 				workout_id: session.workoutId,
+				workout_name_snapshot: session.workoutNameSnapshot ?? null,
 				program_id: session.programId,
 				status: session.status,
 				exercises: session.exercises
@@ -88,6 +89,8 @@ export class WorkoutSessionRepository {
 	async update(id: string, updates: Partial<WorkoutSession>): Promise<void> {
 		const dbUpdates: Record<string, unknown> = {};
 		if (updates.workoutId !== undefined) dbUpdates.workout_id = updates.workoutId;
+		if (updates.workoutNameSnapshot !== undefined)
+			dbUpdates.workout_name_snapshot = updates.workoutNameSnapshot;
 		if (updates.programId !== undefined) dbUpdates.program_id = updates.programId;
 		if (updates.status !== undefined) dbUpdates.status = updates.status;
 		if (updates.exercises !== undefined) dbUpdates.exercises = updates.exercises;
@@ -134,7 +137,10 @@ export class WorkoutSessionRepository {
 		}
 
 		// Group by exercise ID, keeping track of the most recent performance
-		const exerciseMap = new Map<string, { lastPerformedAt: Date; lastSets: SetLog[] }>();
+		const exerciseMap = new Map<
+			string,
+			{ lastPerformedAt: Date; lastSets: SetLog[]; exerciseName?: string }
+		>();
 
 		for (const session of sessions) {
 			const sessionDate = session.completedAt || session.startedAt;
@@ -147,7 +153,8 @@ export class WorkoutSessionRepository {
 				if (!existing || sessionDate > existing.lastPerformedAt) {
 					exerciseMap.set(exerciseLog.exerciseId, {
 						lastPerformedAt: sessionDate,
-						lastSets: completedSets
+						lastSets: completedSets,
+						exerciseName: exerciseLog.exerciseName
 					});
 				}
 			}
@@ -156,7 +163,7 @@ export class WorkoutSessionRepository {
 		// Convert to array and add exercise names
 		const result: ExerciseWithLastPerformance[] = [];
 		for (const [exerciseId, data] of exerciseMap) {
-			const exerciseName = exerciseNameMap.get(exerciseId);
+			const exerciseName = exerciseNameMap.get(exerciseId) || data.exerciseName;
 			if (exerciseName) {
 				result.push({
 					exerciseId,
@@ -247,6 +254,7 @@ export class WorkoutSessionRepository {
 			id: data.id as string,
 			userId: data.user_id as string | undefined,
 			workoutId: data.workout_id as string,
+			workoutNameSnapshot: (data.workout_name_snapshot as string) || undefined,
 			programId: data.program_id as string,
 			startedAt: new Date(data.started_at as string),
 			completedAt: data.completed_at ? new Date(data.completed_at as string) : undefined,

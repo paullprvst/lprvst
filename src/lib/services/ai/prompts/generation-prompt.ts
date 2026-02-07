@@ -62,10 +62,13 @@ Important:
 - workoutIndex: references position in workouts array
 - type: "warmup", "main", or "cooldown"
 - workout type: "strength", "cardio", "flexibility", "mobility", or "mixed"
-- reps can be a number range like "8-12" or duration like "30 seconds"
+- reps is ONLY for rep-based targets (examples: "8-12", "10", "AMRAP")
+- duration is ONLY for time-based targets in seconds (example: 30, 60, 120)
+- do NOT encode durations in reps text (never "30 seconds" in reps)
 - restBetweenSets: seconds to rest after each set (typical: 30-90s for most exercises)
 - restBetweenExercises: seconds to rest before starting the next exercise (typical: 60-120s)
 - Always include warmup exercises (type: "warmup") and optionally cooldown (type: "cooldown")
+- sets must be an integer >= 1 for every exercise
 - targetMuscles: array of muscles targeted by this exercise with activation level
   - muscle: one of "chest", "shoulders_front", "biceps", "forearms", "abs", "obliques", "hip_flexors", "quads", "inner_thighs", "tibialis", "traps", "shoulders_rear", "lats", "rhomboids", "lower_back", "triceps", "glutes", "hamstrings", "calves"
   - activation: "primary" (main target), "secondary" (significant involvement), or "stabilizer" (supporting role)
