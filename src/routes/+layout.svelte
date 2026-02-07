@@ -82,35 +82,22 @@
 	<!-- Bottom Navigation -->
 	{#if auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute}
 		<nav
-			class="fixed bottom-0 left-0 right-0 z-[100] safe-area-inset-bottom px-3 pb-2 sm:px-4"
+			class="fixed bottom-0 left-0 right-0 z-[100] safe-area-inset-bottom glass-heavy border-t border-[rgb(var(--color-border)/0.7)]"
 			aria-label="Primary navigation"
 		>
-			<div
-				class="mx-auto max-w-4xl rounded-[1.3rem] border border-[rgb(var(--color-border)/0.7)] glass-heavy shadow-[0_18px_36px_-20px_rgb(2_7_14/0.92)]"
-			>
-				<div class="grid grid-cols-5">
-					{#each navItems as item, index}
-						{@const isActive = index === activeIndex}
-						<a
-							href={item.href}
-							aria-label={item.label}
-							class="group relative flex items-center justify-center py-2.5 sm:py-3 transition-all duration-200"
-						>
-							<span
-								class="flex min-w-[60px] flex-col items-center gap-1 rounded-xl px-2.5 py-1.5 transition-all duration-200 {isActive
-									? 'text-brand bg-brand-soft shadow-[0_10px_24px_-16px_rgb(var(--color-primary)/0.85)]'
-									: 'text-secondary group-hover:text-primary group-hover:bg-[rgb(var(--color-border)/0.28)]'}"
-							>
-								<item.icon size={19} strokeWidth={isActive ? 2.5 : 2} />
-								<span
-									class="text-[10px] sm:text-[11px] tracking-[0.02em] font-semibold leading-none"
-								>
-									{item.label}
-								</span>
-							</span>
-						</a>
-					{/each}
-				</div>
+			<div class="grid grid-cols-5">
+				{#each navItems as item, index}
+					{@const isActive = index === activeIndex}
+					<a
+						href={item.href}
+						aria-label={item.label}
+						class="group relative flex min-h-[56px] items-center justify-center touch-target transition-all duration-200 {isActive
+							? 'text-brand bg-brand-soft'
+							: 'text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.22)]'}"
+					>
+						<item.icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+					</a>
+				{/each}
 			</div>
 		</nav>
 	{/if}
