@@ -91,6 +91,7 @@ class WorkoutStore {
 			if (data?.reps !== undefined) set.reps = data.reps;
 			if (data?.weight !== undefined) set.weight = data.weight;
 			if (data?.duration !== undefined) set.duration = data.duration;
+			this.applySetDataToNextSets(setNumber, data);
 
 			// Check if all sets are completed
 			const allCompleted = this.currentExerciseLog.sets.every(s => s.completed);
@@ -111,6 +112,22 @@ class WorkoutStore {
 				// Time-based exercise with no rest specified - add default transition time
 				this.startRest(DEFAULT_TRANSITION_TIME, 'set');
 			}
+		}
+	}
+
+	private applySetDataToNextSets(
+		setNumber: number,
+		data?: { reps?: number; weight?: number; duration?: number }
+	) {
+		if (!this.currentExerciseLog || !data) return;
+		const hasData = data.reps !== undefined || data.weight !== undefined || data.duration !== undefined;
+		if (!hasData) return;
+
+		for (const nextSet of this.currentExerciseLog.sets) {
+			if (nextSet.setNumber <= setNumber || nextSet.completed) continue;
+			if (data.reps !== undefined) nextSet.reps = data.reps;
+			if (data.weight !== undefined) nextSet.weight = data.weight;
+			if (data.duration !== undefined) nextSet.duration = data.duration;
 		}
 	}
 

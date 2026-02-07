@@ -50,6 +50,17 @@
 
 	function completeSet(set: SetLog) {
 		const input = setInputs[set.setNumber] || {};
+		if (input.reps !== undefined || input.weight !== undefined) {
+			for (const nextSet of log.sets) {
+				if (nextSet.setNumber <= set.setNumber || nextSet.completed) continue;
+				setInputs[nextSet.setNumber] = {
+					...setInputs[nextSet.setNumber],
+					reps: input.reps,
+					weight: input.weight
+				};
+			}
+		}
+
 		onsetcomplete(set.setNumber, {
 			reps: input.reps,
 			weight: input.weight
