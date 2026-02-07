@@ -82,7 +82,7 @@
 	<!-- Bottom Navigation -->
 	{#if auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute}
 		<nav
-			class="fixed bottom-0 left-0 right-0 z-[100] safe-area-inset-bottom glass-heavy border-t border-[rgb(var(--color-border)/0.7)]"
+			class="fixed bottom-0 left-0 right-0 z-[100] safe-area-inset-bottom bg-[rgb(var(--color-bg)/0.98)] border-t border-[rgb(var(--color-border)/0.82)] shadow-[0_-14px_30px_-18px_rgb(2_7_14/0.98)] backdrop-blur-xl"
 			aria-label="Primary navigation"
 		>
 			<div class="grid grid-cols-5">
@@ -91,7 +91,7 @@
 					<a
 						href={item.href}
 						aria-label={item.label}
-						class="group relative flex min-h-[56px] items-center justify-center touch-target transition-all duration-200 {isActive
+						class="group relative flex min-h-[70px] items-center justify-center touch-target transition-all duration-200 {isActive
 							? 'text-brand bg-brand-soft'
 							: 'text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.22)]'}"
 					>
