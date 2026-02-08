@@ -12,8 +12,8 @@
 	import { checkApiKeyStatus } from '$lib/services/ai/api-client';
 	import { getAuthState } from '$lib/stores/auth-store.svelte';
 	import type { Program } from '$lib/types/program';
-	import type { AgentAction } from '$lib/types/agent';
-	import type { Conversation } from '$lib/types/conversation';
+	import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
+	import type { Conversation, Message } from '$lib/types/conversation';
 	import AIConversation from '$lib/components/onboarding/AIConversation.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
@@ -30,6 +30,8 @@
 	let messageLoading = $state(false);
 	let initialRequest = $state('');
 	let errorMessage = $state('');
+	let statusText = $state('');
+	let provisionalMessages = $state<Message[]>([]);
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'modify_program') return false;
@@ -70,24 +72,29 @@
 
 		messageLoading = true;
 		errorMessage = '';
+		statusText = 'Starting';
 		try {
-			conversation = await conversationManager.createConversation(
+			const prompt = initialRequest.trim();
+			initialRequest = '';
+			provisionalMessages = [{ role: 'user', content: prompt, timestamp: new Date() }];
+			step = 'conversation';
+
+			const createdConversation = await conversationManager.createConversation(
 				'reevaluation',
-				initialRequest,
+				prompt,
 				program.id
 			);
+			conversation = createdConversation;
+			provisionalMessages = [];
 
-			// Get initial AI response
-			const turn = await conversationManager.getAssistantResponse(conversation.id);
+			const assistantPlaceholderIndex = appendMessage({
+				role: 'assistant',
+				content: '',
+				timestamp: new Date()
+			});
 
-			// Reload conversation to get updated messages
-			const updated = await conversationRepository.get(conversation.id);
-			if (updated) {
-				conversation = updated;
-			}
-			if (await handleAgentAction(turn.action, conversation.id)) return;
-
-			step = 'conversation';
+			const turn = await streamAssistantResponse(createdConversation.id, assistantPlaceholderIndex);
+			if (await handleAgentAction(turn.action, createdConversation.id)) return;
 		} catch (error) {
 			console.error('Error starting conversation:', error);
 			const err = error as { status?: number; error?: { type?: string } };
@@ -99,27 +106,48 @@
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				errorMessage = `Failed to start conversation: ${message}`;
 			}
+			provisionalMessages = [];
+			if (!conversation) {
+				step = 'input';
+			}
 		} finally {
 			messageLoading = false;
+			statusText = '';
 		}
 	}
 
 	async function handleMessageSend(message: string) {
-		if (!conversation) return;
+		const activeConversation = conversation;
+		if (!activeConversation) return;
 
 		messageLoading = true;
 		errorMessage = '';
-		try {
-			await conversationManager.addUserMessage(conversation.id, message);
-			const turn = await conversationManager.getAssistantResponse(conversation.id);
+		statusText = 'Sending';
+		const previousMessages = [...activeConversation.messages];
 
-			// Reload conversation
-			const updated = await conversationRepository.get(conversation.id);
-			if (updated) {
-				conversation = updated;
-			}
-			if (await handleAgentAction(turn.action, conversation.id)) return;
+		appendMessage({
+			role: 'user',
+			content: message,
+			timestamp: new Date()
+		});
+		const assistantPlaceholderIndex = appendMessage({
+			role: 'assistant',
+			content: '',
+			timestamp: new Date()
+		});
+
+		try {
+			await conversationManager.addUserMessage(activeConversation.id, message);
+			const turn = await streamAssistantResponse(activeConversation.id, assistantPlaceholderIndex);
+			if (await handleAgentAction(turn.action, activeConversation.id)) return;
 		} catch (error) {
+			if (conversation) {
+				conversation = {
+					...conversation,
+					messages: previousMessages,
+					updatedAt: new Date()
+				};
+			}
 			console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
@@ -132,6 +160,7 @@
 			}
 		} finally {
 			messageLoading = false;
+			statusText = '';
 		}
 	}
 
@@ -140,6 +169,60 @@
 			e.preventDefault();
 			handleRequestSubmit();
 		}
+	}
+
+	function appendMessage(message: Message): number {
+		if (!conversation) return -1;
+		const nextMessages = [...conversation.messages, message];
+		conversation = {
+			...conversation,
+			messages: nextMessages,
+			updatedAt: new Date()
+		};
+		return nextMessages.length - 1;
+	}
+
+	function updateMessageContent(index: number, content: string): void {
+		if (!conversation || index < 0 || index >= conversation.messages.length) return;
+		const nextMessages = [...conversation.messages];
+		const existing = nextMessages[index];
+		if (!existing) return;
+		nextMessages[index] = {
+			...existing,
+			content,
+			displayContent: undefined
+		};
+		conversation = {
+			...conversation,
+			messages: nextMessages,
+			updatedAt: new Date()
+		};
+	}
+
+	async function streamAssistantResponse(
+		conversationId: string,
+		assistantMessageIndex: number
+	): Promise<AgentTurnResponse> {
+		let streamedText = '';
+		const turn = await conversationManager.getAssistantResponse(conversationId, {
+			stream: true,
+			onStatus: (stepName) => {
+				statusText = stepName;
+			},
+			onChunk: (chunk) => {
+				streamedText += chunk;
+				updateMessageContent(assistantMessageIndex, streamedText);
+			}
+		});
+
+		updateMessageContent(assistantMessageIndex, turn.text || streamedText);
+		const updated = await conversationRepository.get(conversationId);
+		if (updated) {
+			conversation = updated;
+		}
+		provisionalMessages = [];
+
+		return turn;
 	}
 </script>
 
@@ -178,7 +261,7 @@
 		</div>
 	</Card>
 {:else}
-	<div class="max-w-3xl mx-auto space-y-4">
+	<div class="max-w-4xl mx-auto space-y-4 min-h-[calc(100svh-11.5rem)] h-full flex flex-col">
 		{#if errorMessage}
 			<AlertBanner variant="error" title="Request failed" message={errorMessage} />
 		{/if}
@@ -224,12 +307,16 @@
 					</div>
 				</div>
 			</Card>
-		{:else if step === 'conversation' && conversation}
-			<AIConversation
-				messages={conversation.messages}
-				loading={messageLoading}
-				onsend={handleMessageSend}
-			/>
+		{:else if step === 'conversation' && (conversation || provisionalMessages.length > 0)}
+			<div class="flex-1 min-h-0">
+				<AIConversation
+					messages={conversation?.messages ?? provisionalMessages}
+					loading={messageLoading}
+					{statusText}
+					fillHeight={true}
+					onsend={handleMessageSend}
+				/>
+			</div>
 		{/if}
 	</div>
 {/if}

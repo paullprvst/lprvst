@@ -55,10 +55,18 @@ export async function postJSON<T>(url: string, body: Record<string, unknown>): P
 	return response.json();
 }
 
-export async function postStream(
+export interface StreamEvent {
+	type?: 'status' | 'text' | 'action' | 'error' | 'done';
+	text?: string;
+	step?: string;
+	action?: unknown;
+	error?: string;
+}
+
+export async function postEventStream(
 	url: string,
 	body: Record<string, unknown>,
-	onChunk: (text: string) => void
+	onEvent: (event: StreamEvent) => void
 ): Promise<void> {
 	const response = await fetch(url, {
 		method: 'POST',
@@ -89,23 +97,30 @@ export async function postStream(
 		buffer = lines.pop() || '';
 
 		for (const line of lines) {
-			if (line.startsWith('data: ')) {
-				const data = line.slice(6);
-				if (data === '[DONE]') {
-					return;
-				}
-				try {
-					const parsed = JSON.parse(data);
-					if (parsed.text) {
-						onChunk(parsed.text);
-					}
-					if (parsed.error) {
-						throw new Error(parsed.error);
-					}
-				} catch {
-					// Skip malformed JSON
-				}
+			if (!line.startsWith('data: ')) continue;
+			const data = line.slice(6);
+			if (data === '[DONE]') {
+				onEvent({ type: 'done' });
+				return;
 			}
+
+			const parsed = JSON.parse(data) as StreamEvent;
+			if (parsed.error) {
+				throw new Error(parsed.error);
+			}
+			onEvent(parsed);
 		}
 	}
+}
+
+export async function postStream(
+	url: string,
+	body: Record<string, unknown>,
+	onChunk: (text: string) => void
+): Promise<void> {
+	await postEventStream(url, body, (event) => {
+		if (event.text) {
+			onChunk(event.text);
+		}
+	});
 }

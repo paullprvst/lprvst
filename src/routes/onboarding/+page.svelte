@@ -17,8 +17,8 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { Key, Sparkles } from 'lucide-svelte';
-	import type { AgentAction } from '$lib/types/agent';
-	import type { Conversation } from '$lib/types/conversation';
+	import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
+	import type { Conversation, Message } from '$lib/types/conversation';
 
 	const auth = getAuthState();
 	let step = $state<'api-key-required' | 'loading' | 'input' | 'conversation'>('loading');
@@ -26,6 +26,8 @@
 	let loading = $state(false);
 	let initialObjective = $state('');
 	let errorMessage = $state('');
+	let statusText = $state('');
+	let provisionalMessages = $state<Message[]>([]);
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'create_program') return false;
@@ -61,19 +63,27 @@
 	async function handleObjectiveSubmit(objective: string) {
 		loading = true;
 		errorMessage = '';
+		statusText = 'Starting';
 		initialObjective = objective;
 
 		try {
-			conversation = await conversationManager.createConversation('onboarding', objective);
-			const turn = await conversationManager.getAssistantResponse(conversation.id);
-			const updated = await conversationRepository.get(conversation.id);
-
-			if (updated) {
-				conversation = updated;
-			}
-
-			if (await handleAgentAction(turn.action, conversation.id)) return;
+			provisionalMessages = [{ role: 'user', content: objective, timestamp: new Date() }];
 			step = 'conversation';
+
+			const createdConversation = await conversationManager.createConversation('onboarding', objective);
+			conversation = createdConversation;
+			provisionalMessages = [];
+			const assistantPlaceholderIndex = appendMessage({
+				role: 'assistant',
+				content: '',
+				timestamp: new Date()
+			});
+			const turn = await streamAssistantResponse(
+				createdConversation.id,
+				assistantPlaceholderIndex
+			);
+
+			if (await handleAgentAction(turn.action, createdConversation.id)) return;
 		} catch (error) {
 			console.error('Error starting conversation:', error);
 			const err = error as { status?: number; error?: { type?: string } };
@@ -85,28 +95,51 @@
 				const message = error instanceof Error ? error.message : 'Unknown error';
 				errorMessage = `Failed to start conversation: ${message}`;
 			}
+			provisionalMessages = [];
+			if (!conversation) {
+				step = 'input';
+			}
 		} finally {
 			loading = false;
+			statusText = '';
 		}
 	}
 
 	async function handleMessageSend(message: string) {
-		if (!conversation) return;
+		const activeConversation = conversation;
+		if (!activeConversation) return;
 
 		loading = true;
 		errorMessage = '';
+		statusText = 'Sending';
+		const previousMessages = [...activeConversation.messages];
+
+		appendMessage({
+			role: 'user',
+			content: message,
+			timestamp: new Date()
+		});
+		const assistantPlaceholderIndex = appendMessage({
+			role: 'assistant',
+			content: '',
+			timestamp: new Date()
+		});
 
 		try {
-			await conversationManager.addUserMessage(conversation.id, message);
-			const turn = await conversationManager.getAssistantResponse(conversation.id);
-			const updated = await conversationRepository.get(conversation.id);
-
-			if (updated) {
-				conversation = updated;
-			}
-
-			if (await handleAgentAction(turn.action, conversation.id)) return;
+			await conversationManager.addUserMessage(activeConversation.id, message);
+			const turn = await streamAssistantResponse(
+				activeConversation.id,
+				assistantPlaceholderIndex
+			);
+			if (await handleAgentAction(turn.action, activeConversation.id)) return;
 		} catch (error) {
+			if (conversation) {
+				conversation = {
+					...conversation,
+					messages: previousMessages,
+					updatedAt: new Date()
+				};
+			}
 			console.error('Error sending message:', error);
 			const err = error as { status?: number; error?: { type?: string } };
 			if (err.status === 529 || err.error?.type === 'overloaded_error') {
@@ -119,7 +152,61 @@
 			}
 		} finally {
 			loading = false;
+			statusText = '';
 		}
+	}
+
+	function appendMessage(message: Message): number {
+		if (!conversation) return -1;
+		const nextMessages = [...conversation.messages, message];
+		conversation = {
+			...conversation,
+			messages: nextMessages,
+			updatedAt: new Date()
+		};
+		return nextMessages.length - 1;
+	}
+
+	function updateMessageContent(index: number, content: string): void {
+		if (!conversation || index < 0 || index >= conversation.messages.length) return;
+		const nextMessages = [...conversation.messages];
+		const existing = nextMessages[index];
+		if (!existing) return;
+		nextMessages[index] = {
+			...existing,
+			content,
+			displayContent: undefined
+		};
+		conversation = {
+			...conversation,
+			messages: nextMessages,
+			updatedAt: new Date()
+		};
+	}
+
+	async function streamAssistantResponse(
+		conversationId: string,
+		assistantMessageIndex: number
+	): Promise<AgentTurnResponse> {
+		let streamedText = '';
+		const turn = await conversationManager.getAssistantResponse(conversationId, {
+			stream: true,
+			onStatus: (stepName) => {
+				statusText = stepName;
+			},
+			onChunk: (chunk) => {
+				streamedText += chunk;
+				updateMessageContent(assistantMessageIndex, streamedText);
+			}
+		});
+
+		updateMessageContent(assistantMessageIndex, turn.text || streamedText);
+		const updated = await conversationRepository.get(conversationId);
+		if (updated) {
+			conversation = updated;
+		}
+		provisionalMessages = [];
+		return turn;
 	}
 </script>
 
@@ -164,7 +251,12 @@
 		</Card>
 	{:else if step === 'input'}
 		<ObjectiveInput onsubmit={handleObjectiveSubmit} {loading} />
-	{:else if step === 'conversation' && conversation}
-		<AIConversation messages={conversation.messages} {loading} onsend={handleMessageSend} />
+	{:else if step === 'conversation' && (conversation || provisionalMessages.length > 0)}
+		<AIConversation
+			messages={conversation?.messages ?? provisionalMessages}
+			{loading}
+			{statusText}
+			onsend={handleMessageSend}
+		/>
 	{/if}
 </div>

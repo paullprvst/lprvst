@@ -1,7 +1,14 @@
-import { postJSON } from './api-client';
+import { postEventStream, postJSON } from './api-client';
 import { conversationRepository } from '../storage/conversation-repository';
 import type { Conversation, Message } from '$lib/types/conversation';
-import type { AgentTurnResponse } from '$lib/types/agent';
+import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
+
+interface AssistantResponseOptions {
+	stream?: boolean;
+	onChunk?: (chunk: string) => void;
+	onStatus?: (step: string) => void;
+	onAction?: (action: AgentAction) => void;
+}
 
 export class ConversationManager {
 	async createConversation(
@@ -17,8 +24,16 @@ export class ConversationManager {
 			programId
 		});
 
-		await this.addUserMessage(conversation.id, initialMessage, displayContent);
-		return conversation;
+		const userMessage = await this.addUserMessage(
+			conversation.id,
+			initialMessage,
+			displayContent
+		);
+		return {
+			...conversation,
+			messages: [...conversation.messages, userMessage],
+			updatedAt: new Date()
+		};
 	}
 
 	async addUserMessage(conversationId: string, content: string, displayContent?: string): Promise<Message> {
@@ -34,7 +49,8 @@ export class ConversationManager {
 	}
 
 	async getAssistantResponse(
-		conversationId: string
+		conversationId: string,
+		options: AssistantResponseOptions = {}
 	): Promise<AgentTurnResponse> {
 		const conversation = await conversationRepository.get(conversationId);
 		if (!conversation) {
@@ -46,20 +62,59 @@ export class ConversationManager {
 			content: m.content
 		}));
 
+		if (options.stream) {
+			let fullText = '';
+			let action: AgentAction | undefined;
+
+			await postEventStream(
+				'/api/chat',
+				{
+					messages,
+					conversationType: conversation.type,
+					programId: conversation.programId,
+					stream: true
+				},
+				(event) => {
+					if (event.type === 'status' && event.step) {
+						options.onStatus?.(event.step);
+						return;
+					}
+					if (event.type === 'text' && event.text) {
+						fullText += event.text;
+						options.onChunk?.(event.text);
+						return;
+					}
+					if (event.type === 'action' && event.action) {
+						action = event.action as AgentAction;
+						options.onAction?.(action);
+					}
+				}
+			);
+
+			const response: AgentTurnResponse = {
+				text: fullText,
+				action
+			};
+			const assistantMessage: Message = {
+				role: 'assistant',
+				content: response.text,
+				timestamp: new Date()
+			};
+			await conversationRepository.addMessage(conversationId, assistantMessage);
+			return response;
+		}
+
 		const response = await postJSON<AgentTurnResponse>('/api/chat', {
 			messages,
 			conversationType: conversation.type,
 			programId: conversation.programId
 		});
-
 		const assistantMessage: Message = {
 			role: 'assistant',
 			content: response.text,
 			timestamp: new Date()
 		};
-
 		await conversationRepository.addMessage(conversationId, assistantMessage);
-
 		return response;
 	}
 

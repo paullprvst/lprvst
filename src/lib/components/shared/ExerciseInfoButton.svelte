@@ -3,6 +3,7 @@
 	import Modal from './Modal.svelte';
 	import LoadingSpinner from './LoadingSpinner.svelte';
 	import { getExerciseDescription, type ExerciseDescriptionContext } from '$lib/services/ai/exercise-description-service';
+	import { renderMarkdownToHtml } from '$lib/utils/markdown';
 
 	interface Props {
 		exerciseName: string;
@@ -46,22 +47,6 @@
 		modalOpen = false;
 	}
 
-	// Simple markdown renderer for our specific format
-	function renderMarkdown(text: string): string {
-		return text
-			// Headers
-			.replace(/^## (.+)$/gm, '<h3 class="text-lg font-semibold text-primary mt-4 mb-2">$1</h3>')
-			// Bold
-			.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-			// Numbered lists
-			.replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 mb-1"><span class="font-medium">$1.</span> $2</li>')
-			// Bullet points
-			.replace(/^- (.+)$/gm, '<li class="ml-4 mb-1 list-disc list-inside">$1</li>')
-			// Paragraphs (lines not already processed)
-			.replace(/^(?!<[hl]|<li)(.+)$/gm, '<p class="mb-2">$1</p>')
-			// Clean up empty paragraphs
-			.replace(/<p class="mb-2"><\/p>/g, '');
-	}
 </script>
 
 <button
@@ -85,7 +70,7 @@
 			</div>
 		{:else}
 			<div class="prose prose-sm max-w-none">
-				{@html renderMarkdown(description)}
+				{@html renderMarkdownToHtml(description)}
 			</div>
 			{#if loading}
 				<div class="flex items-center gap-2 mt-4 text-secondary text-sm">

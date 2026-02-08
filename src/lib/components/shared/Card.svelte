@@ -4,9 +4,10 @@
 		variant?: 'default' | 'elevated' | 'interactive' | 'info' | 'success' | 'warning' | 'ghost';
 		children: import('svelte').Snippet;
 		onclick?: () => void;
+		className?: string;
 	}
 
-	let { padding = 'md', variant = 'default', children, onclick }: Props = $props();
+	let { padding = 'md', variant = 'default', children, onclick, className = '' }: Props = $props();
 
 	const paddingClasses = {
 		none: '',
@@ -32,12 +33,12 @@
 	<button
 		type="button"
 		{onclick}
-		class="{variantClasses[variant]} {paddingClasses[padding]} w-full text-left cursor-pointer transition-all duration-200"
+		class="{variantClasses[variant]} {paddingClasses[padding]} {className} w-full text-left cursor-pointer transition-all duration-200"
 	>
 		{@render children()}
 	</button>
 {:else}
-	<div class="{variantClasses[variant]} {paddingClasses[padding]}">
+	<div class="{variantClasses[variant]} {paddingClasses[padding]} {className}">
 		{@render children()}
 	</div>
 {/if}
