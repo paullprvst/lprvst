@@ -13,6 +13,7 @@ import {
 } from '$lib/server/workout-agent-tools';
 import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
 import type { Program } from '$lib/types/program';
+import { createStepLogger, logAndRethrow } from '$lib/server/step-tracer';
 
 const chatRequestSchema = z.object({
 	messages: z.array(
@@ -51,66 +52,112 @@ function defaultCompletionText(action?: AgentAction): string {
 }
 
 export const POST: RequestHandler = async (event) => {
-	const { user } = await requireAuth(event);
+	const traceId = crypto.randomUUID().slice(0, 8);
+	const logStep = createStepLogger(`api/chat:${traceId}`);
+	logStep('request.received');
 
-	const apiKey = await getUserApiKey(user.id);
-	if (!apiKey) {
-		throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
-	}
+	try {
+		const { user } = await requireAuth(event);
+		logStep('auth.done', { authUserId: user.id });
 
-	const body = await event.request.json();
-	const parsed = chatRequestSchema.safeParse(body);
-	if (!parsed.success) {
-		throw error(400, 'Invalid chat payload');
-	}
-	const { messages, conversationType, programId } = parsed.data;
-
-	if (!messages || !Array.isArray(messages)) {
-		throw error(400, 'Messages array is required');
-	}
-
-	let systemPrompt =
-		conversationType === 'onboarding'
-			? ONBOARDING_SYSTEM_PROMPT
-			: REEVALUATION_CONVERSATION_PROMPT;
-
-	if (conversationType === 'reevaluation') {
-		if (!programId) {
-			throw error(400, 'programId is required for reevaluation conversations');
+		logStep('db.users.api_key.lookup.start');
+		const apiKey = await getUserApiKey(user.id);
+		logStep('db.users.api_key.lookup.done', { hasApiKey: Boolean(apiKey) });
+		if (!apiKey) {
+			throw error(400, 'API key is required. Please add your Anthropic API key in Settings.');
 		}
 
-		const { program, exerciseDetails } = await loadReevaluationContext(user.id, programId);
-		systemPrompt += `\n\nCurrent Program JSON (authoritative context):\n${JSON.stringify(program, null, 2)}`;
-		systemPrompt +=
-			'\n\nDay Index Mapping (authoritative): 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday';
-		systemPrompt += `\n\nCurrent Weekly Schedule (resolved):\n${buildScheduleReference(program)}`;
-		if (exerciseDetails) {
-			systemPrompt += `\n\nExercise Details:\n${exerciseDetails}`;
+		const body = await event.request.json();
+		const parsed = chatRequestSchema.safeParse(body);
+		if (!parsed.success) {
+			throw error(400, 'Invalid chat payload');
 		}
-	}
+		const { messages, conversationType, programId } = parsed.data;
+		logStep('request.payload.validated', {
+			messageCount: messages.length,
+			conversationType,
+			hasProgramId: Boolean(programId)
+		});
 
-	if (!featureFlags.agentToolCalling) {
-		const text = await sendMessage(apiKey, messages, systemPrompt);
-		return json({ text } satisfies AgentTurnResponse);
-	}
-
-	const tools = getWorkoutAgentTools({
-		authUserId: user.id,
-		conversationType,
-		conversationProgramId: programId
-	});
-	const response = await sendMessageWithTools(apiKey, messages, systemPrompt, tools);
-
-	let action: AgentAction | undefined;
-	for (const execution of response.toolExecutions) {
-		if (execution.result && isAgentAction(execution.result)) {
-			action = execution.result;
+		if (!messages || !Array.isArray(messages)) {
+			throw error(400, 'Messages array is required');
 		}
-	}
 
-	const payload: AgentTurnResponse = {
-		text: response.text || defaultCompletionText(action),
-		action
-	};
-	return json(payload);
+		let systemPrompt =
+			conversationType === 'onboarding'
+				? ONBOARDING_SYSTEM_PROMPT
+				: REEVALUATION_CONVERSATION_PROMPT;
+
+		if (conversationType === 'reevaluation') {
+			if (!programId) {
+				throw error(400, 'programId is required for reevaluation conversations');
+			}
+
+			logStep('reevaluation.context.start', { programId });
+			const { program, exerciseDetails } = await loadReevaluationContext(user.id, programId, logStep);
+			logStep('reevaluation.context.done', {
+				workoutCount: program.workouts.length,
+				scheduleDays: program.schedule.weeklyPattern.length,
+				hasExerciseDetails: Boolean(exerciseDetails)
+			});
+			systemPrompt += `\n\nCurrent Program JSON (authoritative context):\n${JSON.stringify(program, null, 2)}`;
+			systemPrompt +=
+				'\n\nDay Index Mapping (authoritative): 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday';
+			systemPrompt += `\n\nCurrent Weekly Schedule (resolved):\n${buildScheduleReference(program)}`;
+			if (exerciseDetails) {
+				systemPrompt += `\n\nExercise Details:\n${exerciseDetails}`;
+			}
+		}
+
+		if (!featureFlags.agentToolCalling) {
+			logStep('claude.text_mode.start');
+			const text = await sendMessage(apiKey, messages, systemPrompt, logStep);
+			logStep('claude.text_mode.done', { textLength: text.length });
+			logStep('response.ready', { mode: 'text', hasAction: false, textLength: text.length });
+			return json({ text } satisfies AgentTurnResponse);
+		}
+
+		const tools = getWorkoutAgentTools({
+			authUserId: user.id,
+			conversationType,
+			conversationProgramId: programId,
+			logStep
+		});
+		logStep('tools.ready', {
+			toolCount: tools.length,
+			toolNames: tools.map((tool) => tool.name)
+		});
+
+		logStep('claude.tool_mode.start');
+		const response = await sendMessageWithTools(apiKey, messages, systemPrompt, tools, logStep);
+		logStep('claude.tool_mode.done', {
+			toolExecutionCount: response.toolExecutions.length,
+			textLength: response.text.length
+		});
+
+		let action: AgentAction | undefined;
+		for (const execution of response.toolExecutions) {
+			if (execution.result && isAgentAction(execution.result)) {
+				action = execution.result;
+			}
+		}
+		logStep('action.detected', {
+			hasAction: Boolean(action),
+			actionType: action?.type
+		});
+
+		const payload: AgentTurnResponse = {
+			text: response.text || defaultCompletionText(action),
+			action
+		};
+		logStep('response.ready', {
+			mode: 'tool',
+			hasAction: Boolean(action),
+			actionType: action?.type,
+			textLength: payload.text.length
+		});
+		return json(payload);
+	} catch (caughtError) {
+		logAndRethrow(logStep, 'request.failed', caughtError);
+	}
 };

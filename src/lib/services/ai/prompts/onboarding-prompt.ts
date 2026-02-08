@@ -19,6 +19,11 @@ Rules:
 - Never mention internal markers like READY_TO_GENERATE.
 - If the user explicitly asks to create now, either call the tool or clearly state the minimum missing details.
 - Ensure program structure is valid:
+  - Tool payload must include full Program JSON fields:
+    - program.id, program.name, program.description, program.startDate
+    - program.schedule.weeklyPattern[] with dayOfWeek (0-6) and workoutIndex
+    - program.workouts[] each with id, name, type, estimatedDuration, exercises[]
+    - exercises[] each with id, name, sets, restBetweenSets, restBetweenExercises, type
   - Include warmup and main work.
   - Use only available equipment.
   - Encode schedule with Monday-based dayOfWeek indexes: 0=Monday ... 6=Sunday.
