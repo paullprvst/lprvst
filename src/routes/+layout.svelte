@@ -41,6 +41,9 @@
 		{ href: '/settings', icon: Settings, label: 'Settings' }
 	];
 
+	const bottomNavHeightPx = 64;
+	const bottomNavIconSizePx = 20.9;
+
 	// Get active index for indicator positioning
 	const activeIndex = $derived(
 		navItems.findIndex((item) => {
@@ -55,6 +58,12 @@
 
 	// Check if current route is an active workout (hide nav bar)
 	const isWorkoutRoute = $derived($page.url.pathname.startsWith('/workout/'));
+	const showBottomNav = $derived(auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute);
+	const mainPaddingBottom = $derived(
+		showBottomNav
+			? `calc(${bottomNavHeightPx}px + env(safe-area-inset-bottom, 0px) + 0.75rem)`
+			: '2.5rem'
+	);
 </script>
 
 <div class="min-h-screen flex flex-col relative overflow-x-clip">
@@ -72,30 +81,29 @@
 
 	<!-- Main Content -->
 	<main
-		class="relative z-10 flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7 {auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute
-			? 'pb-32'
-			: 'pb-10'}"
+		class="relative z-10 flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7"
+		style:padding-bottom={mainPaddingBottom}
 	>
 		{@render children()}
 	</main>
 
 	<!-- Bottom Navigation -->
-	{#if auth.isAuthenticated && !isAuthRoute && !isWorkoutRoute}
+	{#if showBottomNav}
 		<nav
 			class="fixed bottom-0 left-0 right-0 z-[100] safe-area-inset-bottom bg-[rgb(var(--color-bg)/0.98)] border-t border-[rgb(var(--color-border)/0.82)] shadow-[0_-14px_30px_-18px_rgb(2_7_14/0.98)] backdrop-blur-xl"
 			aria-label="Primary navigation"
 		>
-			<div class="grid grid-cols-5">
+			<div class="grid grid-cols-5 h-[64px]">
 				{#each navItems as item, index}
 					{@const isActive = index === activeIndex}
 					<a
 						href={item.href}
 						aria-label={item.label}
-						class="group relative flex min-h-[84px] items-center justify-center touch-target transition-all duration-200 {isActive
+						class="group relative flex h-full items-center justify-center transition-all duration-200 {isActive
 							? 'text-brand bg-brand-soft'
 							: 'text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.22)]'}"
 					>
-						<item.icon size={20.9} strokeWidth={isActive ? 2.5 : 2} />
+						<item.icon size={bottomNavIconSizePx} strokeWidth={isActive ? 2.5 : 2} />
 					</a>
 				{/each}
 			</div>
