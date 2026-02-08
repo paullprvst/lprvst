@@ -91,11 +91,11 @@
 					<a
 						href={item.href}
 						aria-label={item.label}
-						class="group relative flex min-h-[70px] items-center justify-center touch-target transition-all duration-200 {isActive
+						class="group relative flex min-h-[84px] items-center justify-center touch-target transition-all duration-200 {isActive
 							? 'text-brand bg-brand-soft'
 							: 'text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.22)]'}"
 					>
-						<item.icon size={19} strokeWidth={isActive ? 2.5 : 2} />
+						<item.icon size={20.9} strokeWidth={isActive ? 2.5 : 2} />
 					</a>
 				{/each}
 			</div>
