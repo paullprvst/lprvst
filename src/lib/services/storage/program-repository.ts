@@ -3,6 +3,8 @@ import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { Program } from '$lib/types/program';
 import { programVersionRepository } from './program-version-repository';
 import { featureFlags } from '$lib/utils/feature-flags';
+import { clearTabCache } from '$lib/services/tab-cache';
+import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 
 export class ProgramRepository {
 	async create(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
@@ -47,6 +49,7 @@ export class ProgramRepository {
 			userId,
 			programId: data.id as string
 		});
+		this.invalidateTabCaches();
 		return this.hydrateFromCurrentVersion(this.mapFromDb(data));
 	}
 
@@ -84,11 +87,13 @@ export class ProgramRepository {
 		const { error } = await supabase.from('programs').update(dbUpdates).eq('id', id);
 
 		if (error) throw error;
+		this.invalidateTabCaches();
 	}
 
 	async delete(id: string): Promise<void> {
 		const { error } = await supabase.from('programs').delete().eq('id', id);
 		if (error) throw error;
+		this.invalidateTabCaches();
 	}
 
 	private mapFromDb(data: Record<string, unknown>): Program {
@@ -131,6 +136,12 @@ export class ProgramRepository {
 			console.warn('Failed to hydrate program from current version:', error);
 			return program;
 		}
+	}
+
+	private invalidateTabCaches(): void {
+		clearTabCache(TAB_CACHE_KEYS.programs);
+		clearTabCache(TAB_CACHE_KEYS.calendar);
+		clearTabCache(TAB_CACHE_KEYS.history);
 	}
 }
 

@@ -8,6 +8,8 @@
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import { programVersionRepository } from '$lib/services/storage/program-version-repository';
+	import { getTabCache, setTabCache } from '$lib/services/tab-cache';
+	import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 	import { featureFlags } from '$lib/utils/feature-flags';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import type { Program, Workout } from '$lib/types/program';
@@ -23,11 +25,22 @@
 		program: Program | null;
 	}
 
-	let sessions = $state<SessionWithDetails[]>([]);
-	let allSessions = $state<WorkoutSession[]>([]);
-	let loading = $state(true);
+	const CACHE_TTL_MS = 30_000;
+
+	interface HistoryTabCache {
+		sessions: SessionWithDetails[];
+		allSessions: WorkoutSession[];
+	}
+
+	const cached = getTabCache<HistoryTabCache>(TAB_CACHE_KEYS.history, CACHE_TTL_MS);
+
+	let sessions = $state<SessionWithDetails[]>(cached?.sessions ?? []);
+	let allSessions = $state<WorkoutSession[]>(cached?.allSessions ?? []);
+	let loading = $state(!cached);
 
 	onMount(async () => {
+		if (cached) return;
+
 		const completedSessions = await workoutSessionRepository.getCompleted();
 		const programs = await programRepository.getAll();
 		const versionsById = new Map<string, NonNullable<Awaited<ReturnType<typeof programVersionRepository.getById>>>>();
@@ -59,6 +72,11 @@
 				: program;
 			const workout = effectiveProgram?.workouts.find((w) => w.id === session.workoutId) || null;
 			return { session, workout, program: effectiveProgram };
+		});
+
+		setTabCache<HistoryTabCache>(TAB_CACHE_KEYS.history, {
+			sessions,
+			allSessions
 		});
 
 		loading = false;

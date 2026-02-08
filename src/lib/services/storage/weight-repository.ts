@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { WeightEntry } from '$lib/types/weight-entry';
+import { clearTabCache } from '$lib/services/tab-cache';
+import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 
 export class WeightRepository {
 	async create(entry: Omit<WeightEntry, 'id' | 'createdAt' | 'updatedAt'>): Promise<WeightEntry> {
@@ -21,6 +23,7 @@ export class WeightRepository {
 			.single();
 
 		if (error) throw error;
+		this.invalidateTabCache();
 		return this.mapFromDb(data);
 	}
 
@@ -76,11 +79,13 @@ export class WeightRepository {
 		const { error } = await supabase.from('weight_entries').update(dbUpdates).eq('id', id);
 
 		if (error) throw error;
+		this.invalidateTabCache();
 	}
 
 	async delete(id: string): Promise<void> {
 		const { error } = await supabase.from('weight_entries').delete().eq('id', id);
 		if (error) throw error;
+		this.invalidateTabCache();
 	}
 
 	private mapFromDb(data: Record<string, unknown>): WeightEntry {
@@ -93,6 +98,10 @@ export class WeightRepository {
 			createdAt: new Date(data.created_at as string),
 			updatedAt: new Date(data.updated_at as string)
 		};
+	}
+
+	private invalidateTabCache(): void {
+		clearTabCache(TAB_CACHE_KEYS.body);
 	}
 }
 

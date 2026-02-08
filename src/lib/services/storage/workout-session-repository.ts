@@ -2,6 +2,8 @@ import { supabase } from './supabase';
 import { getAppUserId } from '$lib/stores/auth-store.svelte';
 import type { WorkoutSession, ExerciseLog, SetLog, ExerciseWithLastPerformance } from '$lib/types/workout-session';
 import { programRepository } from './program-repository';
+import { clearTabCache } from '$lib/services/tab-cache';
+import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 
 export class WorkoutSessionRepository {
 	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
@@ -26,6 +28,7 @@ export class WorkoutSessionRepository {
 			.single();
 
 		if (error) throw error;
+		this.invalidateTabCaches();
 		return this.mapFromDb(data);
 	}
 
@@ -103,6 +106,7 @@ export class WorkoutSessionRepository {
 		const { error } = await supabase.from('workout_sessions').update(dbUpdates).eq('id', id);
 
 		if (error) throw error;
+		this.invalidateTabCaches();
 	}
 
 	async complete(id: string): Promise<void> {
@@ -115,11 +119,13 @@ export class WorkoutSessionRepository {
 			.eq('id', id);
 
 		if (error) throw error;
+		this.invalidateTabCaches();
 	}
 
 	async delete(id: string): Promise<void> {
 		const { error } = await supabase.from('workout_sessions').delete().eq('id', id);
 		if (error) throw error;
+		this.invalidateTabCaches();
 	}
 
 	async getAllExercisesWithLastPerformance(): Promise<ExerciseWithLastPerformance[]> {
@@ -280,6 +286,11 @@ export class WorkoutSessionRepository {
 				skipped: e.skipped as boolean | undefined
 			})) as ExerciseLog[]
 		};
+	}
+
+	private invalidateTabCaches(): void {
+		clearTabCache(TAB_CACHE_KEYS.calendar);
+		clearTabCache(TAB_CACHE_KEYS.history);
 	}
 }
 

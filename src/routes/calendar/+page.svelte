@@ -7,6 +7,8 @@
 	import { goto } from '$app/navigation';
 	import { programRepository } from '$lib/services/storage/program-repository';
 	import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
+	import { getTabCache, setTabCache } from '$lib/services/tab-cache';
+	import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 	import type { Program } from '$lib/types/program';
 	import type { WorkoutSession } from '$lib/types/workout-session';
 	import WeekView from '$lib/components/calendar/WeekView.svelte';
@@ -19,34 +21,33 @@
 	import { formatDuration } from '$lib/utils/date-helpers';
 	import { featureFlags } from '$lib/utils/feature-flags';
 
-	let programs = $state<Program[]>([]);
-	let activePrograms = $state<Program[]>([]);
-	let selectedProgramId = $state<string>('');
-	let completedSessions = $state<WorkoutSession[]>([]);
-	let inProgressSession = $state<WorkoutSession | null>(null);
-	let inProgressWorkoutName = $state<string | null>(null);
+	const CACHE_TTL_MS = 30_000;
+
+	interface CalendarTabCache {
+		programs: Program[];
+		activePrograms: Program[];
+		selectedProgramId: string;
+		completedSessions: WorkoutSession[];
+		inProgressSession: WorkoutSession | null;
+		inProgressWorkoutName: string | null;
+	}
+
+	const cached = getTabCache<CalendarTabCache>(TAB_CACHE_KEYS.calendar, CACHE_TTL_MS);
+
+	let programs = $state<Program[]>(cached?.programs ?? []);
+	let activePrograms = $state<Program[]>(cached?.activePrograms ?? []);
+	let selectedProgramId = $state<string>(cached?.selectedProgramId ?? '');
+	let completedSessions = $state<WorkoutSession[]>(cached?.completedSessions ?? []);
+	let inProgressSession = $state<WorkoutSession | null>(cached?.inProgressSession ?? null);
+	let inProgressWorkoutName = $state<string | null>(cached?.inProgressWorkoutName ?? null);
 	let showDiscardConfirm = $state(false);
-	let loading = $state(true);
+	let loading = $state(!cached);
 	const selectedProgram = $derived(activePrograms.find((program) => program.id === selectedProgramId) ?? null);
 
 	onMount(async () => {
-		programs = await programRepository.getAll();
-		activePrograms = programs.filter((program) => !program.isPaused);
-		if (activePrograms.length > 0) {
-			selectedProgramId = activePrograms[0].id;
+		if (!cached) {
+			await loadCalendarData();
 		}
-		// Load all completed sessions
-		completedSessions = await workoutSessionRepository.getCompleted();
-		// Check for in-progress sessions
-		const inProgressSessions = await workoutSessionRepository.getInProgress();
-		if (inProgressSessions.length > 0) {
-			inProgressSession = inProgressSessions[0];
-			// Find the workout name
-			const program = programs.find(p => p.id === inProgressSession!.programId);
-			const workout = program?.workouts.find(w => w.id === inProgressSession!.workoutId);
-			inProgressWorkoutName = workout?.name || inProgressSession.workoutNameSnapshot || 'Workout';
-		}
-		loading = false;
 	});
 
 	$effect(() => {
@@ -58,6 +59,10 @@
 		const isStillValid = activePrograms.some((program) => program.id === selectedProgramId);
 		if (!isStillValid) {
 			selectedProgramId = activePrograms[0].id;
+		}
+
+		if (!loading) {
+			updateCalendarCache();
 		}
 	});
 
@@ -73,6 +78,7 @@
 		inProgressSession = null;
 		inProgressWorkoutName = null;
 		showDiscardConfirm = false;
+		updateCalendarCache();
 	}
 
 	async function startWorkout(workoutId: string, workoutIndex: number, date: Date) {
@@ -99,6 +105,45 @@
 		});
 
 		goto(`/workout/${session.id}`);
+	}
+
+	async function loadCalendarData() {
+		loading = true;
+		try {
+			programs = await programRepository.getAll();
+			activePrograms = programs.filter((program) => !program.isPaused);
+			if (activePrograms.length > 0 && !selectedProgramId) {
+				selectedProgramId = activePrograms[0].id;
+			}
+
+			completedSessions = await workoutSessionRepository.getCompleted();
+			const inProgressSessions = await workoutSessionRepository.getInProgress();
+
+			if (inProgressSessions.length > 0) {
+				inProgressSession = inProgressSessions[0];
+				const program = programs.find((p) => p.id === inProgressSession!.programId);
+				const workout = program?.workouts.find((w) => w.id === inProgressSession!.workoutId);
+				inProgressWorkoutName = workout?.name || inProgressSession.workoutNameSnapshot || 'Workout';
+			} else {
+				inProgressSession = null;
+				inProgressWorkoutName = null;
+			}
+
+			updateCalendarCache();
+		} finally {
+			loading = false;
+		}
+	}
+
+	function updateCalendarCache() {
+		setTabCache<CalendarTabCache>(TAB_CACHE_KEYS.calendar, {
+			programs,
+			activePrograms,
+			selectedProgramId,
+			completedSessions,
+			inProgressSession,
+			inProgressWorkoutName
+		});
 	}
 </script>
 

@@ -5,6 +5,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { weightRepository } from '$lib/services/storage/weight-repository';
+	import { getTabCache, setTabCache } from '$lib/services/tab-cache';
+	import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 	import type { WeightEntry, WeightEntryInput } from '$lib/types/weight-entry';
 	import WeightChart from '$lib/components/body/WeightChart.svelte';
 	import WeightEntryForm from '$lib/components/body/WeightEntryForm.svelte';
@@ -15,8 +17,11 @@
 
 	type TimeRange = 'month' | 'all';
 
-	let entries = $state<WeightEntry[]>([]);
-	let loading = $state(true);
+	const CACHE_TTL_MS = 30_000;
+	const cachedEntries = getTabCache<WeightEntry[]>(TAB_CACHE_KEYS.body, CACHE_TTL_MS);
+
+	let entries = $state<WeightEntry[]>(cachedEntries ?? []);
+	let loading = $state(!cachedEntries);
 	let chartTimeRange = $state<TimeRange>('month');
 
 	const currentWeight = $derived(entries[0]?.weight);
@@ -26,13 +31,16 @@
 	);
 
 	onMount(async () => {
-		await loadEntries();
+		if (!cachedEntries) {
+			await loadEntries();
+		}
 	});
 
 	async function loadEntries() {
 		loading = true;
 		try {
 			entries = await weightRepository.getAll();
+			setTabCache(TAB_CACHE_KEYS.body, entries);
 		} finally {
 			loading = false;
 		}

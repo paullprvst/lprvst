@@ -8,6 +8,7 @@ import {
 	onAuthStateChange
 } from '$lib/services/storage/supabase';
 import { themeStore } from './theme-store.svelte';
+import { clearTabCache } from '$lib/services/tab-cache';
 
 interface AuthState {
 	user: User | null;
@@ -73,8 +74,16 @@ export async function initializeAuth() {
 
 	// Subscribe to auth state changes
 	onAuthStateChange(async (session) => {
+		const previousAuthUserId = state.user?.id ?? null;
+		const nextAuthUserId = session?.user?.id ?? null;
+
 		state.session = session;
 		state.user = session?.user ?? null;
+
+		if (previousAuthUserId !== nextAuthUserId) {
+			clearAppUserIdCache();
+			clearTabCache();
+		}
 
 		// Ensure profile exists when user logs in
 		if (session?.user) {
@@ -142,6 +151,7 @@ export async function signOut(): Promise<{ error: Error | null }> {
 			state.user = null;
 			state.session = null;
 			clearAppUserIdCache();
+			clearTabCache();
 		}
 
 		return { error };

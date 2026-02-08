@@ -5,16 +5,24 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { programRepository } from '$lib/services/storage/program-repository';
+	import { getTabCache, setTabCache } from '$lib/services/tab-cache';
+	import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 	import type { Program } from '$lib/types/program';
 	import ProgramList from '$lib/components/program/ProgramList.svelte';
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 
-	let programs = $state<Program[]>([]);
-	let loading = $state(true);
+	const CACHE_TTL_MS = 30_000;
+	const cachedPrograms = getTabCache<Program[]>(TAB_CACHE_KEYS.programs, CACHE_TTL_MS);
+
+	let programs = $state<Program[]>(cachedPrograms ?? []);
+	let loading = $state(!cachedPrograms);
 
 	onMount(async () => {
+		if (cachedPrograms) return;
+
 		programs = await programRepository.getAll();
+		setTabCache(TAB_CACHE_KEYS.programs, programs);
 		loading = false;
 	});
 </script>
