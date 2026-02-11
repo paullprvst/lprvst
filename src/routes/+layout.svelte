@@ -66,7 +66,7 @@
 	);
 </script>
 
-<div class="min-h-screen flex flex-col relative overflow-x-clip">
+<div class="min-h-dvh flex flex-col">
 	<div class="pointer-events-none fixed inset-0 -z-10">
 		<div
 			class="absolute -top-24 left-[10%] h-64 w-64 rounded-full blur-3xl bg-[rgb(var(--color-primary)/0.22)]"
