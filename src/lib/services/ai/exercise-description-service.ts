@@ -14,31 +14,62 @@ export interface ExerciseDescriptionContext {
 	notes?: string;
 }
 
+interface ExerciseDescriptionOptions {
+	forceRefresh?: boolean;
+}
+
+export async function getCachedExerciseDescription(
+	context: ExerciseDescriptionContext
+): Promise<string | null> {
+	const { exerciseName } = context;
+	const cacheKey = normalizeExerciseName(exerciseName);
+
+	if (memoryCache.has(cacheKey)) {
+		return memoryCache.get(cacheKey) ?? null;
+	}
+
+	try {
+		const dbRecord = await exerciseDescriptionRepository.getByName(exerciseName);
+		if (dbRecord) {
+			memoryCache.set(cacheKey, dbRecord.description);
+			return dbRecord.description;
+		}
+	} catch (err) {
+		console.warn('Failed to fetch cached description from DB:', err);
+	}
+
+	return null;
+}
+
 export async function getExerciseDescription(
 	context: ExerciseDescriptionContext,
-	onChunk: (text: string) => void
+	onChunk: (text: string) => void,
+	options: ExerciseDescriptionOptions = {}
 ): Promise<string> {
 	const { exerciseName, equipment, notes } = context;
+	const { forceRefresh = false } = options;
 	const cacheKey = normalizeExerciseName(exerciseName);
 
 	// Check memory cache first (instant)
-	if (memoryCache.has(cacheKey)) {
+	if (!forceRefresh && memoryCache.has(cacheKey)) {
 		const cached = memoryCache.get(cacheKey)!;
 		onChunk(cached);
 		return cached;
 	}
 
 	// Check database
-	try {
-		const dbRecord = await exerciseDescriptionRepository.getByName(exerciseName);
-		if (dbRecord) {
-			memoryCache.set(cacheKey, dbRecord.description);
-			onChunk(dbRecord.description);
-			return dbRecord.description;
+	if (!forceRefresh) {
+		try {
+			const dbRecord = await exerciseDescriptionRepository.getByName(exerciseName);
+			if (dbRecord) {
+				memoryCache.set(cacheKey, dbRecord.description);
+				onChunk(dbRecord.description);
+				return dbRecord.description;
+			}
+		} catch (err) {
+			// DB unavailable, continue to generate
+			console.warn('Failed to fetch from DB, generating fresh:', err);
 		}
-	} catch (err) {
-		// DB unavailable, continue to generate
-		console.warn('Failed to fetch from DB, generating fresh:', err);
 	}
 
 	// Stream from server API

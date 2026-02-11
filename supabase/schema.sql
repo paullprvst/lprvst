@@ -104,6 +104,16 @@ CREATE TABLE program_version_schedule (
     UNIQUE (program_version_id, day_of_week)
 );
 
+-- Exercise video cache
+CREATE TABLE exercise_videos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    exercise_name TEXT NOT NULL,
+    normalized_name TEXT NOT NULL UNIQUE,
+    videos JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 ALTER TABLE programs
 ADD COLUMN IF NOT EXISTS current_version_id UUID REFERENCES program_versions(id) ON DELETE SET NULL;
 
@@ -125,6 +135,7 @@ CREATE INDEX idx_program_versions_program_id ON program_versions(program_id);
 CREATE INDEX idx_program_version_workouts_program_version_id ON program_version_workouts(program_version_id);
 CREATE INDEX idx_program_version_exercises_workout_version_id ON program_version_exercises(workout_version_id);
 CREATE INDEX idx_program_version_schedule_program_version_id ON program_version_schedule(program_version_id);
+CREATE INDEX idx_exercise_videos_normalized_name ON exercise_videos(normalized_name);
 
 -- Updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at()
