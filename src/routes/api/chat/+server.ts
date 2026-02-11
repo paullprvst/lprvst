@@ -52,6 +52,27 @@ function defaultCompletionText(action?: AgentAction): string {
 	return 'I updated your program and applied the requested changes.';
 }
 
+function buildProgramUrl(programId: string, appOrigin: string): string {
+	return new URL(`/programs/${programId}`, appOrigin).toString();
+}
+
+function buildProgramAccessLine(action: AgentAction | undefined, appOrigin: string): string | null {
+	if (!action) return null;
+	const programUrl = buildProgramUrl(action.programId, appOrigin);
+	return `Open your program: [View program](${programUrl})`;
+}
+
+function appendProgramAccessLink(
+	text: string,
+	action: AgentAction | undefined,
+	appOrigin: string
+): string {
+	const accessLine = buildProgramAccessLine(action, appOrigin);
+	if (!accessLine) return text;
+	if (text.includes(accessLine)) return text;
+	return `${text.trim()}\n\n${accessLine}`;
+}
+
 function chunkTextForStream(text: string, maxChunkLength = 48): string[] {
 	if (!text.length) return [];
 	const chunks: string[] = [];
@@ -63,6 +84,7 @@ function chunkTextForStream(text: string, maxChunkLength = 48): string[] {
 
 interface ChatExecutionOptions {
 	streamResponse: boolean;
+	appOrigin: string;
 	onStatus?: (step: string) => void;
 	onChunk?: (text: string) => void;
 }
@@ -158,7 +180,11 @@ async function executeChatRequest(
 	});
 
 	const payload: AgentTurnResponse = {
-		text: response.text || defaultCompletionText(action),
+		text: appendProgramAccessLink(
+			response.text || defaultCompletionText(action),
+			action,
+			options.appOrigin
+		),
 		action
 	};
 	logStep('response.ready', {
@@ -233,7 +259,7 @@ export const POST: RequestHandler = async (event) => {
 				conversationType,
 				programId,
 				logStep,
-				{ streamResponse: false }
+				{ streamResponse: false, appOrigin: event.url.origin }
 			);
 			await recordAiDebugLog({
 				authUserId: user.id,
@@ -262,6 +288,7 @@ export const POST: RequestHandler = async (event) => {
 						logStep,
 						{
 							streamResponse: true,
+							appOrigin: event.url.origin,
 							onStatus: (step) => sendEvent({ type: 'status', step }),
 							onChunk: (text) => sendEvent({ type: 'text', text })
 						}
