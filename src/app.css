@@ -117,23 +117,6 @@
 			color var(--transition-normal);
 	}
 
-	body::before {
-		content: '';
-		position: fixed;
-		inset: 0;
-		pointer-events: none;
-		opacity: 0.26;
-		background-image: linear-gradient(
-			to right,
-			rgb(255 255 255 / 0.05) 1px,
-			transparent 1px
-		),
-		linear-gradient(to bottom, rgb(255 255 255 / 0.05) 1px, transparent 1px);
-		background-size: 42px 42px;
-		background-position: 1px 0, 0 1px;
-		mask-image: radial-gradient(circle at 50% 50%, black 28%, transparent 80%);
-	}
-
 	::selection {
 		background: rgb(var(--color-primary) / 0.35);
 		color: rgb(255 255 255);
@@ -156,12 +139,6 @@
 
 	:focus:not(:focus-visible) {
 		outline: none;
-	}
-}
-
-@media (display-mode: standalone), (display-mode: fullscreen) {
-	body::before {
-		display: none;
 	}
 }
 
