@@ -56,7 +56,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			handleSend();
 		}
@@ -146,6 +146,8 @@
 				<Input
 					bind:value={input}
 					placeholder="Add details about goals, equipment, injuries, or schedule..."
+					multiline={true}
+					rows={3}
 					disabled={loading}
 					onkeydown={handleKeydown}
 				/>
@@ -157,6 +159,8 @@
 			</Button>
 		</div>
 	</div>
+
+	<p class="text-xs text-muted px-1">Press Cmd/Ctrl+Enter to send. Enter adds a new line.</p>
 </div>
 
 <style>

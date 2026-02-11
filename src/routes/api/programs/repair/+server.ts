@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { sendMessage } from '$lib/server/claude-client';
 import { requireAuth, getUserApiKey } from '$lib/server/auth';
 import { REPAIR_PROGRAM_JSON_PROMPT } from '$lib/services/ai/prompts/repair-program-prompt';
+import { recordAiDebugLog } from '$lib/server/ai-debug-log';
 
 export const POST: RequestHandler = async (event) => {
 	const { user } = await requireAuth(event);
@@ -46,17 +47,39 @@ export const POST: RequestHandler = async (event) => {
 				.join('\n\n')
 		}
 	];
+	const debugRequestPayload = {
+		rawTextLength: rawText.length,
+		hasParseError: Boolean(parseError),
+		hasValidationError: Boolean(validationError),
+		hasCurrentProgram: Boolean(currentProgram),
+		messages
+	};
 
 	try {
 		const response = await sendMessage(apiKey, messages, REPAIR_PROGRAM_JSON_PROMPT);
+		await recordAiDebugLog({
+			authUserId: user.id,
+			userEmail: user.email,
+			source: 'api/programs/repair',
+			requestPayload: debugRequestPayload,
+			responsePayload: { text: response }
+		});
 		console.info('[workout:create] Claude repair completed', {
 			userId: user.id,
 			responseLength: response.length
 		});
 		return json({ text: response });
 	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		await recordAiDebugLog({
+			authUserId: user.id,
+			userEmail: user.email,
+			source: 'api/programs/repair',
+			requestPayload: debugRequestPayload,
+			errorMessage: message
+		});
 		const details =
-			err instanceof Error ? { name: err.name, message: err.message } : { message: String(err) };
+			err instanceof Error ? { name: err.name, message: err.message } : { message };
 		console.error('[workout:create] Claude repair failed', {
 			userId: user.id,
 			...details

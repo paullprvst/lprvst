@@ -8,7 +8,7 @@ import type {
 } from '@anthropic-ai/sdk/resources/messages';
 import type { StepLogger } from '$lib/server/step-tracer';
 
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-5';
 const MAX_TOKENS = 16384;
 const MAX_RETRIES = 2;
 const MAX_TOOL_ROUNDS = 6;

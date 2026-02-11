@@ -20,7 +20,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !e.shiftKey) {
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
 			e.preventDefault();
 			handleSubmit();
 		}
@@ -63,6 +63,8 @@
 						Start Conversation
 					{/snippet}
 				</Button>
+
+				<p class="text-xs text-muted">Press Cmd/Ctrl+Enter to send. Enter adds a new line.</p>
 			</div>
 
 			<!-- Suggestion chips -->

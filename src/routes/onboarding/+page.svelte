@@ -28,6 +28,7 @@
 	let errorMessage = $state('');
 	let statusText = $state('');
 	let provisionalMessages = $state<Message[]>([]);
+	let createdProgramId = $state<string | null>(null);
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'create_program') return false;
@@ -40,7 +41,7 @@
 		}
 
 		await conversationManager.completeConversation(conversationId);
-		goto(`/programs/${action.programId}`);
+		createdProgramId = action.programId;
 		return true;
 	}
 
@@ -65,6 +66,7 @@
 		errorMessage = '';
 		statusText = 'Starting';
 		initialObjective = objective;
+		createdProgramId = null;
 
 		try {
 			provisionalMessages = [{ role: 'user', content: objective, timestamp: new Date() }];
@@ -226,6 +228,22 @@
 		<div class="mb-4">
 			<AlertBanner variant="error" title="Request failed" message={errorMessage} />
 		</div>
+	{/if}
+
+	{#if createdProgramId && step !== 'loading'}
+		<Card>
+			<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h3 class="text-base font-semibold text-primary">Program created</h3>
+					<p class="text-sm text-secondary">Your plan is ready. Review the assistant message, then open the program.</p>
+				</div>
+				<Button onclick={() => goto(`/programs/${createdProgramId}`)}>
+					{#snippet children()}
+						Open Program
+					{/snippet}
+				</Button>
+			</div>
+		</Card>
 	{/if}
 
 	{#if step === 'loading'}

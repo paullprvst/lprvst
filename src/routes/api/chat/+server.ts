@@ -14,6 +14,7 @@ import {
 import type { AgentAction, AgentTurnResponse } from '$lib/types/agent';
 import type { Program } from '$lib/types/program';
 import { createStepLogger, logAndRethrow } from '$lib/server/step-tracer';
+import { recordAiDebugLog } from '$lib/server/ai-debug-log';
 
 const chatRequestSchema = z.object({
 	messages: z.array(
@@ -47,28 +48,15 @@ function buildScheduleReference(program: Program): string {
 
 function defaultCompletionText(action?: AgentAction): string {
 	if (!action) return 'Thanks. I updated the conversation context.';
-	if (action.type === 'create_program') return 'Your program is ready. Redirecting you to it now.';
+	if (action.type === 'create_program') return 'Your program is ready. You can open it when you are ready.';
 	return 'I updated your program and applied the requested changes.';
 }
 
 function chunkTextForStream(text: string, maxChunkLength = 48): string[] {
-	if (!text.trim()) return [];
-	const words = text.split(/\s+/).filter(Boolean);
+	if (!text.length) return [];
 	const chunks: string[] = [];
-	let current = '';
-
-	for (const word of words) {
-		const candidate = current ? `${current} ${word}` : word;
-		if (candidate.length > maxChunkLength && current) {
-			chunks.push(`${current} `);
-			current = word;
-			continue;
-		}
-		current = candidate;
-	}
-
-	if (current) {
-		chunks.push(current);
+	for (let index = 0; index < text.length; index += maxChunkLength) {
+		chunks.push(text.slice(index, index + maxChunkLength));
 	}
 	return chunks;
 }
@@ -194,9 +182,14 @@ export const POST: RequestHandler = async (event) => {
 	const traceId = crypto.randomUUID().slice(0, 8);
 	const logStep = createStepLogger(`api/chat:${traceId}`);
 	logStep('request.received');
+	let authUserId: string | undefined;
+	let authUserEmail: string | null | undefined;
+	let debugRequestPayload: Record<string, unknown> | undefined;
 
 	try {
 		const { user } = await requireAuth(event);
+		authUserId = user.id;
+		authUserEmail = user.email;
 		logStep('auth.done', { authUserId: user.id });
 
 		logStep('db.users.api_key.lookup.start');
@@ -218,6 +211,15 @@ export const POST: RequestHandler = async (event) => {
 			hasProgramId: Boolean(programId),
 			stream
 		});
+		debugRequestPayload = {
+			traceId,
+			conversationType,
+			programId: programId ?? null,
+			stream,
+			messageCount: messages.length,
+			messages,
+			agentToolCallingEnabled: featureFlags.agentToolCalling
+		};
 
 		if (!messages || !Array.isArray(messages)) {
 			throw error(400, 'Messages array is required');
@@ -233,6 +235,13 @@ export const POST: RequestHandler = async (event) => {
 				logStep,
 				{ streamResponse: false }
 			);
+			await recordAiDebugLog({
+				authUserId: user.id,
+				userEmail: user.email,
+				source: 'api/chat',
+				requestPayload: debugRequestPayload,
+				responsePayload: payload
+			});
 			return json(payload);
 		}
 
@@ -257,6 +266,13 @@ export const POST: RequestHandler = async (event) => {
 							onChunk: (text) => sendEvent({ type: 'text', text })
 						}
 					);
+					await recordAiDebugLog({
+						authUserId: user.id,
+						userEmail: user.email,
+						source: 'api/chat',
+						requestPayload: debugRequestPayload,
+						responsePayload: response
+					});
 
 					if (response.action) {
 						sendEvent({ type: 'action', action: response.action });
@@ -268,6 +284,13 @@ export const POST: RequestHandler = async (event) => {
 				} catch (streamError) {
 					const message =
 						streamError instanceof Error ? streamError.message : 'Streaming failed';
+					await recordAiDebugLog({
+						authUserId: user.id,
+						userEmail: user.email,
+						source: 'api/chat',
+						requestPayload: debugRequestPayload,
+						errorMessage: message
+					});
 					logStep('request.failed.stream', { errorMessage: message });
 					sendEvent({ type: 'error', error: message });
 					controller.enqueue(encoder.encode('data: [DONE]\n\n'));
@@ -284,6 +307,24 @@ export const POST: RequestHandler = async (event) => {
 			}
 		});
 	} catch (caughtError) {
+		if (authUserId && debugRequestPayload) {
+			const message =
+				caughtError instanceof Error
+					? caughtError.message
+					: typeof caughtError === 'object' &&
+						  caughtError !== null &&
+						  'message' in caughtError &&
+						  typeof caughtError.message === 'string'
+						? caughtError.message
+						: String(caughtError);
+			await recordAiDebugLog({
+				authUserId,
+				userEmail: authUserEmail,
+				source: 'api/chat',
+				requestPayload: debugRequestPayload,
+				errorMessage: message
+			});
+		}
 		logAndRethrow(logStep, 'request.failed', caughtError);
 	}
 };

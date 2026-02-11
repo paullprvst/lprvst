@@ -22,6 +22,7 @@ function renderInlineMarkdown(text: string): string {
 	output = output.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 	output = output.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
 	output = output.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+	output = output.replace(/\n/g, '<br />');
 	return output;
 }
 
@@ -128,7 +129,7 @@ export function renderMarkdownToHtml(markdown: string): string {
 			paragraphLines.push(line.trim());
 			index += 1;
 		}
-		blocks.push(`<p class="my-2">${renderInlineMarkdown(paragraphLines.join(' '))}</p>`);
+		blocks.push(`<p class="my-2">${renderInlineMarkdown(paragraphLines.join('\n'))}</p>`);
 	}
 
 	return blocks.join('');

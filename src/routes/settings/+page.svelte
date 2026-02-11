@@ -20,6 +20,7 @@
 	let saved = $state(false);
 	let loading = $state(true);
 	let showUpdateForm = $state(false);
+	const debugEmail = 'paul@lprv.st';
 
 	onMount(() => {
 		// Wait for auth to be initialized before checking API key
@@ -85,6 +86,15 @@
 					{signingOut ? 'Signing out...' : 'Sign Out'}
 				{/snippet}
 			</Button>
+
+			{#if auth.user?.email?.toLowerCase() === debugEmail}
+				<a
+					href="/ai-debug"
+					class="block text-center text-sm font-medium text-brand hover:underline"
+				>
+					Open AI debug logs
+				</a>
+			{/if}
 		</div>
 	</Card>
 

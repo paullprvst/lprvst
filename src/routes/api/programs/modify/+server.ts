@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { sendMessage } from '$lib/server/claude-client';
 import { requireAuth, getUserApiKey } from '$lib/server/auth';
 import { REEVALUATION_SYSTEM_PROMPT } from '$lib/services/ai/prompts/reevaluation-prompt';
+import { recordAiDebugLog } from '$lib/server/ai-debug-log';
 
 export const POST: RequestHandler = async (event) => {
 	const { user } = await requireAuth(event);
@@ -34,7 +35,30 @@ export const POST: RequestHandler = async (event) => {
 			content: 'Please provide the modified workout program as JSON.'
 		}
 	];
+	const debugRequestPayload = {
+		messageCount: messagesWithContext.length,
+		messages: messagesWithContext
+	};
 
-	const response = await sendMessage(apiKey, messagesWithContext, REEVALUATION_SYSTEM_PROMPT);
-	return json({ text: response });
+	try {
+		const response = await sendMessage(apiKey, messagesWithContext, REEVALUATION_SYSTEM_PROMPT);
+		await recordAiDebugLog({
+			authUserId: user.id,
+			userEmail: user.email,
+			source: 'api/programs/modify',
+			requestPayload: debugRequestPayload,
+			responsePayload: { text: response }
+		});
+		return json({ text: response });
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		await recordAiDebugLog({
+			authUserId: user.id,
+			userEmail: user.email,
+			source: 'api/programs/modify',
+			requestPayload: debugRequestPayload,
+			errorMessage: message
+		});
+		throw err;
+	}
 };

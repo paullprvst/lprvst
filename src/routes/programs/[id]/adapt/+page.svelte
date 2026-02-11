@@ -32,11 +32,12 @@
 	let errorMessage = $state('');
 	let statusText = $state('');
 	let provisionalMessages = $state<Message[]>([]);
+	let updatedProgramId = $state<string | null>(null);
 
 	async function handleAgentAction(action: AgentAction | undefined, conversationId: string): Promise<boolean> {
 		if (!action || action.type !== 'modify_program') return false;
 		await conversationManager.completeConversation(conversationId);
-		goto(`/programs/${action.programId}`);
+		updatedProgramId = action.programId;
 		return true;
 	}
 
@@ -73,6 +74,7 @@
 		messageLoading = true;
 		errorMessage = '';
 		statusText = 'Starting';
+		updatedProgramId = null;
 		try {
 			const prompt = initialRequest.trim();
 			initialRequest = '';
@@ -165,7 +167,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter' && !e.shiftKey && initialRequest.trim()) {
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && initialRequest.trim()) {
 			e.preventDefault();
 			handleRequestSubmit();
 		}
@@ -266,6 +268,22 @@
 			<AlertBanner variant="error" title="Request failed" message={errorMessage} />
 		{/if}
 
+		{#if updatedProgramId}
+			<Card>
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<h3 class="text-base font-semibold text-primary">Program updated</h3>
+						<p class="text-sm text-secondary">Review the final assistant message, then open your updated program.</p>
+					</div>
+					<Button onclick={() => goto(`/programs/${updatedProgramId}`)}>
+						{#snippet children()}
+							Open Program
+						{/snippet}
+					</Button>
+				</div>
+			</Card>
+		{/if}
+
 		<div class="flex items-center gap-4">
 			<button
 				onclick={() => goto(`/programs/${program!.id}`)}
@@ -295,6 +313,8 @@
 							<Input
 								bind:value={initialRequest}
 								placeholder="Ask a question or request a modification..."
+								multiline={true}
+								rows={3}
 								disabled={messageLoading}
 								onkeydown={handleKeydown}
 							/>
@@ -305,6 +325,7 @@
 							{/snippet}
 						</Button>
 					</div>
+					<p class="text-xs text-muted">Press Cmd/Ctrl+Enter to send. Enter adds a new line.</p>
 				</div>
 			</Card>
 		{:else if step === 'conversation' && (conversation || provisionalMessages.length > 0)}

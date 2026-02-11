@@ -3,6 +3,7 @@ import type { RequestHandler } from './$types';
 import { streamMessage, sendMessage } from '$lib/server/claude-client';
 import { requireAuth, getUserApiKey } from '$lib/server/auth';
 import { EXERCISE_DESCRIPTION_SYSTEM_PROMPT } from '$lib/services/ai/prompts/exercise-description-prompt';
+import { recordAiDebugLog } from '$lib/server/ai-debug-log';
 
 export const POST: RequestHandler = async (event) => {
 	const { user } = await requireAuth(event);
@@ -28,20 +29,44 @@ export const POST: RequestHandler = async (event) => {
 	}
 
 	const messages = [{ role: 'user' as const, content: prompt }];
+	const debugRequestPayload = {
+		exerciseName,
+		equipment: equipment ?? [],
+		notes: notes ?? '',
+		stream,
+		messages
+	};
 
 	if (stream) {
 		const encoder = new TextEncoder();
 
 		const readable = new ReadableStream({
 			async start(controller) {
+				let streamedText = '';
 				try {
 					for await (const chunk of streamMessage(apiKey, messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT)) {
+						streamedText += chunk;
 						controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: chunk })}\n\n`));
 					}
+					await recordAiDebugLog({
+						authUserId: user.id,
+						userEmail: user.email,
+						source: 'api/exercises/describe',
+						requestPayload: debugRequestPayload,
+						responsePayload: { text: streamedText, stream: true }
+					});
 					controller.enqueue(encoder.encode('data: [DONE]\n\n'));
 					controller.close();
 				} catch (err) {
 					const message = err instanceof Error ? err.message : 'Streaming failed';
+					await recordAiDebugLog({
+						authUserId: user.id,
+						userEmail: user.email,
+						source: 'api/exercises/describe',
+						requestPayload: debugRequestPayload,
+						responsePayload: streamedText ? { partialText: streamedText, stream: true } : null,
+						errorMessage: message
+					});
 					controller.enqueue(
 						encoder.encode(`data: ${JSON.stringify({ error: message })}\n\n`)
 					);
@@ -58,7 +83,26 @@ export const POST: RequestHandler = async (event) => {
 			}
 		});
 	} else {
-		const response = await sendMessage(apiKey, messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT);
-		return json({ text: response });
+		try {
+			const response = await sendMessage(apiKey, messages, EXERCISE_DESCRIPTION_SYSTEM_PROMPT);
+			await recordAiDebugLog({
+				authUserId: user.id,
+				userEmail: user.email,
+				source: 'api/exercises/describe',
+				requestPayload: debugRequestPayload,
+				responsePayload: { text: response, stream: false }
+			});
+			return json({ text: response });
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			await recordAiDebugLog({
+				authUserId: user.id,
+				userEmail: user.email,
+				source: 'api/exercises/describe',
+				requestPayload: debugRequestPayload,
+				errorMessage: message
+			});
+			throw err;
+		}
 	}
 };
