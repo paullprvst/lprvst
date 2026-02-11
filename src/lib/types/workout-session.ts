@@ -3,7 +3,7 @@ export interface WorkoutSession {
 	userId?: string;
 	workoutId: string;
 	workoutNameSnapshot?: string;
-	programId: string;
+	programId?: string;
 	programVersionId?: string;
 	workoutVersionId?: string;
 	startedAt: Date;

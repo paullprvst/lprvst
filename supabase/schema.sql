@@ -40,7 +40,7 @@ CREATE TABLE workout_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workout_id TEXT NOT NULL,
     workout_name_snapshot TEXT,
-    program_id UUID NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
+    program_id UUID REFERENCES programs(id) ON DELETE SET NULL,
     program_version_id UUID,
     workout_version_id UUID,
     started_at TIMESTAMPTZ DEFAULT NOW(),

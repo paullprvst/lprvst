@@ -40,11 +40,13 @@
 			return;
 		}
 
-		const loadedProgram = await programRepository.get(loadedSession.programId);
+		const loadedProgram = loadedSession.programId
+			? await programRepository.get(loadedSession.programId)
+			: undefined;
 		const version = featureFlags.programVersioningReads && loadedSession.programVersionId
 			? await programVersionRepository.getById(loadedSession.programVersionId)
 			: null;
-		const effectiveProgram = version
+		const effectiveProgram = version && loadedSession.programId
 			? {
 					id: loadedSession.programId,
 					userId: loadedProgram?.userId,

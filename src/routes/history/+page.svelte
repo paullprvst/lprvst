@@ -38,9 +38,7 @@
 	let allSessions = $state<WorkoutSession[]>(cached?.allSessions ?? []);
 	let loading = $state(!cached);
 
-	onMount(async () => {
-		if (cached) return;
-
+	async function loadHistoryData() {
 		const completedSessions = await workoutSessionRepository.getCompleted();
 		const programs = await programRepository.getAll();
 		const versionsById = new Map<string, NonNullable<Awaited<ReturnType<typeof programVersionRepository.getById>>>>();
@@ -60,7 +58,7 @@
 			const version = featureFlags.programVersioningReads && session.programVersionId
 				? versionsById.get(session.programVersionId) || null
 				: null;
-			const effectiveProgram: Program | null = version
+			const effectiveProgram: Program | null = version && session.programId
 				? {
 						id: session.programId,
 						userId: program?.userId,
@@ -78,7 +76,20 @@
 			sessions,
 			allSessions
 		});
+	}
 
+	onMount(async () => {
+		if (cached) {
+			loading = false;
+			try {
+				await loadHistoryData();
+			} catch (err) {
+				console.warn('Failed to refresh history data:', err);
+			}
+			return;
+		}
+
+		await loadHistoryData();
 		loading = false;
 	});
 

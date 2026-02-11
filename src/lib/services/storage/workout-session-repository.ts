@@ -6,7 +6,9 @@ import { clearTabCache } from '$lib/services/tab-cache';
 import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 
 export class WorkoutSessionRepository {
-	async create(session: Omit<WorkoutSession, 'id' | 'startedAt'>): Promise<WorkoutSession> {
+	async create(
+		session: Omit<WorkoutSession, 'id' | 'startedAt' | 'programId'> & { programId: string }
+	): Promise<WorkoutSession> {
 		const userId = await getAppUserId();
 		if (!userId) {
 			throw new Error('User must be authenticated to create a workout session');
@@ -57,7 +59,7 @@ export class WorkoutSessionRepository {
 		const { data, error } = await supabase
 			.from('workout_sessions')
 			.select()
-			.eq('status', 'completed')
+			.or('status.eq.completed,completed_at.not.is.null')
 			.order('completed_at', { ascending: false });
 
 		if (error) throw error;
@@ -82,7 +84,7 @@ export class WorkoutSessionRepository {
 		const { data, error } = await supabase
 			.from('workout_sessions')
 			.select()
-			.eq('status', 'completed')
+			.or('status.eq.completed,completed_at.not.is.null')
 			.gte('completed_at', startDate.toISOString())
 			.lte('completed_at', endDate.toISOString())
 			.order('completed_at', { ascending: false });
@@ -265,7 +267,7 @@ export class WorkoutSessionRepository {
 			userId: data.user_id as string | undefined,
 			workoutId: data.workout_id as string,
 			workoutNameSnapshot: (data.workout_name_snapshot as string) || undefined,
-			programId: data.program_id as string,
+			programId: (data.program_id as string) || undefined,
 			programVersionId: (data.program_version_id as string) || undefined,
 			workoutVersionId: (data.workout_version_id as string) || undefined,
 			startedAt: new Date(data.started_at as string),
