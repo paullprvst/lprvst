@@ -3,6 +3,7 @@
 	import { formatDuration } from '$lib/utils/date-helpers';
 	import { Timer } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
+	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import type { Exercise } from '$lib/types/program';
 
 	interface Props {
@@ -133,11 +134,19 @@
 
 	<!-- Next exercise preview -->
 		{#if nextExercise}
-			<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft">
+			<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft text-left">
 				<div class="flex items-center gap-2 mb-2">
 					<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
 				</div>
-			<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
+			<div class="flex items-center gap-2">
+				<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
+				<ExerciseInfoButton
+					exerciseName={nextExercise.name}
+					equipment={nextExercise.equipment}
+					notes={nextExercise.notes}
+					size={18}
+				/>
+			</div>
 			<p class="text-sm text-secondary mt-1">
 				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}
 			</p>
