@@ -14,7 +14,7 @@
 
 	const colorClasses = {
 		primary: 'border-[rgb(var(--color-primary)/0.2)] border-t-[rgb(var(--color-primary))]',
-		white: 'border-white/30 border-t-white'
+		white: 'border-red/30 border-t-red'
 	};
 </script>
 
