@@ -10,12 +10,9 @@ export default defineConfig({
 			manifest: {
 				name: 'LPRV',
 				short_name: 'LPRV',
-				description: 'AI-powered fitness coach and workout planner',
 				theme_color: '#05070b',
 				background_color: '#05070b',
-				display_override: ['fullscreen', 'standalone'],
 				display: 'standalone',
-				scope: '/',
 				start_url: '/',
 				icons: [
 					{
@@ -27,12 +24,6 @@ export default defineConfig({
 						src: '/pwa-512x512.png',
 						sizes: '512x512',
 						type: 'image/png'
-					},
-					{
-						src: '/pwa-512x512.png',
-						sizes: '512x512',
-						type: 'image/png',
-						purpose: 'maskable'
 					}
 				]
 			},
