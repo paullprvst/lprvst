@@ -7,11 +7,21 @@
 		open: boolean;
 		title?: string;
 		size?: 'sm' | 'md' | 'lg' | 'xl';
+		fullscreen?: boolean;
+		flush?: boolean;
 		children: import('svelte').Snippet;
 		onclose?: () => void;
 	}
 
-	let { open = $bindable(), title, size = 'md', children, onclose }: Props = $props();
+	let {
+		open = $bindable(),
+		title,
+		size = 'md',
+		fullscreen = false,
+		flush = false,
+		children,
+		onclose
+	}: Props = $props();
 
 	function handleClose() {
 		open = false;
@@ -51,7 +61,9 @@
 	<!-- Backdrop with blur - portaled to body to escape stacking contexts -->
 	<div
 		use:portal
-		class="fixed inset-0 z-[500] bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+		class="fixed inset-0 z-[500] bg-black/50 backdrop-blur-sm flex {fullscreen
+			? 'items-stretch justify-stretch p-0'
+			: 'items-end sm:items-center justify-center p-0 sm:p-4'}"
 		onclick={handleBackdropClick}
 		onkeydown={handleBackdropKeydown}
 		role="button"
@@ -61,7 +73,9 @@
 	>
 		<!-- Modal container -->
 		<div
-			class="card w-full {sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col rounded-t-2xl sm:rounded-2xl"
+			class="card w-full overflow-hidden flex flex-col {fullscreen
+				? 'h-full max-h-none max-w-none rounded-none'
+				: `${sizeClasses[size]} max-h-[90vh] rounded-t-2xl sm:rounded-2xl`}"
 			in:modalIn
 			out:modalOut
 			role="dialog"
@@ -69,7 +83,7 @@
 			aria-labelledby={title ? 'modal-title' : undefined}
 		>
 			<!-- Mobile drag handle indicator -->
-			<div class="sm:hidden flex justify-center pt-3 pb-1">
+			<div class="sm:hidden flex justify-center pt-3 pb-1 {fullscreen ? 'hidden' : ''}">
 				<button
 					onclick={handleClose}
 					class="w-10 h-1 bg-border-soft rounded-full"
@@ -83,7 +97,7 @@
 					<h2 id="modal-title" class="text-lg font-semibold text-primary">{title}</h2>
 					<button
 						onclick={handleClose}
-						class="p-2 -mr-2 rounded-xl text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.5)] transition-all duration-200 touch-target"
+						class="inline-flex items-center justify-center leading-none p-2 -mr-2 rounded-xl text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.5)] transition-all duration-200 touch-target"
 						aria-label="Close modal"
 					>
 						<X size={20} />
@@ -93,7 +107,7 @@
 				<!-- Close button for titleless modals -->
 				<button
 					onclick={handleClose}
-					class="absolute top-3 right-3 p-2 rounded-xl text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.5)] transition-all duration-200 touch-target z-10"
+					class="absolute top-3 right-3 inline-flex items-center justify-center leading-none p-2 rounded-xl text-secondary hover:text-primary hover:bg-[rgb(var(--color-border)/0.5)] transition-all duration-200 touch-target z-10"
 					aria-label="Close modal"
 				>
 					<X size={20} />
@@ -101,7 +115,7 @@
 			{/if}
 
 			<!-- Content -->
-			<div class="flex-1 overflow-y-auto p-5">
+			<div class="flex-1 {fullscreen || flush ? 'overflow-hidden' : 'overflow-y-auto p-5'}">
 				{@render children()}
 			</div>
 		</div>

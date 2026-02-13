@@ -22,6 +22,8 @@
 
 	let modalOpen = $state(false);
 	let activeTab = $state<'instructions' | 'videos'>('videos');
+	let videoModalOpen = $state(false);
+	let activeVideo = $state<ExerciseVideo | null>(null);
 
 	let description = $state('');
 	let descriptionRequested = $state(false);
@@ -120,6 +122,26 @@
 	function handleClose() {
 		modalOpen = false;
 	}
+
+	function buildEmbedUrl(videoId: string): string {
+		const params = new URLSearchParams({
+			autoplay: '1',
+			rel: '0',
+			modestbranding: '1',
+			playsinline: '1'
+		});
+		return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?${params.toString()}`;
+	}
+
+	function openVideo(video: ExerciseVideo) {
+		activeVideo = video;
+		videoModalOpen = true;
+	}
+
+	function closeVideoModal() {
+		videoModalOpen = false;
+		activeVideo = null;
+	}
 </script>
 
 <button
@@ -136,21 +158,21 @@
 		<div class="mb-4 inline-flex rounded-lg border border-theme surface-elevated p-1">
 			<button
 				type="button"
-				class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {activeTab === 'instructions'
-					? 'bg-brand-soft text-brand'
-					: 'text-secondary hover:text-primary'}"
-				onclick={() => (activeTab = 'instructions')}
-			>
-				Instructions
-			</button>
-			<button
-				type="button"
 				class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {activeTab === 'videos'
 					? 'bg-brand-soft text-brand'
 					: 'text-secondary hover:text-primary'}"
 				onclick={() => (activeTab = 'videos')}
 			>
 				Videos
+			</button>
+			<button
+				type="button"
+				class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {activeTab === 'instructions'
+					? 'bg-brand-soft text-brand'
+					: 'text-secondary hover:text-primary'}"
+				onclick={() => (activeTab = 'instructions')}
+			>
+				Instructions
 			</button>
 		</div>
 
@@ -235,12 +257,11 @@
 					{/if}
 					<div class="grid grid-cols-2 gap-3">
 					{#each videos as video, index (video.id)}
-						<a
-							href={video.url}
-							target="_blank"
-							rel="noopener noreferrer"
+						<button
+							type="button"
+							onclick={() => openVideo(video)}
 							class="block rounded-xl border border-theme overflow-hidden surface-elevated hover:border-brand-soft transition-colors"
-							aria-label="Open exercise video {index + 1}"
+							aria-label="Play exercise video {index + 1}"
 						>
 							<div class="relative bg-border-soft">
 								{#if video.thumbnailUrl}
@@ -261,7 +282,7 @@
 									</div>
 								</div>
 							</div>
-						</a>
+						</button>
 					{/each}
 					</div>
 				</div>
@@ -279,6 +300,28 @@
 				>
 					{videosLoading ? 'Regenerating...' : 'Regenerate videos'}
 				</button>
+			</div>
+		{/if}
+	{/snippet}
+</Modal>
+
+<Modal
+	bind:open={videoModalOpen}
+	fullscreen={true}
+	flush={true}
+	title={exerciseName}
+	onclose={closeVideoModal}
+>
+	{#snippet children()}
+		{#if activeVideo}
+			<div class="h-full w-full bg-black">
+				<iframe
+					src={buildEmbedUrl(activeVideo.id)}
+					title="Exercise video for {exerciseName}"
+					class="h-full w-full"
+					allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+					allowfullscreen
+				></iframe>
 			</div>
 		{/if}
 	{/snippet}
