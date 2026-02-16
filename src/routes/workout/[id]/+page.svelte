@@ -29,7 +29,6 @@
 	let showCompleteModal = $state(false);
 	let showLeaveModal = $state(false);
 	let showNotesModal = $state(false);
-	let showPlan = $state(false);
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let allowNavigation = $state(false);
@@ -273,89 +272,38 @@
 	</Card>
 {:else if workoutStore.workout && workoutStore.currentExercise && workoutStore.currentExerciseLog}
 	<div class="space-y-4">
-		<!-- Header -->
-		<div class="flex items-center justify-between gap-4">
-			<div class="flex-1 min-w-0">
-				<h1 class="text-xl font-bold text-primary truncate">{workoutStore.workout.name}</h1>
-				<div class="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-secondary">
-					<span>Exercise {workoutStore.currentExerciseIndex + 1} of {workoutStore.workout.exercises.length}</span>
-					<span class="text-[rgb(var(--color-border))]">|</span>
-					<span class="flex items-center gap-1">
-						<Clock size={14} />
-						{formatDuration(elapsedSeconds)}
-					</span>
+		<!-- Compact sticky workout header -->
+		<div class="sticky top-2 z-20 rounded-xl border border-theme glass-heavy px-3 py-2.5 shadow-lg space-y-2">
+			<div class="flex items-center justify-between gap-3">
+				<div class="min-w-0 flex-1">
+					<p class="text-[11px] uppercase tracking-wide text-muted truncate">{workoutStore.workout.name}</p>
+					<p class="text-sm font-semibold text-primary truncate">{workoutStore.currentExercise.name}</p>
 				</div>
-			</div>
-			<button
-				type="button"
-				onclick={openLeaveModal}
-				class="p-2 rounded-xl text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200 touch-target"
-				aria-label="Close workout"
-			>
-				<X size={24} />
-			</button>
-		</div>
-
-		<!-- Progress bar -->
-		<div class="w-full surface-elevated rounded-full h-2 overflow-hidden">
-			<div
-				class="bg-[rgb(var(--color-primary))] h-full transition-all duration-300 ease-out"
-				style="width: {workoutStore.progress}%"
-			></div>
-		</div>
-
-		<!-- Session Plan (Collapsible) -->
-		<div class="card">
-			<button
-				type="button"
-				onclick={() => showPlan = !showPlan}
-				class="w-full flex items-center justify-between p-3 text-left touch-target"
-				aria-expanded={showPlan}
-				aria-controls="session-plan-panel"
-				aria-label={showPlan ? 'Collapse session plan' : 'Expand session plan'}
-			>
-					<div class="flex items-center gap-2 text-sm font-medium text-secondary">
-						<Dumbbell size={16} />
-						<span>Session Plan</span>
-					</div>
-					<span class="text-xs font-semibold text-muted">{showPlan ? 'Hide' : 'Show'}</span>
+				<p class="text-xs text-secondary whitespace-nowrap">
+					Exercise {workoutStore.currentExerciseIndex + 1}/{workoutStore.workout.exercises.length}
+				</p>
+				<button
+					type="button"
+					onclick={openLeaveModal}
+					class="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200 touch-target"
+					aria-label="Close workout"
+				>
+					<X size={20} />
 				</button>
-
-			{#if showPlan}
-				<div id="session-plan-panel" class="border-t border-[rgb(var(--color-border))] px-3 pb-3">
-					<div class="space-y-2 pt-3">
-						{#each workoutStore.workout.exercises as exercise, index}
-							{@const isCurrent = index === workoutStore.currentExerciseIndex}
-							{@const isCompleted = isExerciseCompleted(index)}
-							<div
-								class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
-							>
-								<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
-									{isCompleted ? 'bg-success-soft text-success' : isCurrent ? 'bg-brand-soft text-brand' : 'bg-border-soft text-muted'}">
-									{#if isCompleted}
-										<CheckCircle size={14} />
-									{:else}
-										{index + 1}
-									{/if}
-								</div>
-								<div class="flex-1 min-w-0">
-									<div class="text-sm font-medium text-primary truncate {isCompleted ? 'line-through opacity-60' : ''}">
-										{exercise.name}
-									</div>
-									<div class="text-xs text-muted">
-										{formatExerciseTarget(exercise)}
-									</div>
-								</div>
-								{#if isCurrent}
-									<span class="text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]/10 px-2 py-0.5 rounded-full">
-										Current
-									</span>
-								{/if}
-							</div>
-						{/each}
-					</div>
-				</div>
-			{/if}
+			</div>
+			<div class="flex items-center justify-between text-xs text-secondary">
+				<span class="inline-flex items-center gap-1">
+					<Clock size={13} />
+					{formatDuration(elapsedSeconds)}
+				</span>
+				<span>{workoutStore.progress}% complete</span>
+			</div>
+			<div class="w-full surface-elevated rounded-full h-1.5 overflow-hidden">
+				<div
+					class="bg-[rgb(var(--color-primary))] h-full transition-all duration-300 ease-out"
+					style="width: {workoutStore.progress}%"
+				></div>
+			</div>
 		</div>
 
 		<!-- Main content -->
@@ -376,11 +324,50 @@
 				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
 				onopennotes={openNotesModal}
-				exerciseHistoryHref={`/history/exercise/${workoutStore.currentExercise.id}`}
 				isLastExercise={workoutStore.isLastExercise}
 				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.id)}
 			/>
 		{/if}
+
+		<!-- Session Plan -->
+		<div class="rounded-xl border border-theme surface-elevated p-3 space-y-2.5">
+			<div class="flex items-center gap-2 text-sm font-medium text-secondary px-1">
+				<Dumbbell size={16} />
+				<span>Session Plan</span>
+			</div>
+			<div class="space-y-2">
+				{#each workoutStore.workout.exercises as exercise, index}
+					{@const isCurrent = index === workoutStore.currentExerciseIndex}
+					{@const isCompleted = isExerciseCompleted(index)}
+					<div
+						class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
+					>
+						<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
+							{isCompleted ? 'bg-success-soft text-success' : isCurrent ? 'bg-brand-soft text-brand' : 'bg-border-soft text-muted'}">
+							{#if isCompleted}
+								<CheckCircle size={14} />
+							{:else}
+								{index + 1}
+							{/if}
+						</div>
+						<div class="flex-1 min-w-0">
+							<div class="text-sm font-medium text-primary truncate {isCompleted ? 'line-through opacity-60' : ''}">
+								{exercise.name}
+							</div>
+							<div class="text-xs text-muted">
+								{formatExerciseTarget(exercise)}
+							</div>
+						</div>
+						{#if isCurrent}
+							<span class="text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]/10 px-2 py-0.5 rounded-full">
+								Current
+							</span>
+						{/if}
+					</div>
+				{/each}
+			</div>
+		</div>
+
 	</div>
 
 	<!-- Notes modal -->

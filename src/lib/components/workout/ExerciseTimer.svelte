@@ -135,7 +135,7 @@
 </script>
 
 <div
-	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-brand-soft shadow-lg animate-scaleIn"
+	class="relative overflow-hidden surface rounded-2xl p-4 sm:p-5 text-center space-y-4 border border-brand-soft shadow-lg animate-scaleIn"
 >
 	<!-- Dynamic color background based on timer progress -->
 	<div
@@ -144,13 +144,13 @@
 	></div>
 
 	<!-- Header -->
-	<div class="relative flex items-center justify-center gap-2 text-brand">
-		<Timer size={20} />
-		<span class="text-sm font-bold uppercase tracking-wide">Set {setNumber} of {totalSets}</span>
+	<div class="relative flex items-center justify-center gap-1.5 text-brand">
+		<Timer size={18} />
+		<span class="text-xs font-bold uppercase tracking-wide">Set {setNumber} of {totalSets}</span>
 	</div>
 
 	<!-- Circular Progress Timer -->
-	<div class="relative w-52 h-52 mx-auto z-10">
+	<div class="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto z-10">
 		<!-- Background circle -->
 		<svg class="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
 			<circle
@@ -179,13 +179,13 @@
 		<!-- Timer display -->
 		<div class="absolute inset-0 flex flex-col items-center justify-center">
 			<span
-				class="text-5xl font-bold transition-colors duration-200"
+				class="text-4xl font-bold transition-colors duration-200"
 				style="color: {timerColor()}"
 				class:animate-pulseScale={isRunning && remaining <= 5 && remaining > 0}
 			>
 				{formatDuration(remaining)}
 			</span>
-			<span class="text-sm text-muted mt-1">
+			<span class="text-xs text-muted mt-0.5">
 				{#if isRunning}
 					Time remaining
 				{:else}
@@ -196,7 +196,7 @@
 	</div>
 
 	<!-- Buttons -->
-	<div class="relative z-10 space-y-3">
+	<div class="sticky bottom-2 z-10 rounded-xl border border-theme bg-[rgb(var(--color-bg)/0.92)] backdrop-blur-sm p-2 space-y-2">
 		{#if !isRunning}
 			<Button onclick={start} fullWidth={true}>
 				{#snippet children()}

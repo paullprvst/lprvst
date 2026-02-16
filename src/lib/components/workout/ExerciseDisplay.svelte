@@ -7,7 +7,7 @@
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
-	import { Check, Flame, Snowflake, Dumbbell, Trophy, MessageSquare, History } from 'lucide-svelte';
+	import { Check, Flame, Snowflake, Dumbbell, Trophy, MessageSquare } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -16,7 +16,6 @@
 		onsetupdate: (setNumber: number, data: { reps?: number; weight?: number; duration?: number }) => void;
 		onnext: () => void;
 		onopennotes: () => void;
-		exerciseHistoryHref: string;
 		isLastExercise?: boolean;
 		lastPerformance?: ExerciseLog;
 	}
@@ -28,7 +27,6 @@
 		onsetupdate,
 		onnext,
 		onopennotes,
-		exerciseHistoryHref,
 		isLastExercise = false,
 		lastPerformance
 	}: Props = $props();
@@ -192,99 +190,60 @@
 </script>
 
 <div class="space-y-4 animate-slideUp">
-	<!-- Exercise Info Card -->
-	<div class="rounded-xl border border-brand-soft surface p-5 sm:p-6">
-		<div class="space-y-5">
-			<!-- Type badge and title -->
-			<div>
+	<!-- Action context -->
+	<div class="rounded-xl border border-brand-soft surface p-4 sm:p-5 space-y-3.5">
+		<div class="flex items-start justify-between gap-3">
+			<div class="min-w-0">
 				{#if exercise.type !== 'main'}
 					<div
-						class="inline-flex items-center gap-1.5 px-3 py-1 {config.badgeClass} text-xs font-semibold rounded-full mb-3"
+						class="inline-flex items-center gap-1.5 px-2.5 py-1 {config.badgeClass} text-[11px] font-semibold rounded-full mb-2"
 					>
-						<config.icon size={12} />
+						<config.icon size={11} />
 						{config.label}
 					</div>
 				{/if}
 				<div class="flex items-center gap-2">
-					<h2 class="text-2xl font-bold text-primary">{exercise.name}</h2>
+					<h2 class="text-xl sm:text-2xl font-bold text-primary truncate">{exercise.name}</h2>
 					<ExerciseInfoButton
 						exerciseName={exercise.name}
 						equipment={exercise.equipment}
 						notes={exercise.notes}
-						size={22}
+						size={20}
 					/>
 				</div>
-				{#if shouldShowExerciseNotes()}
-					<p class="text-secondary mt-2">{exercise.notes}</p>
-				{/if}
 			</div>
+			<span class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] text-secondary bg-border-soft whitespace-nowrap">
+				<MessageSquare size={12} />
+				{currentSessionNote ? 'Note saved' : 'No note'}
+			</span>
+		</div>
 
-			<!-- Equipment -->
-			{#if exercise.equipment && exercise.equipment.length > 0}
-				<div class="flex flex-wrap gap-2">
-					{#each exercise.equipment as item}
-						<span
-							class="px-3 py-1.5 text-sm bg-brand-soft rounded-lg text-brand font-medium"
-						>
-							{item}
-						</span>
-					{/each}
-				</div>
-			{/if}
-
-			<!-- Target info -->
-			<div class="p-4 bg-brand-soft rounded-xl border border-brand-soft">
-				<p class="text-xs font-bold text-brand uppercase tracking-wide mb-1">Target</p>
-				<p class="text-2xl font-bold text-primary">
+		<div class="grid gap-2 sm:grid-cols-2">
+			<div class="rounded-lg border border-brand-soft bg-brand-soft px-3 py-2.5">
+				<p class="text-[11px] font-bold uppercase tracking-wide text-brand mb-1">Target</p>
+				<p class="text-sm font-semibold text-primary">
 					{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
 				</p>
-				<p class="text-sm text-secondary mt-2">
+				<p class="text-xs text-secondary mt-1">
 					{formatRestTime(exercise.restBetweenSets)} between sets
 				</p>
 			</div>
 
-			<!-- Last performance -->
 			{#if lastPerformance}
-				<div class="p-3 bg-border-soft rounded-xl border border-theme">
-					<p class="text-xs font-medium text-secondary">
-						Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
-					</p>
+				<div class="rounded-lg border border-theme bg-border-soft px-3 py-2.5">
+					<p class="text-[11px] font-semibold uppercase tracking-wide text-secondary mb-1">Last time</p>
+					<p class="text-sm font-semibold text-primary">{formatLastPerformance(lastPerformance)}</p>
 					{#if lastSessionNote}
 						<p class="text-xs text-secondary mt-1.5 break-words">
 							Last note: <span class="text-primary">{lastSessionNote}</span>
 						</p>
 					{/if}
 				</div>
-			{/if}
-
-			<!-- Session notes -->
-			<div class="p-3 bg-border-soft rounded-xl border border-theme space-y-2.5">
-				<div class="flex items-center justify-between gap-2">
-					<p class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5">
-						<MessageSquare size={13} />
-						Workout note
-					</p>
-					<button
-						type="button"
-						onclick={onopennotes}
-						class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-brand-soft text-brand hover:opacity-90 transition-opacity touch-target"
-					>
-						{currentSessionNote ? 'Edit note' : 'Add note'}
-					</button>
+			{:else}
+				<div class="rounded-lg border border-theme bg-border-soft px-3 py-2.5">
+					<p class="text-xs text-secondary">No previous performance logged yet.</p>
 				</div>
-				{#if currentSessionNote}
-					<p class="text-sm text-primary whitespace-pre-wrap break-words">{currentSessionNote}</p>
-				{:else}
-					<p class="text-sm text-secondary">No note for this session yet.</p>
-				{/if}
-				<a
-					href={exerciseHistoryHref}
-					class="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:opacity-90 transition-opacity"
-				>
-					<History size={13} />
-					View full history
-				</a>
-			</div>
+			{/if}
 		</div>
 	</div>
 
@@ -316,26 +275,25 @@
 				<div class="space-y-2.5">
 					{#each log.sets as set, index}
 						<div
-							class="p-2.5 sm:p-3 rounded-xl border transition-all duration-200 animate-scaleIn {set.completed
+							class="p-2 sm:p-2.5 rounded-xl border transition-all duration-200 animate-scaleIn {set.completed
 								? 'border-success-soft bg-success-soft'
 								: 'border-brand-soft surface'}"
 							style="animation-delay: {index * 50}ms"
 						>
 							{#if set.completed}
-								<!-- Completed set display -->
-								<div class="flex items-center gap-2.5">
-									<div class="w-7 h-7 rounded-full bg-[rgb(var(--color-success))] flex items-center justify-center shadow-sm">
-										<Check size={14} class="text-white" strokeWidth={3} />
-									</div>
-									<div class="flex-1">
-										<span class="font-semibold text-sm text-success">Set {set.setNumber}</span>
-										<span class="text-xs sm:text-sm text-secondary ml-2">
+								<!-- Completed set compact summary -->
+								<div class="flex items-center gap-2 text-sm">
+									<Check size={14} class="text-success flex-shrink-0" strokeWidth={3} />
+									<p class="text-primary min-w-0 truncate">
+										<span class="font-semibold text-success">Set {set.setNumber}</span>
+										<span class="text-secondary">
+											&nbsp;•&nbsp;
 											{#if set.reps}{set.reps} reps{/if}
 											{#if set.reps && set.weight} @ {/if}
 											{#if set.weight}{set.weight} kg{/if}
 											{#if !set.reps && !set.weight}Done{/if}
 										</span>
-									</div>
+									</p>
 								</div>
 							{:else}
 								<!-- Active set form -->
@@ -384,7 +342,7 @@
 
 	<!-- Next Exercise / Finish Workout Button -->
 	{#if allSetsCompleted}
-		<div class="animate-slideUp">
+		<div class="sticky bottom-2 z-10 rounded-xl border border-theme bg-[rgb(var(--color-bg)/0.92)] backdrop-blur-sm p-2 animate-slideUp">
 			<Button onclick={onnext} fullWidth={true} size="lg">
 				{#snippet children()}
 					{#if isLastExercise}
@@ -397,4 +355,61 @@
 				</Button>
 		</div>
 	{/if}
+
+	<!-- Secondary context at the bottom -->
+	<div class="rounded-xl border border-theme surface-elevated p-3.5 space-y-3">
+		{#if shouldShowExerciseNotes()}
+			<p class="text-sm text-secondary whitespace-pre-wrap break-words">{exercise.notes}</p>
+		{/if}
+
+		{#if exercise.equipment && exercise.equipment.length > 0}
+			<div class="flex flex-wrap gap-1.5">
+				{#each exercise.equipment as item}
+					<span class="px-2.5 py-1 text-xs bg-brand-soft rounded-md text-brand font-medium">
+						{item}
+					</span>
+				{/each}
+			</div>
+		{/if}
+
+		<div class="rounded-lg border border-theme bg-[rgb(var(--color-surface-elevated)/0.6)] p-3 space-y-2.5">
+			<div class="flex items-center justify-between gap-2">
+				<p class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5">
+					<MessageSquare size={13} />
+					Workout note
+				</p>
+				<button
+					type="button"
+					onclick={onopennotes}
+					class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-brand-soft text-brand hover:opacity-90 transition-opacity touch-target"
+				>
+					{currentSessionNote ? 'Edit note' : 'Add note'}
+				</button>
+			</div>
+
+			{#if currentSessionNote}
+				<div class="space-y-1.5">
+					<p class="text-[11px] uppercase tracking-wide text-muted">This workout</p>
+					<p class="text-sm text-primary whitespace-pre-wrap break-words">{currentSessionNote}</p>
+				</div>
+			{/if}
+
+			{#if lastSessionNote}
+				<div class="space-y-1.5 pt-2 border-t border-[rgb(var(--color-border)/0.5)]">
+					<p class="text-[11px] uppercase tracking-wide text-muted">Last session note</p>
+					<p class="text-xs text-secondary whitespace-pre-wrap break-words">{lastSessionNote}</p>
+				</div>
+			{:else if !currentSessionNote}
+				<div class="rounded-lg border border-brand-soft bg-brand-soft p-3 text-center">
+					<div class="w-8 h-8 mx-auto rounded-full bg-[rgb(var(--color-primary)/0.16)] flex items-center justify-center mb-2">
+						<MessageSquare size={15} class="text-brand" />
+					</div>
+					<p class="text-sm font-semibold text-primary">No notes yet</p>
+					<p class="text-xs text-secondary mt-1">
+						Add a quick cue for form, setup, or target weight before moving on.
+					</p>
+				</div>
+			{/if}
+		</div>
+	</div>
 </div>

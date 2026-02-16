@@ -69,7 +69,7 @@
 </script>
 
 <div
-	class="relative overflow-hidden surface rounded-2xl p-6 text-center space-y-6 border border-brand-soft shadow-lg animate-scaleIn"
+	class="relative overflow-hidden surface rounded-2xl p-4 sm:p-5 text-center space-y-4 border border-brand-soft shadow-lg animate-scaleIn"
 >
 	<!-- Dynamic color background based on timer progress -->
 	<div
@@ -78,13 +78,13 @@
 	></div>
 
 	<!-- Header -->
-	<div class="relative flex items-center justify-center gap-2 text-brand">
-		<Timer size={20} />
-		<span class="text-sm font-bold uppercase tracking-wide">Rest Timer</span>
+	<div class="relative flex items-center justify-center gap-1.5 text-brand">
+		<Timer size={18} />
+		<span class="text-xs font-bold uppercase tracking-wide">Rest Timer</span>
 	</div>
 
 	<!-- Circular Progress Timer -->
-	<div class="relative w-52 h-52 mx-auto z-10">
+	<div class="relative w-40 h-40 sm:w-44 sm:h-44 mx-auto z-10">
 		<!-- Background circle -->
 		<svg class="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
 			<circle
@@ -113,18 +113,18 @@
 		<!-- Timer display -->
 		<div class="absolute inset-0 flex flex-col items-center justify-center">
 			<span
-				class="text-5xl font-bold transition-colors duration-200"
+				class="text-4xl font-bold transition-colors duration-200"
 				style="color: {timerColor()}"
 				class:animate-pulseScale={remaining <= 5 && remaining > 0}
 			>
 				{formatDuration(remaining)}
 			</span>
-			<span class="text-sm text-muted mt-1">{label}</span>
+			<span class="text-xs text-muted mt-0.5">{label}</span>
 		</div>
 	</div>
 
 	<!-- Skip button -->
-		<div class="relative z-10">
+		<div class="sticky bottom-2 z-10 rounded-xl border border-theme bg-[rgb(var(--color-bg)/0.92)] backdrop-blur-sm p-2">
 			<Button onclick={skip} variant="ghost" fullWidth={true}>
 				{#snippet children()}
 					Skip Rest
@@ -134,12 +134,12 @@
 
 	<!-- Next exercise preview -->
 		{#if nextExercise}
-			<div class="relative z-10 mt-2 p-4 surface-elevated rounded-xl border border-brand-soft text-left">
+			<div class="relative z-10 mt-1 p-3 surface-elevated rounded-xl border border-brand-soft text-left">
 				<div class="flex items-center gap-2 mb-2">
 					<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
 				</div>
 			<div class="flex items-center gap-2">
-				<p class="text-lg font-semibold text-primary">{nextExercise.name}</p>
+				<p class="text-base font-semibold text-primary">{nextExercise.name}</p>
 				<ExerciseInfoButton
 					exerciseName={nextExercise.name}
 					equipment={nextExercise.equipment}
@@ -147,7 +147,7 @@
 					size={18}
 				/>
 			</div>
-			<p class="text-sm text-secondary mt-1">
+			<p class="text-xs text-secondary mt-1">
 				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}
 			</p>
 			{#if nextExercise.equipment && nextExercise.equipment.length > 0}
