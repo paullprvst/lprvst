@@ -39,17 +39,19 @@
 	let loading = $state(!cached);
 
 	async function loadHistoryData() {
-		const completedSessions = await workoutSessionRepository.getCompleted();
-		const programs = await programRepository.getAll();
-		const versionsById = new Map<string, NonNullable<Awaited<ReturnType<typeof programVersionRepository.getById>>>>();
+		const [completedSessions, programs] = await Promise.all([
+			workoutSessionRepository.getCompleted(),
+			programRepository.getAll()
+		]);
+		let versionsById = new Map<
+			string,
+			NonNullable<Awaited<ReturnType<typeof programVersionRepository.getById>>>
+		>();
 		if (featureFlags.programVersioningReads) {
-			const versionIds = [...new Set(completedSessions.map((session) => session.programVersionId).filter(Boolean))];
-			for (const versionId of versionIds) {
-				const version = await programVersionRepository.getById(versionId as string);
-				if (version) {
-					versionsById.set(version.id, version);
-				}
-			}
+			const versionIds = [
+				...new Set(completedSessions.map((session) => session.programVersionId).filter(Boolean))
+			] as string[];
+			versionsById = await programVersionRepository.getByIds(versionIds);
 		}
 
 		allSessions = completedSessions;

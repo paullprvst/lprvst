@@ -73,9 +73,35 @@ export class ProgramRepository {
 
 		if (error) throw error;
 		const programs = (data || []).map((row) => this.mapFromDb(row));
-		const hydratedPrograms = await Promise.all(
-			programs.map((program) => this.hydrateFromCurrentVersion(program))
-		);
+		let hydratedPrograms = programs;
+		if (featureFlags.programVersioningReads) {
+			try {
+				const versionIds = [
+					...new Set(programs.map((program) => program.currentVersionId).filter(Boolean))
+				] as string[];
+				const versionsById = await programVersionRepository.getByIds(versionIds);
+				hydratedPrograms = programs.map((program) => {
+					if (!program.currentVersionId) return program;
+					const version = versionsById.get(program.currentVersionId);
+					if (!version) return program;
+
+					const projection = programVersionRepository.toProjection(version);
+					return {
+						...program,
+						name: projection.name,
+						description: projection.description,
+						startDate: projection.startDate,
+						schedule: {
+							...projection.schedule,
+							duration: program.schedule.duration
+						},
+						workouts: projection.workouts
+					};
+				});
+			} catch (hydrateError) {
+				console.warn('Failed to hydrate programs from current versions:', hydrateError);
+			}
+		}
 
 		if (options.sortBy !== 'last-used') {
 			return hydratedPrograms;

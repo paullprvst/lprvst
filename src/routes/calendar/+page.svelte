@@ -110,14 +110,18 @@
 	async function loadCalendarData() {
 		loading = true;
 		try {
-			programs = await programRepository.getAll();
+			const [loadedPrograms, loadedCompletedSessions, inProgressSessions] = await Promise.all([
+				programRepository.getAll(),
+				workoutSessionRepository.getCompleted(),
+				workoutSessionRepository.getInProgress()
+			]);
+
+			programs = loadedPrograms;
+			completedSessions = loadedCompletedSessions;
 			activePrograms = programs.filter((program) => !program.isPaused);
 			if (activePrograms.length > 0 && !selectedProgramId) {
 				selectedProgramId = activePrograms[0].id;
 			}
-
-			completedSessions = await workoutSessionRepository.getCompleted();
-			const inProgressSessions = await workoutSessionRepository.getInProgress();
 
 			if (inProgressSessions.length > 0) {
 				inProgressSession = inProgressSessions[0];

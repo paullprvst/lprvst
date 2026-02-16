@@ -40,20 +40,26 @@
 		if (id) {
 			const loaded = await programRepository.get(id);
 			program = loaded || null;
-
-			// Load last performances for all exercises in a single batch query
-			if (program) {
-				const exerciseIds: string[] = [];
-				for (const workout of program.workouts) {
-					for (const exercise of workout.exercises) {
-						exerciseIds.push(exercise.id);
-					}
-				}
-				lastPerformances = await workoutSessionRepository.getLastPerformancesForExerciseIds(exerciseIds);
-			}
 		}
 		loading = false;
+		if (program) {
+			void loadLastPerformances(program);
+		}
 	});
+
+	async function loadLastPerformances(currentProgram: Program) {
+		try {
+			const exerciseIds: string[] = [];
+			for (const workout of currentProgram.workouts) {
+				for (const exercise of workout.exercises) {
+					exerciseIds.push(exercise.id);
+				}
+			}
+			lastPerformances = await workoutSessionRepository.getLastPerformancesForExerciseIds(exerciseIds);
+		} catch (error) {
+			console.warn('Failed to load last performances:', error);
+		}
+	}
 
 	function openEditModal(index: number) {
 		if (!program) return;

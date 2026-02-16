@@ -3,6 +3,8 @@ import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
 import { getSession, supabase } from '$lib/services/storage/supabase';
 
+const onboardedAuthUserIds = new Set<string>();
+
 export const load: LayoutLoad = async ({ url }) => {
 	// Only run auth checks in browser
 	if (!browser) {
@@ -28,13 +30,21 @@ export const load: LayoutLoad = async ({ url }) => {
 	// Check if user has completed onboarding (has objectives set)
 	let onboardingComplete = false;
 	if (session) {
-		const { data } = await supabase
-			.from('users')
-			.select('objectives')
-			.eq('auth_user_id', session.user.id)
-			.single();
+		const authUserId = session.user.id;
+		onboardingComplete = onboardedAuthUserIds.has(authUserId);
 
-		onboardingComplete = !!data?.objectives;
+		if (!onboardingComplete) {
+			const { data } = await supabase
+				.from('users')
+				.select('objectives')
+				.eq('auth_user_id', authUserId)
+				.single();
+
+			onboardingComplete = !!data?.objectives;
+			if (onboardingComplete) {
+				onboardedAuthUserIds.add(authUserId);
+			}
+		}
 
 		// Redirect users who haven't completed onboarding (unless already there)
 		if (!onboardingComplete && !isOnboarding && !isPublicRoute) {

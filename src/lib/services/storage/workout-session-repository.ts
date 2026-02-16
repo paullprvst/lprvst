@@ -99,7 +99,11 @@ export class WorkoutSessionRepository {
 		return (data || []).map((row) => this.mapFromDb(row));
 	}
 
-	async update(id: string, updates: Partial<WorkoutSession>): Promise<void> {
+	async update(
+		id: string,
+		updates: Partial<WorkoutSession>,
+		options: { invalidateCaches?: boolean } = {}
+	): Promise<void> {
 		const dbUpdates: Record<string, unknown> = {};
 		if (updates.workoutId !== undefined) dbUpdates.workout_id = updates.workoutId;
 		if (updates.workoutNameSnapshot !== undefined)
@@ -114,7 +118,9 @@ export class WorkoutSessionRepository {
 		const { error } = await supabase.from('workout_sessions').update(dbUpdates).eq('id', id);
 
 		if (error) throw error;
-		this.invalidateTabCaches();
+		if (options.invalidateCaches ?? true) {
+			this.invalidateTabCaches();
+		}
 	}
 
 	async complete(id: string): Promise<void> {

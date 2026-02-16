@@ -98,6 +98,7 @@
 					{@const isActive = index === activeIndex}
 					<a
 						href={item.href}
+						data-sveltekit-preload-data="tap"
 						aria-label={item.label}
 						class="group relative flex h-full items-center justify-center transition-all duration-200 {isActive
 							? 'text-brand bg-brand-soft'

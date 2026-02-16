@@ -132,10 +132,12 @@
 			return;
 		}
 
-		const program = session.programId ? await programRepository.get(session.programId) : undefined;
 		const version = featureFlags.programVersioningReads && session.programVersionId
 			? await programVersionRepository.getById(session.programVersionId)
 			: null;
+		const program = !version && session.programId
+			? await programRepository.get(session.programId)
+			: undefined;
 		const effectiveProgram = version && session.programId
 			? {
 					id: session.programId,
@@ -164,8 +166,10 @@
 		}
 
 		workoutStore.setSession(session, workout);
-		await workoutStore.loadLastPerformances();
 		loading = false;
+		void workoutStore.loadLastPerformances().catch((error) => {
+			console.warn('Failed to load last performances:', error);
+		});
 
 		// Start elapsed time timer
 		const updateElapsed = () => {
@@ -223,7 +227,7 @@
 		if (!workoutStore.session) return;
 		await workoutSessionRepository.update(workoutStore.session.id, {
 			exercises: JSON.parse(JSON.stringify(workoutStore.session.exercises))
-		});
+		}, { invalidateCaches: false });
 	}
 
 	async function submitNotes() {
