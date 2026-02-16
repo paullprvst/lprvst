@@ -6,6 +6,8 @@ import { featureFlags } from '$lib/utils/feature-flags';
 import { clearTabCache } from '$lib/services/tab-cache';
 import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
 
+type ProgramSortBy = 'created' | 'last-used';
+
 export class ProgramRepository {
 	async create(program: Omit<Program, 'id' | 'createdAt' | 'updatedAt'>): Promise<Program> {
 		const userId = await getAppUserId();
@@ -63,7 +65,7 @@ export class ProgramRepository {
 		return this.hydrateFromCurrentVersion(this.mapFromDb(data));
 	}
 
-	async getAll(): Promise<Program[]> {
+	async getAll(options: { sortBy?: ProgramSortBy } = {}): Promise<Program[]> {
 		const { data, error } = await supabase
 			.from('programs')
 			.select()
@@ -71,7 +73,27 @@ export class ProgramRepository {
 
 		if (error) throw error;
 		const programs = (data || []).map((row) => this.mapFromDb(row));
-		return Promise.all(programs.map((program) => this.hydrateFromCurrentVersion(program)));
+		const hydratedPrograms = await Promise.all(
+			programs.map((program) => this.hydrateFromCurrentVersion(program))
+		);
+
+		if (options.sortBy !== 'last-used') {
+			return hydratedPrograms;
+		}
+
+		const lastUsedAtByProgramId = await this.getLastUsedAtByProgramId();
+		return hydratedPrograms.sort((a, b) => {
+			const aLastUsedAt = lastUsedAtByProgramId.get(a.id);
+			const bLastUsedAt = lastUsedAtByProgramId.get(b.id);
+
+			if (aLastUsedAt && bLastUsedAt) {
+				return bLastUsedAt.getTime() - aLastUsedAt.getTime();
+			}
+			if (aLastUsedAt) return -1;
+			if (bLastUsedAt) return 1;
+
+			return b.createdAt.getTime() - a.createdAt.getTime();
+		});
 	}
 
 	async update(id: string, updates: Partial<Program>): Promise<void> {
@@ -136,6 +158,38 @@ export class ProgramRepository {
 			console.warn('Failed to hydrate program from current version:', error);
 			return program;
 		}
+	}
+
+	private async getLastUsedAtByProgramId(): Promise<Map<string, Date>> {
+		const { data, error } = await supabase
+			.from('workout_sessions')
+			.select('program_id, completed_at, started_at')
+			.not('program_id', 'is', null);
+
+		if (error) {
+			console.warn('Failed to fetch program usage timestamps:', error);
+			return new Map();
+		}
+
+		const lastUsedAtByProgramId = new Map<string, Date>();
+		for (const row of data || []) {
+			const programId = row.program_id as string | null;
+			const completedAt = row.completed_at as string | null;
+			const startedAt = row.started_at as string | null;
+			const timestamp = completedAt ?? startedAt;
+
+			if (!programId || !timestamp) continue;
+
+			const usedAt = new Date(timestamp);
+			if (Number.isNaN(usedAt.getTime())) continue;
+
+			const currentMostRecent = lastUsedAtByProgramId.get(programId);
+			if (!currentMostRecent || usedAt > currentMostRecent) {
+				lastUsedAtByProgramId.set(programId, usedAt);
+			}
+		}
+
+		return lastUsedAtByProgramId;
 	}
 
 	private invalidateTabCaches(): void {

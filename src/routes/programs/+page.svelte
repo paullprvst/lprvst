@@ -21,7 +21,7 @@
 	onMount(async () => {
 		if (cachedPrograms) return;
 
-		programs = await programRepository.getAll();
+		programs = await programRepository.getAll({ sortBy: 'last-used' });
 		setTabCache(TAB_CACHE_KEYS.programs, programs);
 		loading = false;
 	});
