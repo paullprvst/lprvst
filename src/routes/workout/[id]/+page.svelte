@@ -274,18 +274,17 @@
 	<div class="space-y-4">
 		<!-- Compact sticky workout header -->
 		<div class="sticky top-2 z-20 rounded-xl border border-theme glass-heavy px-3 py-2.5 shadow-lg space-y-2">
-			<div class="flex items-center justify-between gap-3">
-				<div class="min-w-0 flex-1">
+			<div class="flex items-start justify-between gap-3">
+				<div class="min-w-0 flex-1 space-y-0.5">
 					<p class="text-[11px] uppercase tracking-wide text-muted truncate">{workoutStore.workout.name}</p>
-					<p class="text-sm font-semibold text-primary truncate">{workoutStore.currentExercise.name}</p>
+					<p class="text-sm font-semibold text-primary">
+						Exercise {workoutStore.currentExerciseIndex + 1}/{workoutStore.workout.exercises.length}
+					</p>
 				</div>
-				<p class="text-xs text-secondary whitespace-nowrap">
-					Exercise {workoutStore.currentExerciseIndex + 1}/{workoutStore.workout.exercises.length}
-				</p>
 				<button
 					type="button"
 					onclick={openLeaveModal}
-					class="p-1.5 rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200 touch-target"
+					class="h-11 w-11 flex-shrink-0 self-start inline-flex items-center justify-center rounded-lg text-muted hover:text-primary hover:bg-border-soft transition-colors duration-200"
 					aria-label="Close workout"
 				>
 					<X size={20} />

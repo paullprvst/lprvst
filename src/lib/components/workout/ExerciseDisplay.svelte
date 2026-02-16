@@ -192,30 +192,24 @@
 <div class="space-y-4 animate-slideUp">
 	<!-- Action context -->
 	<div class="rounded-xl border border-brand-soft surface p-4 sm:p-5 space-y-3.5">
-		<div class="flex items-start justify-between gap-3">
-			<div class="min-w-0">
-				{#if exercise.type !== 'main'}
-					<div
-						class="inline-flex items-center gap-1.5 px-2.5 py-1 {config.badgeClass} text-[11px] font-semibold rounded-full mb-2"
-					>
-						<config.icon size={11} />
-						{config.label}
-					</div>
-				{/if}
-				<div class="flex items-center gap-2">
-					<h2 class="text-xl sm:text-2xl font-bold text-primary truncate">{exercise.name}</h2>
-					<ExerciseInfoButton
-						exerciseName={exercise.name}
-						equipment={exercise.equipment}
-						notes={exercise.notes}
-						size={20}
-					/>
+		<div class="min-w-0">
+			{#if exercise.type !== 'main'}
+				<div
+					class="inline-flex items-center gap-1.5 px-2.5 py-1 {config.badgeClass} text-[11px] font-semibold rounded-full mb-2"
+				>
+					<config.icon size={11} />
+					{config.label}
 				</div>
+			{/if}
+			<div class="flex items-center gap-2">
+				<h2 class="text-xl sm:text-2xl font-bold text-primary truncate">{exercise.name}</h2>
+				<ExerciseInfoButton
+					exerciseName={exercise.name}
+					equipment={exercise.equipment}
+					notes={exercise.notes}
+					size={20}
+				/>
 			</div>
-			<span class="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] text-secondary bg-border-soft whitespace-nowrap">
-				<MessageSquare size={12} />
-				{currentSessionNote ? 'Note saved' : 'No note'}
-			</span>
 		</div>
 
 		<div class="grid gap-2 sm:grid-cols-2">
@@ -372,8 +366,8 @@
 			</div>
 		{/if}
 
-		<div class="rounded-lg border border-theme bg-[rgb(var(--color-surface-elevated)/0.6)] p-3 space-y-2.5">
-			<div class="flex items-center justify-between gap-2">
+		<div class="space-y-2.5 pt-1">
+			<div class="flex items-start justify-between gap-2">
 				<p class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5">
 					<MessageSquare size={13} />
 					Workout note
@@ -400,7 +394,7 @@
 					<p class="text-xs text-secondary whitespace-pre-wrap break-words">{lastSessionNote}</p>
 				</div>
 			{:else if !currentSessionNote}
-				<div class="rounded-lg border border-brand-soft bg-brand-soft p-3 text-center">
+				<div class="text-center py-4">
 					<div class="w-8 h-8 mx-auto rounded-full bg-[rgb(var(--color-primary)/0.16)] flex items-center justify-center mb-2">
 						<MessageSquare size={15} class="text-brand" />
 					</div>
