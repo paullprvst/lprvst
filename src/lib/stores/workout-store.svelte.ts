@@ -152,6 +152,15 @@ class WorkoutStore {
 		}
 	}
 
+	updateExerciseNotes(exerciseId: string, notes?: string) {
+		if (!this.session) return;
+		const exerciseLog = this.session.exercises.find((exercise) => exercise.exerciseId === exerciseId);
+		if (!exerciseLog) return;
+
+		const trimmed = notes?.trim();
+		exerciseLog.notes = trimmed ? trimmed : undefined;
+	}
+
 	nextExercise() {
 		if (!this.workout) return;
 		if (this.currentExerciseIndex < this.workout.exercises.length - 1) {
@@ -172,18 +181,13 @@ class WorkoutStore {
 	async loadLastPerformances() {
 		if (!this.workout) return;
 
-		const performances = new Map<string, ExerciseLog>();
-		for (const exercise of this.workout.exercises) {
-			const lastPerformance = await workoutSessionRepository.getLastPerformanceByName(exercise.name);
-			if (lastPerformance) {
-				performances.set(exercise.name.toLowerCase().trim(), lastPerformance);
-			}
-		}
+		const exerciseIds = this.workout.exercises.map((exercise) => exercise.id);
+		const performances = await workoutSessionRepository.getLastPerformancesForExerciseIds(exerciseIds);
 		this.lastPerformances = performances;
 	}
 
-	getLastPerformance(exerciseName: string): ExerciseLog | undefined {
-		return this.lastPerformances.get(exerciseName.toLowerCase().trim());
+	getLastPerformance(exerciseId: string): ExerciseLog | undefined {
+		return this.lastPerformances.get(exerciseId);
 	}
 }
 

@@ -17,7 +17,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { formatDate, formatDuration } from '$lib/utils/date-helpers';
-	import { ArrowLeft, Clock, Check, CheckCircle, X, XCircle, Pencil } from 'lucide-svelte';
+	import { ArrowLeft, Clock, Check, CheckCircle, X, XCircle, Pencil, History } from 'lucide-svelte';
 
 	let session = $state<WorkoutSession | null>(null);
 	let workout = $state<Workout | null>(null);
@@ -188,11 +188,21 @@
 					<div class="space-y-3">
 						<div class="flex items-center justify-between">
 							<h4 class="font-semibold text-primary">{exercise?.name || exerciseLog.exerciseName || 'Unknown exercise'}</h4>
-							{#if exerciseLog.skipped}
-								<span class="text-xs px-2 py-1 bg-warning-soft text-warning rounded-full">
-									Skipped
-								</span>
-							{/if}
+							<div class="flex items-center gap-2">
+								<button
+									type="button"
+									onclick={() => goto(`/history/exercise/${exerciseLog.exerciseId}`)}
+									class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-brand-soft text-brand hover:opacity-90 transition-opacity"
+								>
+									<History size={12} />
+									History
+								</button>
+								{#if exerciseLog.skipped}
+									<span class="text-xs px-2 py-1 bg-warning-soft text-warning rounded-full">
+										Skipped
+									</span>
+								{/if}
+							</div>
 						</div>
 
 							<!-- Sets -->

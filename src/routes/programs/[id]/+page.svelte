@@ -43,13 +43,13 @@
 
 			// Load last performances for all exercises in a single batch query
 			if (program) {
-				const exercises: Array<{ name: string; id: string }> = [];
+				const exerciseIds: string[] = [];
 				for (const workout of program.workouts) {
 					for (const exercise of workout.exercises) {
-						exercises.push({ name: exercise.name, id: exercise.id });
+						exerciseIds.push(exercise.id);
 					}
 				}
-				lastPerformances = await workoutSessionRepository.getLastPerformancesForExercises(exercises);
+				lastPerformances = await workoutSessionRepository.getLastPerformancesForExerciseIds(exerciseIds);
 			}
 		}
 		loading = false;

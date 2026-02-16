@@ -7,7 +7,7 @@
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
-	import { Check, Flame, Snowflake, Dumbbell, Trophy } from 'lucide-svelte';
+	import { Check, Flame, Snowflake, Dumbbell, Trophy, MessageSquare, History } from 'lucide-svelte';
 
 	interface Props {
 		exercise: Exercise;
@@ -15,11 +15,23 @@
 		onsetcomplete: (setNumber: number, data?: { reps?: number; weight?: number; duration?: number }) => void;
 		onsetupdate: (setNumber: number, data: { reps?: number; weight?: number; duration?: number }) => void;
 		onnext: () => void;
+		onopennotes: () => void;
+		exerciseHistoryHref: string;
 		isLastExercise?: boolean;
 		lastPerformance?: ExerciseLog;
 	}
 
-	let { exercise, log, onsetcomplete, onsetupdate, onnext, isLastExercise = false, lastPerformance }: Props = $props();
+	let {
+		exercise,
+		log,
+		onsetcomplete,
+		onsetupdate,
+		onnext,
+		onopennotes,
+		exerciseHistoryHref,
+		isLastExercise = false,
+		lastPerformance
+	}: Props = $props();
 
 	// Parse default reps from exercise
 	function getDefaultReps(): number | undefined {
@@ -174,6 +186,9 @@
 
 		return `${sets.length}×${repsStr}`;
 	}
+
+	const currentSessionNote = $derived(log.notes?.trim() || '');
+	const lastSessionNote = $derived(lastPerformance?.notes?.trim() || '');
 </script>
 
 <div class="space-y-4 animate-slideUp">
@@ -234,8 +249,42 @@
 					<p class="text-xs font-medium text-secondary">
 						Last time: <span class="text-primary font-semibold">{formatLastPerformance(lastPerformance)}</span>
 					</p>
+					{#if lastSessionNote}
+						<p class="text-xs text-secondary mt-1.5 break-words">
+							Last note: <span class="text-primary">{lastSessionNote}</span>
+						</p>
+					{/if}
 				</div>
 			{/if}
+
+			<!-- Session notes -->
+			<div class="p-3 bg-border-soft rounded-xl border border-theme space-y-2.5">
+				<div class="flex items-center justify-between gap-2">
+					<p class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5">
+						<MessageSquare size={13} />
+						Workout note
+					</p>
+					<button
+						type="button"
+						onclick={onopennotes}
+						class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-brand-soft text-brand hover:opacity-90 transition-opacity touch-target"
+					>
+						{currentSessionNote ? 'Edit note' : 'Add note'}
+					</button>
+				</div>
+				{#if currentSessionNote}
+					<p class="text-sm text-primary whitespace-pre-wrap break-words">{currentSessionNote}</p>
+				{:else}
+					<p class="text-sm text-secondary">No note for this session yet.</p>
+				{/if}
+				<a
+					href={exerciseHistoryHref}
+					class="inline-flex items-center gap-1.5 text-xs font-medium text-brand hover:opacity-90 transition-opacity"
+				>
+					<History size={13} />
+					View full history
+				</a>
+			</div>
 		</div>
 	</div>
 

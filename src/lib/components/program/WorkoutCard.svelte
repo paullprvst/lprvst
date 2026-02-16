@@ -4,7 +4,7 @@
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import { formatWorkoutDuration } from '$lib/utils/formatters';
-	import { Clock, Dumbbell, Flame, Snowflake, Edit2 } from 'lucide-svelte';
+	import { Clock, Dumbbell, Flame, Snowflake, Edit2, History } from 'lucide-svelte';
 
 	interface Props {
 		workout: Workout;
@@ -26,9 +26,9 @@
 		showExercisePreview = true
 	}: Props = $props();
 
-	function formatLastPerformance(exerciseName: string): string | null {
+	function formatLastPerformance(exerciseId: string): string | null {
 		if (!lastPerformances) return null;
-		const log = lastPerformances.get(exerciseName.toLowerCase().trim());
+		const log = lastPerformances.get(exerciseId);
 		if (!log) return null;
 
 		const completedSets = log.sets.filter(s => s.completed);
@@ -117,6 +117,10 @@
 			return `${exercise.sets} sets`;
 		}
 		return '';
+	}
+
+	function getExerciseHistoryHref(exerciseId: string): string {
+		return `/history/exercise/${exerciseId}`;
 	}
 
 	const exerciseTypeConfig = {
@@ -302,7 +306,7 @@
 						</div>
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
-								{@const lastPerf = formatLastPerformance(exercise.name)}
+								{@const lastPerf = formatLastPerformance(exercise.id)}
 								<div class="flex items-center gap-1.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft min-w-0">
 									<span class="text-sm text-primary truncate flex-1 min-w-0">{exercise.name}</span>
 									<ExerciseInfoButton
@@ -311,6 +315,14 @@
 										notes={exercise.notes}
 										size={12}
 									/>
+									<a
+										href={getExerciseHistoryHref(exercise.id)}
+										class="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted hover:text-brand hover:bg-brand-soft transition-colors"
+										aria-label={`Open history for ${exercise.name}`}
+										title="Exercise history"
+									>
+										<History size={12} />
+									</a>
 									<div class="flex items-center gap-1.5 flex-shrink-0 text-xs whitespace-nowrap">
 										{#if lastPerf}
 											<span class="text-success">

@@ -18,6 +18,7 @@
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
+	import Input from '$lib/components/shared/Input.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
 	import { X, CheckCircle, Trophy, Clock, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
@@ -27,10 +28,18 @@
 	let loadError = $state('');
 	let showCompleteModal = $state(false);
 	let showLeaveModal = $state(false);
+	let showNotesModal = $state(false);
 	let showPlan = $state(false);
 	let elapsedSeconds = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | null = null;
 	let allowNavigation = $state(false);
+	let notesTargetExerciseId = $state<string | null>(null);
+	let notesTargetExerciseName = $state('');
+	let notesDraft = $state('');
+	let notesSaving = $state(false);
+	let notesError = $state('');
+
+	const NOTE_MAX_LENGTH = 500;
 
 	// Prevent accidental navigation (back button, link clicks, etc.)
 	beforeNavigate(({ cancel }) => {
@@ -41,6 +50,20 @@
 
 	function openLeaveModal() {
 		showLeaveModal = true;
+	}
+
+	function openNotesModal() {
+		if (!workoutStore.currentExercise || !workoutStore.currentExerciseLog) return;
+		notesTargetExerciseId = workoutStore.currentExercise.id;
+		notesTargetExerciseName = workoutStore.currentExercise.name;
+		notesDraft = workoutStore.currentExerciseLog.notes || '';
+		notesError = '';
+		showNotesModal = true;
+	}
+
+	function closeNotesModal() {
+		showNotesModal = false;
+		notesError = '';
 	}
 
 	async function leaveAndResumeLater() {
@@ -203,6 +226,23 @@
 		});
 	}
 
+	async function submitNotes() {
+		if (!notesTargetExerciseId) return;
+
+		notesSaving = true;
+		notesError = '';
+		try {
+			workoutStore.updateExerciseNotes(notesTargetExerciseId, notesDraft);
+			await saveSession();
+			showNotesModal = false;
+		} catch (error) {
+			console.warn('Failed to save workout note:', error);
+			notesError = 'Unable to save note. Please try again.';
+		} finally {
+			notesSaving = false;
+		}
+	}
+
 	async function completeWorkout() {
 		if (!workoutStore.session) return;
 		await workoutSessionRepository.complete(workoutStore.session.id);
@@ -331,11 +371,46 @@
 				onsetcomplete={handleSetComplete}
 				onsetupdate={handleSetUpdate}
 				onnext={handleNextExercise}
+				onopennotes={openNotesModal}
+				exerciseHistoryHref={`/history/exercise/${workoutStore.currentExercise.id}`}
 				isLastExercise={workoutStore.isLastExercise}
-				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.name)}
+				lastPerformance={workoutStore.getLastPerformance(workoutStore.currentExercise.id)}
 			/>
 		{/if}
 	</div>
+
+	<!-- Notes modal -->
+	<Modal bind:open={showNotesModal} size="sm" title={notesTargetExerciseName || 'Workout note'} onclose={closeNotesModal}>
+		<div class="space-y-4 py-1">
+			<p class="text-sm text-secondary">
+				Capture cues for this exercise. You can finish and submit this note anytime.
+			</p>
+			<Input
+				multiline
+				rows={6}
+				bind:value={notesDraft}
+				maxLength={NOTE_MAX_LENGTH}
+				showCharCount
+				placeholder="How it felt, setup tips, target weight, form reminders..."
+				inputClass="text-sm"
+			/>
+			{#if notesError}
+				<p class="text-sm text-error">{notesError}</p>
+			{/if}
+			<div class="flex gap-2.5">
+				<Button onclick={closeNotesModal} variant="ghost" fullWidth={true} disabled={notesSaving}>
+					{#snippet children()}
+						Cancel
+					{/snippet}
+				</Button>
+				<Button onclick={submitNotes} fullWidth={true} disabled={notesSaving}>
+					{#snippet children()}
+						{notesSaving ? 'Saving...' : 'Save note'}
+					{/snippet}
+				</Button>
+			</div>
+		</div>
+	</Modal>
 
 	<!-- Completion modal -->
 	<Modal bind:open={showCompleteModal} size="sm">

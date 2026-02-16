@@ -35,3 +35,16 @@ export interface ExerciseWithLastPerformance {
 	lastPerformedAt: Date;
 	lastSets: SetLog[];
 }
+
+export interface ExerciseHistoryEntry {
+	sessionId: string;
+	exerciseId: string;
+	exerciseName: string;
+	performedAt: Date;
+	programId?: string;
+	workoutId: string;
+	workoutNameSnapshot?: string;
+	sets: SetLog[];
+	notes?: string;
+	skipped?: boolean;
+}

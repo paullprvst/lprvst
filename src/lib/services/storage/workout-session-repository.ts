@@ -1,6 +1,12 @@
 import { supabase } from './supabase';
 import { getAppUserId } from '$lib/stores/auth-store.svelte';
-import type { WorkoutSession, ExerciseLog, SetLog, ExerciseWithLastPerformance } from '$lib/types/workout-session';
+import type {
+	WorkoutSession,
+	ExerciseLog,
+	SetLog,
+	ExerciseWithLastPerformance,
+	ExerciseHistoryEntry
+} from '$lib/types/workout-session';
 import { programRepository } from './program-repository';
 import { clearTabCache } from '$lib/services/tab-cache';
 import { TAB_CACHE_KEYS } from '$lib/services/tab-cache-keys';
@@ -193,24 +199,12 @@ export class WorkoutSessionRepository {
 	}
 
 	async getLastPerformanceForExercise(exerciseId: string): Promise<ExerciseLog | null> {
-		// Get all completed sessions sorted by completion date (most recent first)
-		const sessions = await this.getCompleted();
-
-		for (const session of sessions) {
-			const exerciseLog = session.exercises.find(e => e.exerciseId === exerciseId);
-			if (exerciseLog && !exerciseLog.skipped) {
-				const completedSets = exerciseLog.sets.filter(s => s.completed);
-				if (completedSets.length > 0) {
-					return exerciseLog;
-				}
-			}
-		}
-
-		return null;
+		const results = await this.getLastPerformancesForExerciseIds([exerciseId]);
+		return results.get(exerciseId) ?? null;
 	}
 
 	async getLastPerformanceByName(exerciseName: string): Promise<ExerciseLog | null> {
-		const sessions = await this.getCompleted();
+		const sessions = this.sortSessionsByMostRecent(await this.getCompleted());
 		const normalizedName = exerciseName.toLowerCase().trim();
 
 		for (const session of sessions) {
@@ -230,8 +224,23 @@ export class WorkoutSessionRepository {
 	async getLastPerformancesForExercises(
 		exercises: Array<{ name: string; id: string }>
 	): Promise<Map<string, ExerciseLog>> {
-		const sessions = await this.getCompleted();
+		const resultsById = await this.getLastPerformancesForExerciseIds(exercises.map((exercise) => exercise.id));
 		const results = new Map<string, ExerciseLog>();
+
+		for (const exercise of exercises) {
+			const key = exercise.name.toLowerCase().trim();
+			const byId = resultsById.get(exercise.id);
+			if (byId) {
+				results.set(key, byId);
+			}
+		}
+
+		if (results.size === exercises.length) {
+			return results;
+		}
+
+		// Legacy fallback for logs created before IDs were stabilized.
+		const sessions = this.sortSessionsByMostRecent(await this.getCompleted());
 
 		for (const { name, id } of exercises) {
 			const normalizedName = name.toLowerCase().trim();
@@ -258,6 +267,92 @@ export class WorkoutSessionRepository {
 			}
 		}
 		return results;
+	}
+
+	async getLastPerformancesForExerciseIds(exerciseIds: string[]): Promise<Map<string, ExerciseLog>> {
+		const normalizedIds = [...new Set(exerciseIds.map((id) => id.trim()).filter(Boolean))];
+		const targetIds = new Set(normalizedIds);
+		const results = new Map<string, ExerciseLog>();
+
+		if (targetIds.size === 0) {
+			return results;
+		}
+
+		const sessions = this.sortSessionsByMostRecent(await this.getCompleted());
+		for (const session of sessions) {
+			for (const exerciseLog of session.exercises) {
+				if (!targetIds.has(exerciseLog.exerciseId)) continue;
+				if (results.has(exerciseLog.exerciseId)) continue;
+				if (exerciseLog.skipped) continue;
+				if (!this.hasCompletedSets(exerciseLog)) continue;
+
+				results.set(exerciseLog.exerciseId, exerciseLog);
+
+				if (results.size === targetIds.size) {
+					return results;
+				}
+			}
+		}
+
+		return results;
+	}
+
+	async getExerciseHistoryById(exerciseId: string): Promise<ExerciseHistoryEntry[]> {
+		const normalizedExerciseId = exerciseId.trim();
+		if (!normalizedExerciseId) return [];
+
+		let data: Array<Record<string, unknown>> = [];
+		const containsResult = await supabase
+			.from('workout_sessions')
+			.select()
+			.or('status.eq.completed,completed_at.not.is.null')
+			.contains('exercises', [{ exerciseId: normalizedExerciseId }])
+			.order('completed_at', { ascending: false });
+
+		if (containsResult.error) {
+			// Fallback to broader query when JSON containment is unavailable (older PostgREST/DB setups).
+			console.warn('Falling back to non-contains exercise history query:', containsResult.error.message);
+			const fallbackResult = await supabase
+				.from('workout_sessions')
+				.select()
+				.or('status.eq.completed,completed_at.not.is.null')
+				.order('completed_at', { ascending: false });
+
+			if (fallbackResult.error) throw fallbackResult.error;
+			data = (fallbackResult.data || []) as Array<Record<string, unknown>>;
+		} else {
+			data = (containsResult.data || []) as Array<Record<string, unknown>>;
+		}
+
+		const sessions = data.map((row) => this.mapFromDb(row));
+		const entries: ExerciseHistoryEntry[] = [];
+
+		for (const session of sessions) {
+			const performedAt = session.completedAt || session.startedAt;
+			for (const exerciseLog of session.exercises) {
+				if (exerciseLog.exerciseId !== normalizedExerciseId) continue;
+
+				const hasCompletedSet = this.hasCompletedSets(exerciseLog);
+				const hasNote = Boolean(exerciseLog.notes?.trim());
+				if (!hasCompletedSet && !hasNote) continue;
+
+				entries.push({
+					sessionId: session.id,
+					exerciseId: exerciseLog.exerciseId,
+					exerciseName: exerciseLog.exerciseName,
+					performedAt,
+					programId: session.programId,
+					workoutId: session.workoutId,
+					workoutNameSnapshot: session.workoutNameSnapshot,
+					sets: exerciseLog.sets,
+					notes: exerciseLog.notes,
+					skipped: exerciseLog.skipped
+				});
+			}
+		}
+
+		entries.sort((a, b) => b.performedAt.getTime() - a.performedAt.getTime());
+		return entries;
 	}
 
 	private mapFromDb(data: Record<string, unknown>): WorkoutSession {
@@ -288,6 +383,18 @@ export class WorkoutSessionRepository {
 				skipped: e.skipped as boolean | undefined
 			})) as ExerciseLog[]
 		};
+	}
+
+	private hasCompletedSets(exerciseLog: ExerciseLog): boolean {
+		return exerciseLog.sets.some((set) => set.completed);
+	}
+
+	private sortSessionsByMostRecent(sessions: WorkoutSession[]): WorkoutSession[] {
+		return [...sessions].sort((a, b) => {
+			const aDate = a.completedAt || a.startedAt;
+			const bDate = b.completedAt || b.startedAt;
+			return bDate.getTime() - aDate.getTime();
+		});
 	}
 
 	private invalidateTabCaches(): void {
