@@ -19,6 +19,7 @@
 	import Card from '../shared/Card.svelte';
 	import WorkoutCard from '../program/WorkoutCard.svelte';
 	import { CalendarDays } from 'lucide-svelte';
+	import { getSessionDurationMinutes } from '$lib/utils/formatters';
 
 	interface Props {
 		program: Program;
@@ -33,6 +34,25 @@
 	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
 	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
 	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 1 }));
+	const lastWorkoutDurations = $derived.by(() => {
+		const durations = new Map<string, number>();
+		const sortedSessions = [...completedSessions].sort((a, b) => {
+			const aDate = a.completedAt || a.startedAt;
+			const bDate = b.completedAt || b.startedAt;
+			return bDate.getTime() - aDate.getTime();
+		});
+
+		for (const session of sortedSessions) {
+			if (session.programId !== program.id) continue;
+			if (durations.has(session.workoutId)) continue;
+
+			const durationMinutes = getSessionDurationMinutes(session);
+			if (!durationMinutes) continue;
+			durations.set(session.workoutId, durationMinutes);
+		}
+
+		return durations;
+	});
 
 	function previousWeek() {
 		currentWeekStart = subWeeks(currentWeekStart, 1);
@@ -129,11 +149,12 @@
 							<span class="sm:hidden">{formatDate(day.date, 'EEE, MMM d')}</span>
 							<span class="hidden sm:inline">{formatDate(day.date, 'EEEE, MMM d')}</span>
 						</div>
-						<WorkoutCard
-							workout={day.workout}
-							onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
-							mobileCompact={isTodayWorkout}
-						/>
+							<WorkoutCard
+								workout={day.workout}
+								onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
+								mobileCompact={isTodayWorkout}
+								lastWorkoutDurationMinutes={lastWorkoutDurations.get(day.workout.id) ?? null}
+							/>
 					</div>
 			{:else}
 				<Card variant="info">

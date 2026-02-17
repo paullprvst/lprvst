@@ -6,7 +6,11 @@
 	import Input from '../shared/Input.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
-	import { formatExerciseReps, formatRestTime } from '$lib/utils/formatters';
+	import {
+		formatExercisePerformanceFull,
+		formatExerciseReps,
+		formatRestTime
+	} from '$lib/utils/formatters';
 	import { Check, Flame, Snowflake, Dumbbell, Trophy, MessageSquare } from 'lucide-svelte';
 
 	interface Props {
@@ -147,42 +151,7 @@
 	});
 
 	function formatLastPerformance(exerciseLog: ExerciseLog): string {
-		const sets = exerciseLog.sets.filter(s => s.completed);
-		if (sets.length === 0) return '';
-
-		const reps = sets.map(s => s.reps).filter((r): r is number => r !== undefined);
-		const weights = sets.map(s => s.weight).filter((w): w is number => w !== undefined);
-		const durations = sets.map(s => s.duration).filter((d): d is number => d !== undefined);
-
-		// Time-based exercise
-		if (durations.length > 0 && reps.length === 0) {
-			const totalDuration = durations.reduce((a, b) => a + b, 0);
-			const mins = Math.floor(totalDuration / 60);
-			const secs = totalDuration % 60;
-			return mins > 0 ? `${sets.length} sets, ${mins}m ${secs}s` : `${sets.length} sets, ${secs}s`;
-		}
-
-		// No reps data
-		if (reps.length === 0) return `${sets.length} sets`;
-
-		const allSameReps = reps.every(r => r === reps[0]);
-		const allSameWeight = weights.length === 0 || weights.every(w => w === weights[0]);
-
-		if (allSameReps && allSameWeight) {
-			const weightStr = weights.length > 0 ? ` @ ${weights[0]}kg` : '';
-			return `${sets.length}×${reps[0]}${weightStr}`;
-		}
-
-		const minReps = Math.min(...reps);
-		const maxReps = Math.max(...reps);
-		const repsStr = minReps === maxReps ? `${minReps}` : `${minReps}-${maxReps}`;
-
-		if (weights.length > 0) {
-			const maxWeight = Math.max(...weights);
-			return `${sets.length}×${repsStr} @ ${maxWeight}kg`;
-		}
-
-		return `${sets.length}×${repsStr}`;
+		return formatExercisePerformanceFull(exerciseLog);
 	}
 
 	const currentSessionNote = $derived(log.notes?.trim() || '');

@@ -3,7 +3,7 @@
 	import type { ExerciseLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
-	import { formatWorkoutDuration } from '$lib/utils/formatters';
+	import { formatWorkoutDuration, resolveWorkoutDurationMinutes } from '$lib/utils/formatters';
 	import { Clock, Dumbbell, Flame, Snowflake, Edit2, History } from 'lucide-svelte';
 
 	interface Props {
@@ -12,6 +12,7 @@
 		expandable?: boolean;
 		onedit?: () => void;
 		lastPerformances?: Map<string, ExerciseLog>;
+		lastWorkoutDurationMinutes?: number | null;
 		mobileCompact?: boolean;
 		showExercisePreview?: boolean;
 	}
@@ -22,6 +23,7 @@
 		expandable = true,
 		onedit,
 		lastPerformances,
+		lastWorkoutDurationMinutes = null,
 		mobileCompact = false,
 		showExercisePreview = true
 	}: Props = $props();
@@ -87,6 +89,9 @@
 	const mainExercises = $derived(workout.exercises.filter((e) => e.type === 'main'));
 	const warmupExercises = $derived(workout.exercises.filter((e) => e.type === 'warmup'));
 	const cooldownExercises = $derived(workout.exercises.filter((e) => e.type === 'cooldown'));
+	const resolvedDurationMinutes = $derived(
+		resolveWorkoutDurationMinutes(workout.estimatedDuration, lastWorkoutDurationMinutes)
+	);
 
 	// Create a brief exercise preview
 	const exercisePreview = $derived(() => {
@@ -121,6 +126,10 @@
 
 	function getExerciseHistoryHref(exerciseId: string): string {
 		return `/history/exercise/${exerciseId}`;
+	}
+
+	function getDurationLabel(): string {
+		return resolvedDurationMinutes ? formatWorkoutDuration(resolvedDurationMinutes) : 'Duration n/a';
 	}
 
 	const exerciseTypeConfig = {
@@ -166,10 +175,10 @@
 					</div>
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
-					<span class="flex items-center gap-1">
-						<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
-						{formatWorkoutDuration(workout.estimatedDuration)}
-					</span>
+						<span class="flex items-center gap-1">
+							<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
+							{getDurationLabel()}
+						</span>
 					<span>·</span>
 					<span>{mainExercises.length} exercises</span>
 				</div>
@@ -206,9 +215,9 @@
 						<span
 							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
 						>
-							<Clock size={12} class="text-brand" />
-							{formatWorkoutDuration(workout.estimatedDuration)}
-						</span>
+								<Clock size={12} class="text-brand" />
+								{getDurationLabel()}
+							</span>
 						<span
 							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
 						>
@@ -242,9 +251,9 @@
 					<span
 						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
 					>
-						<Clock size={12} class="text-brand" />
-						{formatWorkoutDuration(workout.estimatedDuration)}
-					</span>
+							<Clock size={12} class="text-brand" />
+							{getDurationLabel()}
+						</span>
 					<span
 						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
 					>
@@ -274,10 +283,10 @@
 					</div>
 
 				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
-					<span class="flex items-center gap-1">
-						<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
-						{formatWorkoutDuration(workout.estimatedDuration)}
-					</span>
+						<span class="flex items-center gap-1">
+							<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
+							{getDurationLabel()}
+						</span>
 					<span>·</span>
 					<span>{mainExercises.length} exercises</span>
 				</div>

@@ -272,8 +272,8 @@
 	</Card>
 {:else if workoutStore.workout && workoutStore.currentExercise && workoutStore.currentExerciseLog}
 	<div class="space-y-4">
-		<!-- Compact sticky workout header -->
-		<div class="sticky top-2 z-20 rounded-xl border border-theme glass-heavy px-3 py-2.5 shadow-lg space-y-2">
+		<!-- Compact workout header -->
+		<div class="rounded-xl border border-theme glass-heavy px-3 py-2.5 shadow-lg space-y-2">
 			<div class="flex items-start justify-between gap-3">
 				<div class="min-w-0 flex-1 space-y-0.5">
 					<p class="text-[11px] uppercase tracking-wide text-muted truncate">{workoutStore.workout.name}</p>
@@ -314,6 +314,15 @@
 					? 'Rest before next set'
 					: 'Rest before next exercise'}
 				nextExercise={workoutStore.restType === 'exercise' ? workoutStore.upcomingExercise : null}
+				currentExercise={workoutStore.currentExercise}
+				currentExerciseLog={workoutStore.currentExerciseLog}
+				currentLastPerformance={workoutStore.currentExercise
+					? workoutStore.getLastPerformance(workoutStore.currentExercise.id)
+					: undefined}
+				nextExerciseLastPerformance={workoutStore.upcomingExercise
+					? workoutStore.getLastPerformance(workoutStore.upcomingExercise.id)
+					: undefined}
+				onopennotes={openNotesModal}
 			/>
 		{:else}
 			<ExerciseDisplay

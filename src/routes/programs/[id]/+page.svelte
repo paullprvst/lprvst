@@ -19,6 +19,7 @@
 	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import MuscleHeatmap from '$lib/components/visualization/MuscleHeatmap.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
+	import { getSessionDurationMinutes } from '$lib/utils/formatters';
 	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download, Pause, Play } from 'lucide-svelte';
 	import { exportProgramToPdf } from '$lib/utils/pdf-export';
 
@@ -27,6 +28,7 @@
 	let saving = $state(false);
 	let togglingPause = $state(false);
 	let lastPerformances = $state<Map<string, ExerciseLog>>(new Map());
+	let lastWorkoutDurations = $state<Map<string, number>>(new Map());
 
 	// Single workout edit modal
 	let showEditModal = $state(false);
@@ -43,7 +45,7 @@
 		}
 		loading = false;
 		if (program) {
-			void loadLastPerformances(program);
+			void Promise.all([loadLastPerformances(program), loadLastWorkoutDurations(program)]);
 		}
 	});
 
@@ -58,6 +60,31 @@
 			lastPerformances = await workoutSessionRepository.getLastPerformancesForExerciseIds(exerciseIds);
 		} catch (error) {
 			console.warn('Failed to load last performances:', error);
+		}
+	}
+
+	async function loadLastWorkoutDurations(currentProgram: Program) {
+		try {
+			const sessions = await workoutSessionRepository.getByProgram(currentProgram.id);
+			const durations = new Map<string, number>();
+			const sortedSessions = [...sessions].sort((a, b) => {
+				const aDate = a.completedAt || a.startedAt;
+				const bDate = b.completedAt || b.startedAt;
+				return bDate.getTime() - aDate.getTime();
+			});
+
+			for (const session of sortedSessions) {
+				if (session.status !== 'completed' && !session.completedAt) continue;
+				if (durations.has(session.workoutId)) continue;
+
+				const durationMinutes = getSessionDurationMinutes(session);
+				if (!durationMinutes) continue;
+				durations.set(session.workoutId, durationMinutes);
+			}
+
+			lastWorkoutDurations = durations;
+		} catch (error) {
+			console.warn('Failed to load last workout durations:', error);
 		}
 	}
 
@@ -279,7 +306,12 @@
 				{#each sortedSchedule as { dayName, workout, workoutIndex }}
 					<div>
 						<p class="text-sm font-medium text-muted mb-1.5">{dayName}</p>
-						<WorkoutCard {workout} onedit={() => openEditModal(workoutIndex)} {lastPerformances} />
+						<WorkoutCard
+							{workout}
+							onedit={() => openEditModal(workoutIndex)}
+							{lastPerformances}
+							lastWorkoutDurationMinutes={lastWorkoutDurations.get(workout.id) ?? null}
+						/>
 					</div>
 				{/each}
 			</div>

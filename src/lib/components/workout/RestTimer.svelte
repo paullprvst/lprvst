@@ -1,19 +1,36 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { Timer } from 'lucide-svelte';
+	import { formatExercisePerformanceFull } from '$lib/utils/formatters';
+	import { Timer, MessageSquare, History } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import type { Exercise } from '$lib/types/program';
+	import type { ExerciseLog } from '$lib/types/workout-session';
 
 	interface Props {
 		duration: number;
 		oncomplete: () => void;
 		label?: string;
 		nextExercise?: Exercise | null;
+		currentExercise?: Exercise | null;
+		currentExerciseLog?: ExerciseLog | null;
+		currentLastPerformance?: ExerciseLog;
+		nextExerciseLastPerformance?: ExerciseLog;
+		onopennotes?: () => void;
 	}
 
-	let { duration, oncomplete, label = 'Rest time remaining', nextExercise = null }: Props = $props();
+	let {
+		duration,
+		oncomplete,
+		label = 'Rest time remaining',
+		nextExercise = null,
+		currentExercise = null,
+		currentExerciseLog = null,
+		currentLastPerformance,
+		nextExerciseLastPerformance,
+		onopennotes
+	}: Props = $props();
 
 	let remaining = $state(0);
 	let startTime = $state(0);
@@ -54,6 +71,14 @@
 
 	const progress = $derived((remaining / duration) * 100);
 	const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
+	const currentSessionNote = $derived(currentExerciseLog?.notes?.trim() || '');
+	const lastSessionNote = $derived(currentLastPerformance?.notes?.trim() || '');
+	const currentLastPerformanceSummary = $derived(
+		currentLastPerformance ? formatExercisePerformanceFull(currentLastPerformance) : ''
+	);
+	const nextLastPerformanceSummary = $derived(
+		nextExerciseLastPerformance ? formatExercisePerformanceFull(nextExerciseLastPerformance) : ''
+	);
 
 	// Color changes as timer progresses
 	const timerColor = $derived(() => {
@@ -124,20 +149,20 @@
 	</div>
 
 	<!-- Skip button -->
-		<div class="sticky bottom-2 z-10 rounded-xl border border-theme bg-[rgb(var(--color-bg)/0.92)] backdrop-blur-sm p-2">
-			<Button onclick={skip} variant="ghost" fullWidth={true}>
-				{#snippet children()}
-					Skip Rest
-				{/snippet}
-			</Button>
-		</div>
+	<div class="sticky bottom-2 z-10 rounded-xl border border-theme bg-[rgb(var(--color-bg)/0.92)] backdrop-blur-sm p-2">
+		<Button onclick={skip} variant="ghost" fullWidth={true}>
+			{#snippet children()}
+				Skip Rest
+			{/snippet}
+		</Button>
+	</div>
 
 	<!-- Next exercise preview -->
 		{#if nextExercise}
 			<div class="relative z-10 mt-1 p-3 surface-elevated rounded-xl border border-brand-soft text-left">
-				<div class="flex items-center gap-2 mb-2">
-					<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
-				</div>
+			<div class="flex items-center gap-2 mb-2">
+				<span class="text-xs font-bold text-brand uppercase tracking-wide">Up Next</span>
+			</div>
 			<div class="flex items-center gap-2">
 				<p class="text-base font-semibold text-primary">{nextExercise.name}</p>
 				<ExerciseInfoButton
@@ -150,15 +175,76 @@
 			<p class="text-xs text-secondary mt-1">
 				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}
 			</p>
-			{#if nextExercise.equipment && nextExercise.equipment.length > 0}
-				<div class="flex flex-wrap gap-1 mt-2">
-					{#each nextExercise.equipment as item}
-						<span class="px-2 py-0.5 text-xs bg-brand-soft rounded text-brand">
-							{item}
-						</span>
-					{/each}
-				</div>
+				{#if nextExercise.equipment && nextExercise.equipment.length > 0}
+					<div class="flex flex-wrap gap-1 mt-2">
+						{#each nextExercise.equipment as item}
+							<span class="px-2 py-0.5 text-xs bg-brand-soft rounded text-brand">
+								{item}
+							</span>
+						{/each}
+					</div>
+				{/if}
+				{#if nextLastPerformanceSummary}
+					<div class="pt-2 mt-2 border-t border-[rgb(var(--color-border)/0.5)]">
+						<p class="text-[11px] font-semibold uppercase tracking-wide text-secondary mb-1 flex items-center gap-1.5">
+							<History size={12} />
+							Last time
+						</p>
+						<p class="text-sm font-semibold text-primary break-words">{nextLastPerformanceSummary}</p>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		{#if currentLastPerformanceSummary}
+			<div class="relative z-10 space-y-2 text-left">
+				{#if currentLastPerformanceSummary}
+					<div class="rounded-xl border border-theme bg-border-soft px-3 py-2.5">
+						<p class="text-[11px] font-semibold uppercase tracking-wide text-secondary mb-1 flex items-center gap-1.5">
+							<History size={12} />
+							Last time
+						</p>
+						<p class="text-sm font-semibold text-primary break-words">{currentLastPerformanceSummary}</p>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+	<div class="relative z-10 rounded-xl border border-theme surface-elevated p-3 space-y-2.5 text-left">
+		<div class="flex items-start justify-between gap-2">
+			<p class="text-xs font-semibold text-secondary uppercase tracking-wide flex items-center gap-1.5">
+				<MessageSquare size={13} />
+				Workout note
+			</p>
+			{#if onopennotes}
+				<button
+					type="button"
+					onclick={onopennotes}
+					class="text-xs font-medium px-2.5 py-1.5 rounded-lg bg-brand-soft text-brand hover:opacity-90 transition-opacity touch-target"
+				>
+					{currentSessionNote ? 'Edit note' : 'Add note'}
+				</button>
 			{/if}
 		</div>
-	{/if}
+
+		{#if currentExercise?.notes?.trim()}
+			<p class="text-sm text-secondary whitespace-pre-wrap break-words">{currentExercise.notes}</p>
+		{/if}
+
+		{#if currentSessionNote}
+			<div class="space-y-1.5">
+				<p class="text-[11px] uppercase tracking-wide text-muted">This workout</p>
+				<p class="text-sm text-primary whitespace-pre-wrap break-words">{currentSessionNote}</p>
+			</div>
+		{/if}
+
+		{#if lastSessionNote}
+			<div class="space-y-1.5 pt-2 border-t border-[rgb(var(--color-border)/0.5)]">
+				<p class="text-[11px] uppercase tracking-wide text-muted">Last session note</p>
+				<p class="text-xs text-secondary whitespace-pre-wrap break-words">{lastSessionNote}</p>
+			</div>
+		{:else if !currentSessionNote}
+			<p class="text-xs text-secondary">No notes yet.</p>
+		{/if}
+	</div>
 </div>
