@@ -7,19 +7,24 @@
 	interface Props {
 		date: Date;
 		workout: Workout | null;
+		workoutCount?: number;
+		clickable?: boolean;
 		completed?: boolean;
 		onclick?: () => void;
 	}
 
-	let { date, workout, completed = false, onclick }: Props = $props();
+	let { date, workout, workoutCount = workout ? 1 : 0, clickable, completed = false, onclick }: Props = $props();
 
 	const isCurrentDay = $derived(isToday(date));
-	const hasWorkout = $derived(!!workout);
-	const isClickable = $derived(hasWorkout || completed);
+	const hasWorkout = $derived(workoutCount > 0);
+	const isClickable = $derived(clickable ?? (hasWorkout || completed));
 	const dayAriaLabel = $derived(() => {
 		const dateLabel = formatDate(date, 'EEEE, MMMM d');
 		if (completed) return `${dateLabel}, workout completed`;
-		if (hasWorkout) return `${dateLabel}, workout scheduled`;
+		if (hasWorkout) {
+			const suffix = workoutCount === 1 ? 'workout' : 'workouts';
+			return `${dateLabel}, ${workoutCount} ${suffix} scheduled`;
+		}
 		return `${dateLabel}, no workout scheduled`;
 	});
 
@@ -66,11 +71,18 @@
 					<Check size={12} class="text-white sm:hidden" strokeWidth={3} />
 					<Check size={14} class="text-white hidden sm:block" strokeWidth={3} />
 				</div>
-			{:else if workout}
+			{:else if hasWorkout}
 				<div class="relative flex items-center justify-center">
 					<div
 						class="w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] transition-transform duration-200 group-hover:scale-110 shadow-[0_0_10px_rgb(var(--color-primary)/0.7)]"
 					></div>
+					{#if workoutCount > 1}
+						<div
+							class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded-full text-[9px] font-semibold text-white bg-[rgb(var(--color-primary))] leading-none"
+						>
+							{workoutCount}
+						</div>
+					{/if}
 					{#if isCurrentDay}
 						<div
 							class="absolute w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] animate-ping opacity-60"

@@ -15,6 +15,8 @@
 		lastWorkoutDurationMinutes?: number | null;
 		mobileCompact?: boolean;
 		showExercisePreview?: boolean;
+		desktopTagsRight?: boolean;
+		showDescription?: boolean;
 	}
 
 	let {
@@ -25,7 +27,9 @@
 		lastPerformances,
 		lastWorkoutDurationMinutes = null,
 		mobileCompact = false,
-		showExercisePreview = true
+		showExercisePreview = true,
+		desktopTagsRight = false,
+		showDescription = true
 	}: Props = $props();
 
 	function formatLastPerformance(exerciseId: string): string | null {
@@ -168,7 +172,7 @@
 					<div class="flex items-start justify-between gap-2">
 						<div class="min-w-0">
 							<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
-							{#if workout.notes && !expanded}
+							{#if showDescription && workout.notes && !expanded}
 								<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
 							{/if}
 						</div>
@@ -205,26 +209,34 @@
 						class="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_100%_0%,rgb(var(--color-primary)/0.18),transparent_46%)]"
 					></div>
 
-						<div class="relative flex items-start gap-2">
-							<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
-								{workout.name}
-							</h3>
-						</div>
+						<div
+							class="relative {desktopTagsRight ? 'sm:flex sm:items-center sm:justify-between sm:gap-3' : ''}"
+						>
+							<div class="min-w-0 {desktopTagsRight ? 'sm:flex-1' : ''}">
+								<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
+									{workout.name}
+								</h3>
+							</div>
 
-					<div class="relative flex flex-wrap items-center gap-2 mt-3">
-						<span
-							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
-						>
-								<Clock size={12} class="text-brand" />
-								{getDurationLabel()}
-							</span>
-						<span
-							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
-						>
-							<Dumbbell size={12} class="text-brand" />
-							{mainExercises.length} exercises
-						</span>
-					</div>
+							<div
+								class="relative flex flex-wrap items-center gap-2 mt-3 {desktopTagsRight
+									? 'sm:mt-0 sm:justify-end sm:flex-shrink-0'
+									: ''}"
+							>
+								<span
+									class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+								>
+									<Clock size={12} class="text-brand" />
+									{getDurationLabel()}
+								</span>
+								<span
+									class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+								>
+									<Dumbbell size={12} class="text-brand" />
+									{mainExercises.length} exercises
+								</span>
+							</div>
+						</div>
 
 					{#if showExercisePreview && exercisePreview()}
 						<p class="relative text-sm text-secondary mt-2.5 line-clamp-1">
@@ -241,26 +253,34 @@
 					class="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_100%_0%,rgb(var(--color-primary)/0.18),transparent_46%)]"
 				></div>
 
-					<div class="relative flex items-start gap-2">
-						<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
-							{workout.name}
-						</h3>
-					</div>
+					<div
+						class="relative {desktopTagsRight ? 'sm:flex sm:items-center sm:justify-between sm:gap-3' : ''}"
+					>
+						<div class="min-w-0 {desktopTagsRight ? 'sm:flex-1' : ''}">
+							<h3 class="font-semibold text-primary text-[0.94rem] sm:text-[1rem] leading-tight line-clamp-2">
+								{workout.name}
+							</h3>
+						</div>
 
-				<div class="relative flex flex-wrap items-center gap-2 mt-3">
-					<span
-						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
-					>
-							<Clock size={12} class="text-brand" />
-							{getDurationLabel()}
-						</span>
-					<span
-						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
-					>
-						<Dumbbell size={12} class="text-brand" />
-						{mainExercises.length} exercises
-					</span>
-				</div>
+						<div
+							class="relative flex flex-wrap items-center gap-2 mt-3 {desktopTagsRight
+								? 'sm:mt-0 sm:justify-end sm:flex-shrink-0'
+								: ''}"
+						>
+							<span
+								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+							>
+								<Clock size={12} class="text-brand" />
+								{getDurationLabel()}
+							</span>
+							<span
+								class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-secondary border border-theme bg-[rgb(var(--color-surface)/0.72)]"
+							>
+								<Dumbbell size={12} class="text-brand" />
+								{mainExercises.length} exercises
+							</span>
+						</div>
+					</div>
 
 				{#if showExercisePreview && exercisePreview()}
 					<p class="relative text-sm text-secondary mt-2.5 line-clamp-1">
@@ -270,19 +290,34 @@
 			</div>
 		{/if}
 	{:else}
-		<div class="flex items-start">
+		<div class="flex {desktopTagsRight ? 'items-center' : 'items-start'}">
 			<div class="flex-1 min-w-0">
-				<div class="flex items-start justify-between gap-2">
+				<div class="flex {desktopTagsRight ? 'items-center' : 'items-start'} justify-between gap-2">
 					<div class="min-w-0">
 						<h3 class="font-semibold text-primary truncate">{workout.name}</h3>
-						{#if workout.notes && !expanded}
+						{#if showDescription && workout.notes && !expanded}
 							<p class="text-sm text-secondary mt-0.5 line-clamp-1">{workout.notes}</p>
 						{/if}
 					</div>
 
+					{#if desktopTagsRight}
+						<div class="hidden sm:flex items-center gap-2 text-xs text-muted flex-shrink-0">
+							<span class="flex items-center gap-1">
+								<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
+								{getDurationLabel()}
+							</span>
+							<span>·</span>
+							<span>{mainExercises.length} exercises</span>
+						</div>
+					{/if}
+
 					</div>
 
-				<div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted">
+				<div
+					class="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted {desktopTagsRight
+						? 'sm:hidden'
+						: ''}"
+				>
 						<span class="flex items-center gap-1">
 							<Clock size={12} class={mobileCompact ? 'hidden sm:block' : ''} />
 							{getDurationLabel()}

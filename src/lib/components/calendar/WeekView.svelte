@@ -7,7 +7,8 @@
 		isSameDay
 	} from 'date-fns';
 	import {
-		getWeekSchedule,
+		getWeekDays,
+		getScheduledWorkout,
 		formatDate,
 		DAY_NAMES_SHORT,
 		getCompletedWorkoutForDate,
@@ -21,18 +22,104 @@
 	import { CalendarDays } from 'lucide-svelte';
 	import { getSessionDurationMinutes } from '$lib/utils/formatters';
 
-	interface Props {
+	interface ScheduledWorkout {
 		program: Program;
-		completedSessions: WorkoutSession[];
-		onworkoutclick: (workoutId: string, workoutIndex: number, date: Date) => void;
+		workout: Program['workouts'][number];
+		workoutIndex: number;
+		date: Date;
 	}
 
-	let { program, completedSessions, onworkoutclick }: Props = $props();
+	interface WeekScheduleDay {
+		date: Date;
+		workouts: ScheduledWorkout[];
+	}
+
+	interface UpcomingDayGroup {
+		date: Date;
+		workouts: ScheduledWorkout[];
+	}
+
+	interface Props {
+		programs: Program[];
+		completedSessions: WorkoutSession[];
+		onworkoutclick: (program: Program, workoutId: string, workoutIndex: number, date: Date) => void;
+	}
+
+	let { programs, completedSessions, onworkoutclick }: Props = $props();
 
 	let currentWeekStart = $state(startOfWeek(new Date(), { weekStartsOn: 1 }));
+	const programWorkoutIds = $derived.by(() => {
+		const ids = new Map<string, Set<string>>();
+		for (const program of programs) {
+			ids.set(
+				program.id,
+				new Set(program.workouts.map((workout) => workout.id))
+			);
+		}
+		return ids;
+	});
+	const weekSchedule = $derived.by(() => {
+		const days = getWeekDays(currentWeekStart);
+		return days.map((date): WeekScheduleDay => {
+			const workouts: ScheduledWorkout[] = [];
 
-	const weekSchedule = $derived(getWeekSchedule(program, currentWeekStart));
-	const upcomingWorkouts = $derived(getUpcomingWorkouts(program, completedSessions, 5));
+			for (const program of programs) {
+				const scheduled = getScheduledWorkout(program, date);
+				if (!scheduled) continue;
+				workouts.push({
+					program,
+					workout: scheduled.workout,
+					workoutIndex: scheduled.workoutIndex,
+					date
+				});
+			}
+
+			return { date, workouts };
+		});
+	});
+	const upcomingDayGroups = $derived.by(() => {
+		const upcomingByDay = new Map<string, UpcomingDayGroup>();
+
+		for (const program of programs) {
+			const workoutIds = programWorkoutIds.get(program.id);
+			if (!workoutIds) continue;
+
+			const programCompletedSessions = completedSessions.filter(
+				(session) => session.programId === program.id || (!session.programId && workoutIds.has(session.workoutId))
+			);
+			const programUpcoming = getUpcomingWorkouts(program, programCompletedSessions, 5);
+
+			for (const nextWorkout of programUpcoming) {
+				const scheduledWorkout: ScheduledWorkout = {
+					program,
+					workout: nextWorkout.workout,
+					workoutIndex: nextWorkout.workoutIndex,
+					date: nextWorkout.date
+				};
+				const dayKey = `${nextWorkout.date.getFullYear()}-${nextWorkout.date.getMonth()}-${nextWorkout.date.getDate()}`;
+				const existingGroup = upcomingByDay.get(dayKey);
+
+				if (existingGroup) {
+					existingGroup.workouts.push(scheduledWorkout);
+				} else {
+					upcomingByDay.set(dayKey, {
+						date: nextWorkout.date,
+						workouts: [scheduledWorkout]
+					});
+				}
+			}
+		}
+
+		const sortedGroups = Array.from(upcomingByDay.values()).sort(
+			(a, b) => a.date.getTime() - b.date.getTime()
+		);
+
+		for (const group of sortedGroups) {
+			group.workouts.sort((a, b) => a.program.name.localeCompare(b.program.name));
+		}
+
+		return sortedGroups.slice(0, 5);
+	});
 	const isCurrentWeek = $derived(isThisWeek(currentWeekStart, { weekStartsOn: 1 }));
 	const lastWorkoutDurations = $derived.by(() => {
 		const durations = new Map<string, number>();
@@ -43,12 +130,26 @@
 		});
 
 		for (const session of sortedSessions) {
-			if (session.programId !== program.id) continue;
-			if (durations.has(session.workoutId)) continue;
-
 			const durationMinutes = getSessionDurationMinutes(session);
 			if (!durationMinutes) continue;
-			durations.set(session.workoutId, durationMinutes);
+
+			const keys: string[] = [];
+			if (session.programId) {
+				keys.push(getDurationKey(session.programId, session.workoutId));
+			} else {
+				for (const program of programs) {
+					const workoutIds = programWorkoutIds.get(program.id);
+					if (workoutIds?.has(session.workoutId)) {
+						keys.push(getDurationKey(program.id, session.workoutId));
+					}
+				}
+			}
+
+			for (const key of keys) {
+				if (!durations.has(key)) {
+					durations.set(key, durationMinutes);
+				}
+			}
 		}
 
 		return durations;
@@ -66,10 +167,14 @@
 		currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
 	}
 
-	function handleDayClick(day: (typeof weekSchedule)[0]) {
-		if (day.workout) {
-			onworkoutclick(day.workout.id, day.workoutIndex!, day.date);
-		}
+	function getDurationKey(programId: string, workoutId: string): string {
+		return `${programId}:${workoutId}`;
+	}
+
+	function handleDayClick(day: WeekScheduleDay) {
+		if (day.workouts.length !== 1) return;
+		const workout = day.workouts[0];
+		onworkoutclick(workout.program, workout.workout.id, workout.workoutIndex, day.date);
 	}
 </script>
 
@@ -125,11 +230,16 @@
 			<!-- Calendar days grid -->
 			<div class="grid grid-cols-7 gap-1.5 sm:gap-2">
 				{#each weekSchedule as day, index}
+					{@const dayWorkout = day.workouts[0]?.workout ?? null}
+					{@const isCompleted = getCompletedWorkoutForDate(completedSessions, day.date) !== null}
+					{@const isClickable = day.workouts.length === 1 || isCompleted}
 					<div class="animate-scaleIn" style="animation-delay: {index * 30}ms">
 						<CalendarDay
 							date={day.date}
-							workout={day.workout}
-							completed={getCompletedWorkoutForDate(completedSessions, day.date) !== null}
+							workout={dayWorkout}
+							workoutCount={day.workouts.length}
+							clickable={isClickable}
+							completed={isCompleted}
 							onclick={() => handleDayClick(day)}
 						/>
 					</div>
@@ -142,19 +252,34 @@
 	<div class="space-y-3">
 
 			<div class="space-y-3">
-				{#each upcomingWorkouts as day, index}
-					{@const isTodayWorkout = isSameDay(day.date, new Date())}
+				{#each upcomingDayGroups as dayGroup, index}
+					{@const isTodayWorkoutDate = isSameDay(dayGroup.date, new Date())}
 					<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
 						<div class="text-sm text-secondary mb-2 font-medium break-words">
-							<span class="sm:hidden">{formatDate(day.date, 'EEE, MMM d')}</span>
-							<span class="hidden sm:inline">{formatDate(day.date, 'EEEE, MMM d')}</span>
+							<span class="sm:hidden">{formatDate(dayGroup.date, 'EEE, MMM d')}</span>
+							<span class="hidden sm:inline">{formatDate(dayGroup.date, 'EEEE, MMM d')}</span>
 						</div>
-							<WorkoutCard
-								workout={day.workout}
-								onclick={() => onworkoutclick(day.workout.id, day.workoutIndex, day.date)}
-								mobileCompact={isTodayWorkout}
-								lastWorkoutDurationMinutes={lastWorkoutDurations.get(day.workout.id) ?? null}
-							/>
+						<div class="space-y-3">
+							{#each dayGroup.workouts as scheduled}
+								<WorkoutCard
+									workout={scheduled.workout}
+									onclick={() =>
+										onworkoutclick(
+											scheduled.program,
+											scheduled.workout.id,
+											scheduled.workoutIndex,
+											scheduled.date
+										)}
+									mobileCompact={isTodayWorkoutDate}
+									showExercisePreview={false}
+									desktopTagsRight={true}
+									showDescription={false}
+									lastWorkoutDurationMinutes={lastWorkoutDurations.get(
+										getDurationKey(scheduled.program.id, scheduled.workout.id)
+									) ?? null}
+								/>
+							{/each}
+						</div>
 					</div>
 			{:else}
 				<Card variant="info">

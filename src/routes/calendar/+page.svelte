@@ -15,7 +15,6 @@
 	import Skeleton from '$lib/components/shared/Skeleton.svelte';
 	import Card from '$lib/components/shared/Card.svelte';
 	import Button from '$lib/components/shared/Button.svelte';
-	import Select from '$lib/components/shared/Select.svelte';
 	import ConfirmDialog from '$lib/components/shared/ConfirmDialog.svelte';
 	import { Calendar, Plus, Play, X } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
@@ -26,7 +25,6 @@
 	interface CalendarTabCache {
 		programs: Program[];
 		activePrograms: Program[];
-		selectedProgramId: string;
 		completedSessions: WorkoutSession[];
 		inProgressSession: WorkoutSession | null;
 		inProgressWorkoutName: string | null;
@@ -36,13 +34,11 @@
 
 	let programs = $state<Program[]>(cached?.programs ?? []);
 	let activePrograms = $state<Program[]>(cached?.activePrograms ?? []);
-	let selectedProgramId = $state<string>(cached?.selectedProgramId ?? '');
 	let completedSessions = $state<WorkoutSession[]>(cached?.completedSessions ?? []);
 	let inProgressSession = $state<WorkoutSession | null>(cached?.inProgressSession ?? null);
 	let inProgressWorkoutName = $state<string | null>(cached?.inProgressWorkoutName ?? null);
 	let showDiscardConfirm = $state(false);
 	let loading = $state(!cached);
-	const selectedProgram = $derived(activePrograms.find((program) => program.id === selectedProgramId) ?? null);
 
 	onMount(async () => {
 		if (!cached) {
@@ -51,16 +47,6 @@
 	});
 
 	$effect(() => {
-		if (activePrograms.length === 0) {
-			selectedProgramId = '';
-			return;
-		}
-
-		const isStillValid = activePrograms.some((program) => program.id === selectedProgramId);
-		if (!isStillValid) {
-			selectedProgramId = activePrograms[0].id;
-		}
-
 		if (!loading) {
 			updateCalendarCache();
 		}
@@ -81,18 +67,17 @@
 		updateCalendarCache();
 	}
 
-	async function startWorkout(workoutId: string, workoutIndex: number, date: Date) {
-		if (!selectedProgram) return;
+	async function startWorkout(program: Program, workoutId: string, workoutIndex: number, _date: Date) {
 
 		const session = await workoutSessionRepository.create({
 			workoutId,
-			workoutNameSnapshot: selectedProgram.workouts[workoutIndex].name,
-			programId: selectedProgram.id,
+			workoutNameSnapshot: program.workouts[workoutIndex].name,
+			programId: program.id,
 			programVersionId: featureFlags.programVersioningWrites
-				? selectedProgram.currentVersionId
+				? program.currentVersionId
 				: undefined,
 			status: 'in-progress',
-			exercises: selectedProgram.workouts[workoutIndex].exercises.map((e) => ({
+			exercises: program.workouts[workoutIndex].exercises.map((e) => ({
 				exerciseId: e.id,
 				exerciseName: e.name,
 				sets: Array(e.sets)
@@ -119,9 +104,6 @@
 			programs = loadedPrograms;
 			completedSessions = loadedCompletedSessions;
 			activePrograms = programs.filter((program) => !program.isPaused);
-			if (activePrograms.length > 0 && !selectedProgramId) {
-				selectedProgramId = activePrograms[0].id;
-			}
 
 			if (inProgressSessions.length > 0) {
 				inProgressSession = inProgressSessions[0];
@@ -143,7 +125,6 @@
 		setTabCache<CalendarTabCache>(TAB_CACHE_KEYS.calendar, {
 			programs,
 			activePrograms,
-			selectedProgramId,
 			completedSessions,
 			inProgressSession,
 			inProgressWorkoutName
@@ -215,7 +196,7 @@
 			</Button>
 		</div>
 	</Card>
-{:else if selectedProgram}
+{:else}
 	<div class="space-y-4 animate-slideUp">
 		<!-- In-progress session banner -->
 		{#if inProgressSession}
@@ -249,20 +230,12 @@
 			</Card>
 		{/if}
 
-		<!-- Program selector (if multiple programs) -->
-		{#if activePrograms.length > 1}
-			<div class="relative">
-				<label for="active-program-select" class="block text-sm font-medium text-secondary mb-2">Select Program</label>
-				<Select
-					id="active-program-select"
-					bind:value={selectedProgramId}
-					options={activePrograms.map((program) => ({ value: program.id, label: program.name }))}
-					ariaLabel="Select active program"
-				/>
-			</div>
-		{/if}
-
-		<WeekView program={selectedProgram} {completedSessions} onworkoutclick={startWorkout} />
+		<WeekView
+			programs={activePrograms}
+			{completedSessions}
+			onworkoutclick={(program, workoutId, workoutIndex, date) =>
+				startWorkout(program, workoutId, workoutIndex, date)}
+		/>
 	</div>
 {/if}
 
