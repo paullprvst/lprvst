@@ -18,16 +18,18 @@
 
 	interface WeeklyExerciseEntry {
 		id: string;
+		dayOfWeek: number;
 		dayName: string;
+		workoutId: string;
 		workoutName: string;
 		exerciseId: string;
 		exerciseName: string;
 	}
 
 	interface ExercisePerformanceRecord {
-		sessionId: string;
+		workoutId: string;
+		performedDayOfWeek: number;
 		performedAt: Date;
-		workoutName: string;
 		sets: SetLog[];
 		score: number;
 	}
@@ -88,7 +90,9 @@
 				if (exercise.type === 'warmup') continue;
 				rows.push({
 					id: `${scheduled.dayOfWeek}-${workout.id}-${exercise.id}-${rowIndex++}`,
+					dayOfWeek: scheduled.dayOfWeek,
 					dayName: DAY_NAMES[scheduled.dayOfWeek],
+					workoutId: workout.id,
 					workoutName: workout.name,
 					exerciseId: exercise.id,
 					exerciseName: exercise.name
@@ -115,6 +119,7 @@
 
 		for (const session of completedSessions) {
 			const performedAt = session.completedAt || session.startedAt;
+			const performedDayOfWeek = getMondayBasedDayOfWeek(performedAt);
 			for (const exerciseLog of session.exercises) {
 				if (exerciseLog.skipped) continue;
 
@@ -122,9 +127,9 @@
 				if (completedSets.length === 0) continue;
 
 				const record: ExercisePerformanceRecord = {
-					sessionId: session.id,
+					workoutId: session.workoutId,
+					performedDayOfWeek,
 					performedAt,
-					workoutName: session.workoutNameSnapshot || 'Workout',
 					sets: completedSets,
 					score: computePerformanceScore(completedSets)
 				};
@@ -145,6 +150,10 @@
 		return { byExerciseId, byExerciseName };
 	}
 
+	function getMondayBasedDayOfWeek(date: Date): number {
+		return (date.getDay() + 6) % 7;
+	}
+
 	function computePerformanceScore(sets: SetLog[]): number {
 		// If weight is 0 or missing, treat the set as reps-only so score is not zeroed out.
 		const rawScore = sets.reduce((total, set) => {
@@ -157,9 +166,17 @@
 	}
 
 	function getPerformanceHistory(exercise: WeeklyExerciseEntry): ExercisePerformanceRecord[] {
-		const byId = performanceByExerciseId.get(exercise.exerciseId) || [];
+		const byId = (performanceByExerciseId.get(exercise.exerciseId) || []).filter(
+			(record) =>
+				record.workoutId === exercise.workoutId &&
+				record.performedDayOfWeek === exercise.dayOfWeek
+		);
 		if (byId.length > 0) return byId;
-		return performanceByExerciseName.get(normalizeName(exercise.exerciseName)) || [];
+		return (performanceByExerciseName.get(normalizeName(exercise.exerciseName)) || []).filter(
+			(record) =>
+				record.workoutId === exercise.workoutId &&
+				record.performedDayOfWeek === exercise.dayOfWeek
+		);
 	}
 
 	function formatSetSummaryCompact(set: SetLog): string {
@@ -236,9 +253,9 @@
 					{#snippet children()}
 						Back to program
 					{/snippet}
-					</Button>
-				</div>
-			</Card>
+				</Button>
+			</div>
+		</Card>
 	{:else}
 		{#if weeklyExercises.length === 0}
 			<Card padding="lg" variant="info">
@@ -254,35 +271,42 @@
 			</Card>
 		{:else}
 			<div class="space-y-3">
-				{#each weeklyExercises as exercise}
+				{#each weeklyExercises as exercise, index}
+					{@const showDaySeparator =
+						index === 0 || weeklyExercises[index - 1].dayOfWeek !== exercise.dayOfWeek}
+					{#if showDaySeparator}
+						<div class="flex items-center gap-3 py-1">
+							<div class="h-px flex-1 bg-border-soft"></div>
+							<p class="text-xs font-semibold uppercase tracking-[0.08em] text-muted">{exercise.dayName}</p>
+							<div class="h-px flex-1 bg-border-soft"></div>
+						</div>
+					{/if}
 					{@const history = getPerformanceHistory(exercise)}
 					<Card>
 						<div class="space-y-3">
 							<div class="flex items-start justify-between gap-3">
 								<div class="min-w-0">
 									<h2 class="font-semibold text-primary truncate">{exercise.exerciseName}</h2>
-										<p class="text-sm text-secondary truncate">
-											{exercise.dayName} · {exercise.workoutName}
-										</p>
-									</div>
+									<p class="text-sm text-secondary truncate">{exercise.workoutName}</p>
 								</div>
+							</div>
 
 							{#if history.length === 0}
 								<p class="text-sm text-secondary">No performance history yet.</p>
 							{:else}
-									<div class="space-y-1.5">
-										{#each history as record}
-											<div class="rounded-lg border border-theme bg-border-soft px-3 py-2 text-sm flex items-start gap-3">
-												<p class="text-primary break-words min-w-0 flex-1">
-													<span class="text-secondary">{formatDate(record.performedAt, 'MMM d')}:</span>
-													{' '}
-													{summarizeSetPattern(record.sets)}
-												</p>
-												<p class="font-bold text-right whitespace-nowrap">{formatNumber(record.score)}</p>
-											</div>
-										{/each}
-									</div>
-								{/if}
+								<div class="space-y-1.5">
+									{#each history as record}
+										<div class="rounded-lg border border-theme bg-border-soft px-3 py-2 text-sm flex items-start gap-3">
+											<p class="text-primary break-words min-w-0 flex-1">
+												<span class="text-secondary">{formatDate(record.performedAt, 'MMM d')}:</span>
+												{' '}
+												{summarizeSetPattern(record.sets)}
+											</p>
+											<p class="font-bold text-right whitespace-nowrap">{formatNumber(record.score)}</p>
+										</div>
+									{/each}
+								</div>
+							{/if}
 						</div>
 					</Card>
 				{/each}
