@@ -227,10 +227,6 @@
 			{/if}
 		</div>
 
-		{#if currentExercise?.notes?.trim()}
-			<p class="text-sm text-secondary whitespace-pre-wrap break-words">{currentExercise.notes}</p>
-		{/if}
-
 		{#if currentSessionNote}
 			<div class="space-y-1.5">
 				<p class="text-[11px] uppercase tracking-wide text-muted">This workout</p>

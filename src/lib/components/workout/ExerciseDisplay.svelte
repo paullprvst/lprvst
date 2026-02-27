@@ -132,24 +132,6 @@
 
 	const config = $derived(typeConfig[exercise.type] || typeConfig.main);
 
-	function normalizeLabel(value: string): string {
-		return value.toLowerCase().replace(/[^a-z0-9]/g, '');
-	}
-
-	const shouldShowExerciseNotes = $derived(() => {
-		const notes = exercise.notes?.trim();
-		if (!notes) return false;
-
-		const normalized = normalizeLabel(notes);
-		if (!normalized) return false;
-
-		if (exercise.type === 'warmup' && normalized.startsWith('warmup')) return false;
-		if (exercise.type === 'cooldown' && normalized.startsWith('cooldown')) return false;
-		if (exercise.type === 'main' && (normalized === 'main' || normalized === 'workout')) return false;
-
-		return true;
-	});
-
 	function formatLastPerformance(exerciseLog: ExerciseLog): string {
 		return formatExercisePerformanceFull(exerciseLog);
 	}
@@ -321,10 +303,6 @@
 
 	<!-- Secondary context at the bottom -->
 	<div class="rounded-xl border border-theme surface-elevated p-3.5 space-y-3">
-		{#if shouldShowExerciseNotes()}
-			<p class="text-sm text-secondary whitespace-pre-wrap break-words">{exercise.notes}</p>
-		{/if}
-
 		{#if exercise.equipment && exercise.equipment.length > 0}
 			<div class="flex flex-wrap gap-1.5">
 				{#each exercise.equipment as item}
