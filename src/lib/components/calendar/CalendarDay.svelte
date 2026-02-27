@@ -74,18 +74,13 @@
 			{:else if hasWorkout}
 				<div class="relative flex items-center justify-center">
 					<div
-						class="w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] transition-transform duration-200 group-hover:scale-110 shadow-[0_0_10px_rgb(var(--color-primary)/0.7)]"
-					></div>
-					{#if workoutCount > 1}
-						<div
-							class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-1 py-0.5 rounded-full text-[9px] font-semibold text-white bg-[rgb(var(--color-primary))] leading-none"
-						>
-							{workoutCount}
-						</div>
-					{/if}
+						class="min-w-5 h-5 px-1 rounded-full bg-[rgb(var(--color-primary))] text-white text-[10px] font-semibold leading-none flex items-center justify-center shadow-[0_0_10px_rgb(var(--color-primary)/0.45)]"
+					>
+						{workoutCount}
+					</div>
 					{#if isCurrentDay}
 						<div
-							class="absolute w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] animate-ping opacity-60"
+							class="absolute w-5 h-5 rounded-full bg-[rgb(var(--color-primary))] animate-ping opacity-30"
 						></div>
 					{/if}
 				</div>

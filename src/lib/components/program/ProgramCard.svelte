@@ -44,7 +44,9 @@
 					</span>
 				{/if}
 			</div>
-			<p class="hidden sm:block text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
+			{#if !program.isPaused && program.description}
+				<p class="hidden sm:block text-sm text-secondary line-clamp-1 mt-0.5">{program.description}</p>
+			{/if}
 
 			<!-- Meta info -->
 			<div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs text-muted">

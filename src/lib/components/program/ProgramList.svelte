@@ -11,6 +11,16 @@
 	}
 
 	let { programs }: Props = $props();
+
+	const sortedPrograms = $derived.by(() => {
+		return programs
+			.map((program, index) => ({ program, index }))
+			.sort((a, b) => {
+				if (a.program.isPaused === b.program.isPaused) return a.index - b.index;
+				return a.program.isPaused ? 1 : -1;
+			})
+			.map(({ program }) => program);
+	});
 </script>
 
 <div class="space-y-6 animate-slideUp">
@@ -52,7 +62,7 @@
 	{:else}
 		<!-- Program list with staggered animation -->
 		<div class="space-y-3">
-			{#each programs as program, index (program.id)}
+			{#each sortedPrograms as program, index (program.id)}
 				<div class="animate-slideUp" style="animation-delay: {index * 50}ms">
 					<ProgramCard {program} />
 				</div>
