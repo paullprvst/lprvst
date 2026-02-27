@@ -20,7 +20,7 @@
 	import MuscleHeatmap from '$lib/components/visualization/MuscleHeatmap.svelte';
 	import { formatDate, DAY_NAMES } from '$lib/utils/date-helpers';
 	import { getSessionDurationMinutes } from '$lib/utils/formatters';
-	import { ArrowLeft, Calendar, Trash2, Sparkles, Save, X, Download, Pause, Play } from 'lucide-svelte';
+	import { ArrowLeft, BarChart3, Trash2, Sparkles, Save, X, Download, Pause, Play } from 'lucide-svelte';
 	import { exportProgramToPdf } from '$lib/utils/pdf-export';
 
 	let program = $state<Program | null>(null);
@@ -231,10 +231,10 @@
 			<div class="space-y-3">
 				<p class="text-[11px] font-semibold tracking-[0.08em] uppercase text-muted">Quick Actions</p>
 				<div class="grid grid-cols-2 gap-2.5">
-					<Button onclick={() => goto('/calendar')} fullWidth={true} size="md">
+					<Button onclick={() => goto(`/programs/${program!.id}/performance`)} fullWidth={true} size="md">
 						{#snippet children()}
-							<Calendar size={18} class="hidden sm:block" />
-							View Calendar
+							<BarChart3 size={18} class="hidden sm:block" />
+							Performance
 						{/snippet}
 					</Button>
 
