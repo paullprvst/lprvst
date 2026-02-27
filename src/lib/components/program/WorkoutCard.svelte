@@ -351,33 +351,35 @@
 						<div class="space-y-1">
 							{#each section.exercises as exercise}
 								{@const lastPerf = formatLastPerformance(exercise.id)}
-								<div class="flex items-center gap-1.5 py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft min-w-0">
-									<span class="text-sm text-primary truncate flex-1 min-w-0">{exercise.name}</span>
-									<ExerciseInfoButton
-										exerciseName={exercise.name}
-										equipment={exercise.equipment}
-										notes={exercise.notes}
-										size={12}
-									/>
-									<a
-										href={getExerciseHistoryHref(exercise.id)}
-										class="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted hover:text-brand hover:bg-brand-soft transition-colors"
-										aria-label={`Open history for ${exercise.name}`}
-										title="Exercise history"
-									>
-										<History size={12} />
-									</a>
-									<div class="flex items-center gap-1.5 flex-shrink-0 text-xs whitespace-nowrap">
-										{#if lastPerf}
-											<span class="text-success">
-												{lastPerf}
+								{@const exerciseDetails = formatExerciseDetails(exercise)}
+								<div class="py-1.5 px-2 -mx-2 rounded-lg hover:bg-border-soft min-w-0">
+									<div class="flex items-center gap-1.5 min-w-0">
+										<span class="text-sm text-primary truncate flex-1 min-w-0">{exercise.name}</span>
+										<ExerciseInfoButton
+											exerciseName={exercise.name}
+											equipment={exercise.equipment}
+											notes={exercise.notes}
+											size={12}
+										/>
+										<a
+											href={getExerciseHistoryHref(exercise.id)}
+											class="inline-flex items-center justify-center h-6 w-6 rounded-md text-muted hover:text-brand hover:bg-brand-soft transition-colors"
+											aria-label={`Open history for ${exercise.name}`}
+											title="Exercise history"
+										>
+											<History size={12} />
+										</a>
+										{#if exerciseDetails}
+											<span class="text-xs text-muted whitespace-nowrap">
+												{exerciseDetails}
 											</span>
-											<span class="text-[rgb(var(--color-border))]">·</span>
 										{/if}
-										<span class="text-muted">
-											{formatExerciseDetails(exercise)}
-										</span>
 									</div>
+									{#if lastPerf}
+										<p class="mt-0.5 text-xs text-success truncate">
+											Last: {lastPerf}
+										</p>
+									{/if}
 								</div>
 							{/each}
 						</div>
