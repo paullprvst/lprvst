@@ -66,9 +66,28 @@ class WorkoutStore {
 		return this.session.exercises.find(e => e.exerciseId === this.currentExercise!.id);
 	}
 
+	private getCurrentExerciseCompletionRatio(): number {
+		const currentLog = this.currentExerciseLog;
+		if (!currentLog || currentLog.sets.length === 0) return 0;
+
+		const completedSets = currentLog.sets.filter((set) => set.completed).length;
+		return Math.min(1, completedSets / currentLog.sets.length);
+	}
+
+	get completedExerciseProgress() {
+		if (!this.workout || this.workout.exercises.length === 0) return 0;
+		return (this.currentExerciseIndex / this.workout.exercises.length) * 100;
+	}
+
+	get currentExerciseProgress() {
+		if (!this.workout || this.workout.exercises.length === 0) return 0;
+		return (this.getCurrentExerciseCompletionRatio() / this.workout.exercises.length) * 100;
+	}
+
 	get progress() {
-		if (!this.workout) return 0;
-		return Math.round((this.currentExerciseIndex / this.workout.exercises.length) * 100);
+		if (!this.workout || this.workout.exercises.length === 0) return 0;
+		const overallProgress = this.completedExerciseProgress + this.currentExerciseProgress;
+		return Math.round(Math.min(100, overallProgress));
 	}
 
 	get isLastExercise() {

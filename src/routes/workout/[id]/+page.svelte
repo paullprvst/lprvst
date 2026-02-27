@@ -21,6 +21,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import Modal from '$lib/components/shared/Modal.svelte';
 	import AlertBanner from '$lib/components/shared/AlertBanner.svelte';
+	import ExerciseInfoButton from '$lib/components/shared/ExerciseInfoButton.svelte';
 	import { X, CheckCircle, Trophy, Clock, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
 
@@ -37,6 +38,7 @@
 	let notesDraft = $state('');
 	let notesSaving = $state(false);
 	let notesError = $state('');
+	let showCompletedExercises = $state(false);
 
 	const NOTE_MAX_LENGTH = 500;
 
@@ -98,6 +100,16 @@
 		}
 		return `${exercise.sets} × ${exercise.reps || '?'} reps`;
 	}
+
+	const hiddenCompletedExerciseCount = $derived(() => {
+		if (!workoutStore.workout) return 0;
+
+		return workoutStore.workout.exercises.reduce((count, _exercise, index) => {
+			const isCurrent = index === workoutStore.currentExerciseIndex;
+			if (isCurrent) return count;
+			return isExerciseCompleted(index) ? count + 1 : count;
+		}, 0);
+	});
 
 	function buildWorkoutFromSession(session: WorkoutSession): Workout {
 		return {
@@ -297,10 +309,14 @@
 				</span>
 				<span>{workoutStore.progress}% complete</span>
 			</div>
-			<div class="w-full surface-elevated rounded-full h-1.5 overflow-hidden">
+			<div class="w-full surface-elevated rounded-full h-1.5 overflow-hidden relative">
 				<div
 					class="bg-[rgb(var(--color-primary))] h-full transition-all duration-300 ease-out"
-					style="width: {workoutStore.progress}%"
+					style="width: {workoutStore.completedExerciseProgress}%"
+				></div>
+				<div
+					class="absolute top-0 h-full bg-[rgb(var(--color-warning))] transition-all duration-300 ease-out"
+					style="left: {workoutStore.completedExerciseProgress}%; width: {workoutStore.currentExerciseProgress}%"
 				></div>
 			</div>
 		</div>
@@ -339,39 +355,62 @@
 
 		<!-- Session Plan -->
 		<div class="rounded-xl border border-theme surface-elevated p-3 space-y-2.5">
-			<div class="flex items-center gap-2 text-sm font-medium text-secondary px-1">
-				<Dumbbell size={16} />
-				<span>Session Plan</span>
+			<div class="flex items-center justify-between gap-2 text-sm font-medium text-secondary px-1">
+				<div class="flex items-center gap-2">
+					<Dumbbell size={16} />
+					<span>Session Plan</span>
+				</div>
+				{#if hiddenCompletedExerciseCount() > 0 || showCompletedExercises}
+					<button
+						type="button"
+						onclick={() => (showCompletedExercises = !showCompletedExercises)}
+						class="text-xs font-medium px-2.5 py-1 rounded-md bg-border-soft text-secondary hover:text-primary transition-colors"
+					>
+						{showCompletedExercises
+							? 'Hide completed'
+							: `Show completed (${hiddenCompletedExerciseCount()})`}
+					</button>
+				{/if}
 			</div>
 			<div class="space-y-2">
 				{#each workoutStore.workout.exercises as exercise, index}
 					{@const isCurrent = index === workoutStore.currentExerciseIndex}
 					{@const isCompleted = isExerciseCompleted(index)}
-					<div
-						class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
-					>
-						<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
-							{isCompleted ? 'bg-success-soft text-success' : isCurrent ? 'bg-brand-soft text-brand' : 'bg-border-soft text-muted'}">
-							{#if isCompleted}
-								<CheckCircle size={14} />
-							{:else}
-								{index + 1}
-							{/if}
-						</div>
-						<div class="flex-1 min-w-0">
-							<div class="text-sm font-medium text-primary truncate {isCompleted ? 'line-through opacity-60' : ''}">
-								{exercise.name}
+					{#if showCompletedExercises || !isCompleted || isCurrent}
+						<div
+							class="flex items-center gap-3 p-2 rounded-lg transition-colors {isCurrent ? 'bg-[rgb(var(--color-primary))]/10 border border-[rgb(var(--color-primary))]/30' : ''}"
+						>
+							<div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
+								{isCompleted ? 'bg-success-soft text-success' : isCurrent ? 'bg-brand-soft text-brand' : 'bg-border-soft text-muted'}">
+								{#if isCompleted}
+									<CheckCircle size={14} />
+								{:else}
+									{index + 1}
+								{/if}
 							</div>
-							<div class="text-xs text-muted">
-								{formatExerciseTarget(exercise)}
+							<div class="flex-1 min-w-0">
+								<div class="text-sm font-medium text-primary truncate {isCompleted ? 'line-through opacity-60' : ''}">
+									{exercise.name}
+								</div>
+								<div class="text-xs text-muted">
+									{formatExerciseTarget(exercise)}
+								</div>
+							</div>
+							<div class="flex items-center gap-2">
+								<ExerciseInfoButton
+									exerciseName={exercise.name}
+									equipment={exercise.equipment}
+									notes={exercise.notes}
+									size={16}
+								/>
+								{#if isCurrent}
+									<span class="text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]/10 px-2 py-0.5 rounded-full">
+										Current
+									</span>
+								{/if}
 							</div>
 						</div>
-						{#if isCurrent}
-							<span class="text-xs font-medium text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary))]/10 px-2 py-0.5 rounded-full">
-								Current
-							</span>
-						{/if}
-					</div>
+					{/if}
 				{/each}
 			</div>
 		</div>
