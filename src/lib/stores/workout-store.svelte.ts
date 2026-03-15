@@ -1,26 +1,10 @@
 import type { WorkoutSession, ExerciseLog } from '$lib/types/workout-session';
 import type { Workout } from '$lib/types/program';
 import { workoutSessionRepository } from '$lib/services/storage/workout-session-repository';
+import { getEffectiveExerciseDuration } from '$lib/utils/formatters';
 
 // Default transition time between sets for time-based exercises when no rest is specified
 const DEFAULT_TRANSITION_TIME = 10;
-
-// Parse time duration from reps string (e.g., "2 minutes", "30 seconds", "90 sec")
-function parseTimeDuration(reps?: string): number | null {
-	if (!reps) return null;
-
-	const minuteMatch = reps.match(/(\d+\.?\d*)\s*(minutes?|min|m)\b/i);
-	if (minuteMatch) {
-		return Math.round(parseFloat(minuteMatch[1]) * 60);
-	}
-
-	const secondMatch = reps.match(/(\d+\.?\d*)\s*(seconds?|sec|s)\b/i);
-	if (secondMatch) {
-		return Math.round(parseFloat(secondMatch[1]));
-	}
-
-	return null;
-}
 
 class WorkoutStore {
 	session = $state<WorkoutSession | null>(null);
@@ -116,7 +100,7 @@ class WorkoutStore {
 			const allCompleted = this.currentExerciseLog.sets.every(s => s.completed);
 
 			// Check if this is a time-based exercise
-			const effectiveDuration = this.currentExercise.duration || parseTimeDuration(this.currentExercise.reps);
+			const effectiveDuration = getEffectiveExerciseDuration(this.currentExercise);
 			const isTimeBased = effectiveDuration && effectiveDuration > 0;
 
 			if (allCompleted) {

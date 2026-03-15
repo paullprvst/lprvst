@@ -13,6 +13,7 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { formatDate } from '$lib/utils/date-helpers';
+	import { formatSetPerformance } from '$lib/utils/formatters';
 	import { ArrowLeft, Clock, MessageSquare, CheckCircle, History } from 'lucide-svelte';
 
 	let loading = $state(true);
@@ -63,11 +64,7 @@
 	}
 
 	function getSetSummary(set: SetLog): string {
-		const parts: string[] = [];
-		if (set.reps !== undefined) parts.push(`${set.reps} reps`);
-		if (set.weight !== undefined) parts.push(`${set.weight} kg`);
-		if (set.duration !== undefined) parts.push(`${set.duration}s`);
-		return parts.join(' · ') || (set.completed ? 'Done' : 'Not completed');
+		return formatSetPerformance(set) || (set.completed ? 'Done' : 'Not completed');
 	}
 
 	const totalEntriesWithNotes = $derived(entries.filter((entry) => Boolean(entry.notes?.trim())).length);

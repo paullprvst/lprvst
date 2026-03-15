@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
-	import { formatExercisePerformanceFull } from '$lib/utils/formatters';
+	import { formatExercisePerformanceFull, formatExerciseTarget } from '$lib/utils/formatters';
 	import { Timer, MessageSquare, History } from 'lucide-svelte';
 	import Button from '../shared/Button.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
@@ -173,7 +173,7 @@
 				/>
 			</div>
 			<p class="text-xs text-secondary mt-1">
-				{nextExercise.sets} sets &times; {nextExercise.reps || `${nextExercise.duration}s`}
+				{formatExerciseTarget(nextExercise)}
 			</p>
 				{#if nextExercise.equipment && nextExercise.equipment.length > 0}
 					<div class="flex flex-wrap gap-1 mt-2">

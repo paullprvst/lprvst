@@ -24,6 +24,7 @@
 	import ExerciseInfoButton from '$lib/components/shared/ExerciseInfoButton.svelte';
 	import { X, CheckCircle, Trophy, Clock, Dumbbell, Pause, Trash2 } from 'lucide-svelte';
 	import { formatDuration } from '$lib/utils/date-helpers';
+	import { formatExerciseTarget } from '$lib/utils/formatters';
 
 	let loading = $state(true);
 	let loadError = $state('');
@@ -89,16 +90,6 @@
 		const exerciseLog = workoutStore.session.exercises[exerciseIndex];
 		if (!exerciseLog) return false;
 		return exerciseLog.sets.every(set => set.completed);
-	}
-
-	function formatExerciseTarget(exercise: { sets: number; reps?: string; duration?: number }): string {
-		if (exercise.duration) {
-			const mins = Math.floor(exercise.duration / 60);
-			const secs = exercise.duration % 60;
-			const timeStr = mins > 0 ? `${mins}m${secs > 0 ? ` ${secs}s` : ''}` : `${secs}s`;
-			return `${exercise.sets} × ${timeStr}`;
-		}
-		return `${exercise.sets} × ${exercise.reps || '?'} reps`;
 	}
 
 	const hiddenCompletedExerciseCount = $derived(() => {

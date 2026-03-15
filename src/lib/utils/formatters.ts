@@ -1,10 +1,57 @@
-import type { ExerciseLog, WorkoutSession } from '$lib/types/workout-session';
+import type { Exercise } from '$lib/types/program';
+import type { ExerciseLog, SetLog, WorkoutSession } from '$lib/types/workout-session';
+
+export function parseExerciseDuration(reps?: string): number | undefined {
+	if (!reps) return undefined;
+
+	const minuteMatch = reps.match(/(\d+\.?\d*)\s*(minutes?|min|m)\b/i);
+	if (minuteMatch) {
+		return Math.round(parseFloat(minuteMatch[1]) * 60);
+	}
+
+	const secondMatch = reps.match(/(\d+\.?\d*)\s*(seconds?|sec|s)\b/i);
+	if (secondMatch) {
+		return Math.round(parseFloat(secondMatch[1]));
+	}
+
+	return undefined;
+}
+
+export function getEffectiveExerciseDuration(
+	exercise: Pick<Exercise, 'duration' | 'reps'> | { duration?: number; reps?: string }
+): number | undefined {
+	if (typeof exercise.duration === 'number' && Number.isFinite(exercise.duration) && exercise.duration > 0) {
+		return exercise.duration;
+	}
+
+	return parseExerciseDuration(exercise.reps);
+}
+
+export function formatDurationSeconds(seconds: number): string {
+	if (!Number.isFinite(seconds) || seconds <= 0) return '';
+	if (seconds < 60) {
+		return `${seconds}s`;
+	}
+
+	const mins = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+}
 
 export function formatExerciseReps(reps?: string, duration?: number): string {
-	if (duration) {
-		return `${duration}s`;
+	const effectiveDuration = getEffectiveExerciseDuration({ reps, duration });
+	if (effectiveDuration) {
+		return formatDurationSeconds(effectiveDuration);
 	}
+
 	return reps || '';
+}
+
+export function formatExerciseTarget(
+	exercise: Pick<Exercise, 'sets' | 'reps' | 'duration'> | { sets: number; reps?: string; duration?: number }
+): string {
+	const target = formatExerciseReps(exercise.reps, exercise.duration);
+	return target ? `${exercise.sets} × ${target}` : `${exercise.sets} sets`;
 }
 
 export function formatRestTime(seconds: number): string {
@@ -25,7 +72,7 @@ export function formatWorkoutDuration(minutes: number): string {
 	return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 }
 
-function formatSetPerformance(set: ExerciseLog['sets'][number]): string | null {
+export function formatSetPerformance(set: SetLog): string | null {
 	if (set.reps !== undefined && set.weight !== undefined) {
 		return `${set.reps}x${set.weight}kg`;
 	}
@@ -33,7 +80,7 @@ function formatSetPerformance(set: ExerciseLog['sets'][number]): string | null {
 		return `${set.reps} reps`;
 	}
 	if (set.duration !== undefined) {
-		return `${set.duration}s`;
+		return formatDurationSeconds(set.duration);
 	}
 	if (set.weight !== undefined) {
 		return `${set.weight}kg`;

@@ -3,7 +3,12 @@
 	import type { ExerciseLog } from '$lib/types/workout-session';
 	import Card from '../shared/Card.svelte';
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
-	import { formatWorkoutDuration, resolveWorkoutDurationMinutes } from '$lib/utils/formatters';
+	import {
+		formatExercisePerformanceFull,
+		formatExerciseTarget,
+		formatWorkoutDuration,
+		resolveWorkoutDurationMinutes
+	} from '$lib/utils/formatters';
 	import { Clock, Dumbbell, Flame, Snowflake, Edit2, History } from 'lucide-svelte';
 
 	interface Props {
@@ -36,53 +41,8 @@
 		if (!lastPerformances) return null;
 		const log = lastPerformances.get(exerciseId);
 		if (!log) return null;
-
-		const completedSets = log.sets.filter(s => s.completed);
-		if (completedSets.length === 0) return null;
-
-		const reps = completedSets.map(s => s.reps).filter((r): r is number => r !== undefined);
-		const weights = completedSets.map(s => s.weight).filter((w): w is number => w !== undefined);
-		const durations = completedSets.map(s => s.duration).filter((d): d is number => d !== undefined);
-
-		// Time-based exercise
-		if (durations.length > 0 && reps.length === 0) {
-			const totalDuration = durations.reduce((a, b) => a + b, 0);
-			const mins = Math.floor(totalDuration / 60);
-			const secs = totalDuration % 60;
-			return mins > 0 ? `${completedSets.length}×${mins}m${secs > 0 ? `${secs}s` : ''}` : `${completedSets.length}×${secs}s`;
-		}
-
-		if (reps.length === 0) return `${completedSets.length} sets`;
-
-		const allSameReps = reps.every(r => r === reps[0]);
-		const allSameWeight = weights.length === 0 || weights.every(w => w === weights[0]);
-
-		if (allSameReps && allSameWeight) {
-			const weightStr = weights.length > 0 ? `@${weights[0]}kg` : '';
-			return `${completedSets.length}×${reps[0]}${weightStr}`;
-		}
-
-		// Group sets by reps (and weight if applicable) to show accurate breakdown
-		// e.g., 3x12 + 1x15 instead of misleading 4x15
-		const groups: { reps: number; weight?: number; count: number }[] = [];
-		for (let i = 0; i < completedSets.length; i++) {
-			const setReps = completedSets[i].reps;
-			const setWeight = completedSets[i].weight;
-			if (setReps === undefined) continue;
-
-			const existing = groups.find(g => g.reps === setReps && g.weight === setWeight);
-			if (existing) {
-				existing.count++;
-			} else {
-				groups.push({ reps: setReps, weight: setWeight, count: 1 });
-			}
-		}
-
-		const hasWeights = weights.length > 0;
-		return groups.map(g => {
-			const weightStr = hasWeights && g.weight !== undefined ? `@${g.weight}kg` : '';
-			return `${g.count}×${g.reps}${weightStr}`;
-		}).join(', ');
+		const summary = formatExercisePerformanceFull(log);
+		return summary || null;
 	}
 
 	let expanded = $state(false);
@@ -117,15 +77,7 @@
 	}
 
 	function formatExerciseDetails(exercise: (typeof workout.exercises)[0]): string {
-		if (exercise.sets) {
-			if (exercise.reps) {
-				return `${exercise.sets} × ${exercise.reps}`;
-			} else if (exercise.duration) {
-				return `${exercise.sets} × ${exercise.duration}s`;
-			}
-			return `${exercise.sets} sets`;
-		}
-		return '';
+		return formatExerciseTarget(exercise);
 	}
 
 	function getExerciseHistoryHref(exerciseId: string): string {

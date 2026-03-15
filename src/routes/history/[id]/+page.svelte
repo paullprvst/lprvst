@@ -17,6 +17,7 @@
 	import Input from '$lib/components/shared/Input.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { formatDate, formatDuration } from '$lib/utils/date-helpers';
+	import { formatSetPerformance, getEffectiveExerciseDuration } from '$lib/utils/formatters';
 	import { ArrowLeft, Clock, Check, CheckCircle, X, XCircle, Pencil, History } from 'lucide-svelte';
 
 	let session = $state<WorkoutSession | null>(null);
@@ -25,7 +26,11 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let editingSet = $state<{ exerciseIndex: number; setIndex: number } | null>(null);
-	let editValues = $state<{ reps?: number; weight?: number }>({ reps: undefined, weight: undefined });
+	let editValues = $state<{ reps?: number; weight?: number; duration?: number }>({
+		reps: undefined,
+		weight: undefined,
+		duration: undefined
+	});
 
 	onMount(async () => {
 		const sessionId = $page.params.id;
@@ -87,12 +92,12 @@
 
 	function startEditing(exerciseIndex: number, setIndex: number, set: SetLog) {
 		editingSet = { exerciseIndex, setIndex };
-		editValues = { reps: set.reps, weight: set.weight };
+		editValues = { reps: set.reps, weight: set.weight, duration: set.duration };
 	}
 
 	function cancelEditing() {
 		editingSet = null;
-		editValues = { reps: undefined, weight: undefined };
+		editValues = { reps: undefined, weight: undefined, duration: undefined };
 	}
 
 	async function saveSetEdit() {
@@ -105,7 +110,8 @@
 		session.exercises[exerciseIndex].sets[setIndex] = {
 			...session.exercises[exerciseIndex].sets[setIndex],
 			reps: editValues.reps,
-			weight: editValues.weight
+			weight: editValues.weight,
+			duration: editValues.duration
 		};
 
 		// Persist to database
@@ -115,7 +121,7 @@
 
 		saving = false;
 		editingSet = null;
-		editValues = { reps: undefined, weight: undefined };
+		editValues = { reps: undefined, weight: undefined, duration: undefined };
 	}
 
 </script>
@@ -209,6 +215,7 @@
 							<div class="space-y-2">
 								{#each exerciseLog.sets as set, setIndex}
 									{@const isEditing = editingSet?.exerciseIndex === exerciseIndex && editingSet?.setIndex === setIndex}
+									{@const isTimedExercise = Boolean(exercise && getEffectiveExerciseDuration(exercise))}
 									<div
 										class="flex items-center gap-2 p-2 rounded-xl min-h-[52px] {set.completed
 											? 'bg-success-soft border border-success-soft'
@@ -224,7 +231,7 @@
 
 										{#if isEditing}
 											<!-- Edit mode -->
-											<div class="flex-1 grid grid-cols-2 gap-1.5 min-w-0">
+											<div class="flex-1 grid grid-cols-2 {isTimedExercise ? 'sm:grid-cols-3' : ''} gap-1.5 min-w-0">
 												<Input
 													type="number"
 													bind:value={editValues.reps}
@@ -244,6 +251,17 @@
 													inputClass="h-9 px-2 py-0 text-center text-sm rounded-lg"
 													inputMode="decimal"
 												/>
+												{#if isTimedExercise}
+													<Input
+														type="number"
+														bind:value={editValues.duration}
+														min="0"
+														placeholder="sec"
+														containerClass="w-full"
+														inputClass="h-9 px-2 py-0 text-center text-sm rounded-lg"
+														inputMode="numeric"
+													/>
+												{/if}
 											</div>
 											<div class="flex items-center gap-1">
 												<button
@@ -267,11 +285,7 @@
 										{:else}
 											<!-- View mode -->
 											<div class="flex-1 text-sm text-secondary truncate">
-												{#if set.reps}{set.reps} reps{/if}
-												{#if set.reps && set.weight} @ {/if}
-												{#if set.weight}{set.weight} kg{/if}
-												{#if !set.reps && !set.weight && set.completed}Done{/if}
-												{#if !set.completed}—{/if}
+												{formatSetPerformance(set) || (set.completed ? 'Done' : '—')}
 											</div>
 											{#if set.completed}
 												<button

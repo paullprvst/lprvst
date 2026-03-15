@@ -31,6 +31,18 @@
 		{ value: 'main', label: 'Main' },
 		{ value: 'cooldown', label: 'Cool-down' }
 	];
+
+	function handleRepsInput() {
+		if (exercise.reps?.trim()) {
+			exercise.duration = undefined;
+		}
+	}
+
+	function handleDurationInput() {
+		if (exercise.duration && exercise.duration > 0) {
+			exercise.reps = undefined;
+		}
+	}
 </script>
 
 <Card>
@@ -77,8 +89,8 @@
 			/>
 		</div>
 
-		<!-- Sets & Reps row -->
-		<div class="grid grid-cols-2 gap-3">
+		<!-- Sets & target row -->
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
 			<div>
 				<label for="exercise-sets-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Sets</label>
 				<Input
@@ -91,16 +103,33 @@
 				/>
 			</div>
 			<div>
-				<label for="exercise-reps-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Reps / Duration</label>
+				<label for="exercise-reps-{exercise.id}" class="block text-xs font-medium text-muted mb-1">Reps</label>
 				<Input
 					id="exercise-reps-{exercise.id}"
 					type="text"
 					bind:value={exercise.reps}
-					placeholder="e.g., 8-12 or 30 seconds"
+					placeholder="e.g., 8-12"
+					oninput={handleRepsInput}
+					inputClass="px-3 py-2 rounded-lg text-sm"
+				/>
+			</div>
+			<div>
+				<label for="exercise-duration-{exercise.id}" class="block text-xs font-medium text-muted mb-1"
+					>Duration (sec)</label
+				>
+				<Input
+					id="exercise-duration-{exercise.id}"
+					type="number"
+					bind:value={exercise.duration}
+					min="1"
+					placeholder="e.g., 45"
+					oninput={handleDurationInput}
+					inputMode="numeric"
 					inputClass="px-3 py-2 rounded-lg text-sm"
 				/>
 			</div>
 		</div>
+		<p class="text-xs text-muted -mt-1">Use reps for rep-based work or duration for timed holds.</p>
 
 		<!-- Rest times -->
 		<div class="grid grid-cols-2 gap-3">

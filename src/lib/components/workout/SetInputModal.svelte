@@ -4,6 +4,7 @@
 	import Modal from '../shared/Modal.svelte';
 	import Button from '../shared/Button.svelte';
 	import Input from '../shared/Input.svelte';
+	import { formatExerciseReps, getEffectiveExerciseDuration } from '$lib/utils/formatters';
 	import { Check, Save } from 'lucide-svelte';
 
 	interface Props {
@@ -56,7 +57,7 @@
 		<!-- Target reminder -->
 		<div class="p-3 bg-brand-soft rounded-xl border border-brand-soft">
 			<p class="text-xs font-semibold text-brand uppercase tracking-wide mb-1">Target</p>
-			<p class="text-sm text-primary">{exercise.reps || `${exercise.duration}s`}</p>
+			<p class="text-sm text-primary">{formatExerciseReps(exercise.reps, exercise.duration)}</p>
 		</div>
 
 		<!-- Reps input -->
@@ -87,7 +88,7 @@
 		</div>
 
 		<!-- Duration input (for time-based) -->
-		{#if exercise.duration || (exercise.reps && /\d+\s*(seconds?|sec|s|minutes?|min|m)\b/i.test(exercise.reps))}
+		{#if getEffectiveExerciseDuration(exercise)}
 			<div>
 				<label for="set-duration-input" class="block text-sm font-medium text-secondary mb-2">Duration (seconds)</label>
 				<Input

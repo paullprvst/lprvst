@@ -7,8 +7,10 @@
 	import ExerciseInfoButton from '../shared/ExerciseInfoButton.svelte';
 	import ExerciseTimer from './ExerciseTimer.svelte';
 	import {
+		formatDurationSeconds,
 		formatExercisePerformanceFull,
-		formatExerciseReps,
+		formatExerciseTarget,
+		getEffectiveExerciseDuration,
 		formatRestTime
 	} from '$lib/utils/formatters';
 	import { Check, Flame, Snowflake, Dumbbell, Trophy, MessageSquare } from 'lucide-svelte';
@@ -85,25 +87,7 @@
 	const completedCount = $derived(log.sets.filter((s) => s.completed).length);
 	const nextIncompleteSet = $derived(log.sets.find((s) => !s.completed));
 
-	// Parse time duration from reps string (e.g., "2 minutes", "30 seconds", "90 sec")
-	function parseTimeDuration(reps?: string): number | null {
-		if (!reps) return null;
-
-		const minuteMatch = reps.match(/(\d+\.?\d*)\s*(minutes?|min|m)\b/i);
-		if (minuteMatch) {
-			return Math.round(parseFloat(minuteMatch[1]) * 60);
-		}
-
-		const secondMatch = reps.match(/(\d+\.?\d*)\s*(seconds?|sec|s)\b/i);
-		if (secondMatch) {
-			return Math.round(parseFloat(secondMatch[1]));
-		}
-
-		return null;
-	}
-
-	// Get duration from either the duration field or parsed from reps string
-	const effectiveDuration = $derived(exercise.duration || parseTimeDuration(exercise.reps));
+	const effectiveDuration = $derived(getEffectiveExerciseDuration(exercise));
 	const isTimeBased = $derived(effectiveDuration && effectiveDuration > 0);
 
 	const typeConfig = {
@@ -167,7 +151,7 @@
 			<div class="rounded-lg border border-brand-soft bg-brand-soft px-3 py-2.5">
 				<p class="text-[11px] font-bold uppercase tracking-wide text-brand mb-1">Target</p>
 				<p class="text-sm font-semibold text-primary">
-					{exercise.sets} sets x {formatExerciseReps(exercise.reps, exercise.duration)}
+					{formatExerciseTarget(exercise)}
 				</p>
 				<p class="text-xs text-secondary mt-1">
 					{formatRestTime(exercise.restBetweenSets)} between sets
@@ -201,7 +185,7 @@
 				duration={effectiveDuration}
 				setNumber={nextIncompleteSet.setNumber}
 				totalSets={exercise.sets}
-				onsetcomplete={() => onsetcomplete(nextIncompleteSet.setNumber)}
+				onsetcomplete={(duration) => onsetcomplete(nextIncompleteSet.setNumber, { duration })}
 				onskip={() => onsetcomplete(nextIncompleteSet.setNumber)}
 				autoStart={nextIncompleteSet.setNumber > 1 && exercise.restBetweenSets === 0}
 			/>
@@ -236,7 +220,11 @@
 											{#if set.reps}{set.reps} reps{/if}
 											{#if set.reps && set.weight} @ {/if}
 											{#if set.weight}{set.weight} kg{/if}
-											{#if !set.reps && !set.weight}Done{/if}
+											{#if (set.reps !== undefined || set.weight !== undefined) && set.duration !== undefined}
+												&nbsp;•&nbsp;
+											{/if}
+											{#if set.duration !== undefined}{formatDurationSeconds(set.duration)}{/if}
+											{#if !set.reps && !set.weight && set.duration === undefined}Done{/if}
 										</span>
 									</p>
 								</div>

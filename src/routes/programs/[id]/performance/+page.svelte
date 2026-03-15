@@ -14,6 +14,7 @@
 	import Button from '$lib/components/shared/Button.svelte';
 	import LoadingSpinner from '$lib/components/shared/LoadingSpinner.svelte';
 	import { DAY_NAMES, formatDate } from '$lib/utils/date-helpers';
+	import { formatDurationSeconds } from '$lib/utils/formatters';
 	import { ArrowLeft, BarChart3 } from 'lucide-svelte';
 
 	interface WeeklyExerciseEntry {
@@ -193,7 +194,7 @@
 			return `@${formatNumber(weight)}`;
 		}
 		if (set.duration !== undefined) {
-			return `${set.duration}s`;
+			return formatDurationSeconds(set.duration);
 		}
 
 		return 'set';

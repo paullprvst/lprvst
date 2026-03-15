@@ -8,7 +8,7 @@
 		duration: number;
 		setNumber: number;
 		totalSets: number;
-		onsetcomplete: () => void;
+		onsetcomplete: (loggedDuration: number) => void;
 		onskip: () => void;
 		autoStart?: boolean;
 	}
@@ -23,6 +23,11 @@
 	let isComplete = $state(false);
 	let playedHalfway = $state(false);
 	let playedCountdown = $state<Set<number>>(new Set());
+
+	function getElapsedSeconds(): number {
+		if (!isRunning) return 0;
+		return Math.min(duration, Math.max(1, Math.ceil((Date.now() - startTime) / 1000)));
+	}
 
 	// Circle properties
 	const radius = 90;
@@ -98,15 +103,28 @@
 
 			if (remaining === 0 && !isComplete) {
 				isComplete = true;
+				isRunning = false;
 				if (intervalId) clearInterval(intervalId);
+				intervalId = null;
 				playCompleteBeep();
-				onsetcomplete();
+				onsetcomplete(duration);
 			}
 		}, 100);
 	}
 
+	function stopAndLog() {
+		if (!isRunning) return;
+		const elapsedSeconds = getElapsedSeconds();
+		if (intervalId) clearInterval(intervalId);
+		isRunning = false;
+		intervalId = null;
+		onsetcomplete(elapsedSeconds);
+	}
+
 	function skip() {
 		if (intervalId) clearInterval(intervalId);
+		isRunning = false;
+		intervalId = null;
 		onskip();
 	}
 
@@ -124,6 +142,7 @@
 
 	const progress = $derived(isRunning ? (remaining / duration) * 100 : 100);
 	const strokeDashoffset = $derived(circumference - (progress / 100) * circumference);
+	const elapsed = $derived(isRunning ? duration - remaining : 0);
 
 	// Color changes as timer progresses
 	const timerColor = $derived(() => {
@@ -204,10 +223,16 @@
 					Start Set
 				{/snippet}
 			</Button>
+		{:else}
+			<Button onclick={stopAndLog} fullWidth={true}>
+				{#snippet children()}
+					Complete at {formatDuration(Math.max(1, elapsed))}
+				{/snippet}
+			</Button>
 		{/if}
 			<Button onclick={skip} variant="ghost" fullWidth={true}>
 				{#snippet children()}
-					Skip Set
+					{isRunning ? 'Complete without logging' : 'Complete without timer'}
 				{/snippet}
 			</Button>
 	</div>
