@@ -27,6 +27,7 @@
 	let loading = $state(true);
 	let saving = $state(false);
 	let togglingPause = $state(false);
+	let exportingPdf = $state(false);
 	let lastPerformances = $state<Map<string, ExerciseLog>>(new Map());
 	let lastWorkoutDurations = $state<Map<string, number>>(new Map());
 
@@ -174,6 +175,18 @@
 		}
 	}
 
+	async function handleExportPdf() {
+		if (!program || exportingPdf) return;
+		exportingPdf = true;
+		try {
+			await exportProgramToPdf(program);
+		} catch (error) {
+			console.warn('Failed to export program PDF:', error);
+		} finally {
+			exportingPdf = false;
+		}
+	}
+
 	// Workouts sorted by day of week
 	const sortedSchedule = $derived.by(() => {
 		const currentProgram = program;
@@ -257,7 +270,15 @@
 						{/snippet}
 					</Button>
 
-					<Button onclick={() => exportProgramToPdf(program!)} fullWidth={true} size="md" variant="ghost">
+					<Button
+						onclick={handleExportPdf}
+						fullWidth={true}
+						size="md"
+						variant="ghost"
+						loading={exportingPdf}
+						loadingLabel="Exporting..."
+						disabled={exportingPdf}
+					>
 						{#snippet children()}
 							<Download size={18} class="hidden sm:block" />
 							Export PDF

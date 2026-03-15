@@ -41,6 +41,7 @@
 	let weeklyExercises = $state<WeeklyExerciseEntry[]>([]);
 	let performanceByExerciseId = $state<Map<string, ExercisePerformanceRecord[]>>(new Map());
 	let performanceByExerciseName = $state<Map<string, ExercisePerformanceRecord[]>>(new Map());
+	const currentDayOfWeek = getMondayBasedDayOfWeek(new Date());
 
 	onMount(async () => {
 		const programId = $page.params.id;
@@ -275,13 +276,29 @@
 				{#each weeklyExercises as exercise, index}
 					{@const showDaySeparator =
 						index === 0 || weeklyExercises[index - 1].dayOfWeek !== exercise.dayOfWeek}
-					{#if showDaySeparator}
-						<div class="flex items-center gap-3 py-1">
-							<div class="h-px flex-1 bg-border-soft"></div>
-							<p class="text-xs font-semibold uppercase tracking-[0.08em] text-muted">{exercise.dayName}</p>
-							<div class="h-px flex-1 bg-border-soft"></div>
-						</div>
-					{/if}
+					{@const isCurrentScheduleDay = exercise.dayOfWeek === currentDayOfWeek}
+						{#if showDaySeparator}
+							<div class="flex items-center gap-3 py-1.5">
+								<div class="h-px flex-1 {isCurrentScheduleDay ? 'bg-[rgb(var(--color-primary)/0.45)]' : 'bg-[rgb(var(--color-primary)/0.2)]'}"></div>
+								<div
+									class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 {isCurrentScheduleDay
+										? 'border-brand-soft bg-brand-soft shadow-[var(--shadow-cyan)]'
+										: 'border-[rgb(var(--color-primary)/0.24)] bg-[rgb(var(--color-primary)/0.08)]'}"
+								>
+									<p class="text-[11px] font-bold uppercase tracking-[0.14em] text-brand">
+										{exercise.dayName}
+									</p>
+									{#if isCurrentScheduleDay}
+										<span
+											class="rounded-full bg-[rgb(var(--color-primary)/0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-brand"
+									>
+										Today
+										</span>
+									{/if}
+								</div>
+								<div class="h-px flex-1 {isCurrentScheduleDay ? 'bg-[rgb(var(--color-primary)/0.45)]' : 'bg-[rgb(var(--color-primary)/0.2)]'}"></div>
+							</div>
+						{/if}
 					{@const history = getPerformanceHistory(exercise)}
 					<Card>
 						<div class="space-y-3">
